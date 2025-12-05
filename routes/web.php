@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\Provinces;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
@@ -29,4 +30,6 @@ Route::middleware(['auth'])->group(function () {
             ),
         )
         ->name('two-factor.show');
-});
+
+        Route::get('/admin/provinces', Provinces::class)->name('provinces');
+    });
