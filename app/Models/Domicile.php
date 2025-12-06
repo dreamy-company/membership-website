@@ -20,4 +20,9 @@ class Domicile extends Model
     {
         return $this->belongsTo(Province::class);
     }
+
+    public function members()
+    {
+        return $this->hasMany(Member::class);
+    }
 }
