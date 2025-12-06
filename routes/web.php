@@ -8,6 +8,7 @@ use App\Livewire\Admin\Businesses\Index as BusinessIndex;
 use App\Livewire\Admin\Domicilies\Index as DomicileIndex;
 use App\Livewire\Admin\Members\Index as MemberIndex;
 use App\Livewire\Admin\BusinessesUsers\Index as BusinessesUsersIndex;
+use App\Livewire\Admin\Bonuses\Index as BonusesIndex;
 
 Route::get('/', function () {
     return view('welcome');
@@ -41,5 +42,6 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/domicilies', DomicileIndex::class)->name('domicilies');
             Route::get('/members', MemberIndex::class)->name('members');
             Route::get('/businesses-users', BusinessesUsersIndex::class)->name('businesses.users');
+            Route::get('/bonuses', BonusesIndex::class)->name('bonuses');
         });
     });

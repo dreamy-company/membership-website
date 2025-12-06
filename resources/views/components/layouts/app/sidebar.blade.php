@@ -19,6 +19,7 @@
                     <flux:navlist.item icon="home" :href="route('admin.domicilies')" :current="request()->routeIs('admin.domicilies')" wire:navigate>{{ __('Domicilies') }}</flux:navlist.item>
                     <flux:navlist.item icon="home" :href="route('admin.members')" :current="request()->routeIs('admin.members')" wire:navigate>{{ __('Members') }}</flux:navlist.item>
                     <flux:navlist.item icon="home" :href="route('admin.businesses.users')" :current="request()->routeIs('admin.businesses.users')" wire:navigate>{{ __('Businesses Users') }}</flux:navlist.item>
+                    <flux:navlist.item icon="home" :href="route('admin.bonuses')" :current="request()->routeIs('admin.bonuses')" wire:navigate>{{ __('Bonuses') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
