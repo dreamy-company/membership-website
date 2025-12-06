@@ -5,6 +5,7 @@ use Laravel\Fortify\Features;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Admin\Province\Index as ProvinceIndex;
 use App\Livewire\Admin\Businesses\Index as BusinessIndex;
+use App\Livewire\Admin\Domicilies\Index as DomicileIndex;
 
 Route::get('/', function () {
     return view('welcome');
@@ -35,5 +36,6 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/provinces', ProvinceIndex::class)->name('provinces');
             Route::get('/businesses', BusinessIndex::class)->name('businesses');
+            Route::get('/domicilies', DomicileIndex::class)->name('domicilies');
         });
     });
