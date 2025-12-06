@@ -1,9 +1,7 @@
 <?php
 
 use Livewire\Volt\Volt;
-use App\Models\Province;
 use Laravel\Fortify\Features;
-use App\Livewire\Admin\Provinces;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Admin\Province\Index as ProvinceIndex;
 
@@ -33,5 +31,7 @@ Route::middleware(['auth'])->group(function () {
         )
         ->name('two-factor.show');
 
-        Route::get('/admin/provinces', ProvinceIndex::class)->name('provinces');
+        Route::prefix('admin')->name('admin.')->group(function () {
+            Route::get('/provinces', ProvinceIndex::class)->name('provinces');
+        });
     });

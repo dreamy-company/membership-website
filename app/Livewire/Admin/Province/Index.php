@@ -2,59 +2,55 @@
 
 namespace App\Livewire\Admin\Province;
 
+
 use Livewire\Component;
-use App\Models\Province;
 use Livewire\WithPagination;
+use App\Models\Province;
 
 class Index extends Component
 {
     use WithPagination;
-    public $title = 'Provinces';
+
     public $search = '';
-    public $perPage = 10; // Default pagination
-    public $name, $province_id;
+    public $name;
+    public $province_id;
     public $isOpen = false;
     public $confirmingDelete;
+    public $perPage = 10;
+    public $title = "Provinsi";
 
-    public function updatingPerPage()
+    protected $queryString = ['search' => ['except' => '']];
+    protected $paginationTheme = 'tailwind';
+
+    public function updatingSearch()
     {
-        $this->resetPage(); // reset to page 1 whenever per page count is changed
+        $this->resetPage();
     }
-
-    protected $queryString = [
-        'search' => ['except' => '']
-    ];
-
-    public function getProvinces()
-    {
-        return Province::when($this->search, function ($q) {
-            $q->where('name', 'like', '%' . $this->search . '%');
-        })->paginate($this->perPage);
-    }
-
 
     public function render()
     {
-        return view('livewire.admin.province.index',[
-            'title' => $this->title,
-            'provinces' => $this->getProvinces(),
-        ]);
-    }
+        $provinces = Province::when($this->search, fn($q) => $q->where('name', 'like', '%' . $this->search . '%'))
+            ->latest()
+            ->paginate($this->perPage);
 
+        return view('livewire.admin.province.index', compact('provinces'));
+    }
 
     public function openModal($id = null)
     {
         $this->resetInput();
-        if($id) {
+        if ($id) {
             $province = Province::findOrFail($id);
             $this->province_id = $province->id;
             $this->name = $province->name;
         }
         $this->isOpen = true;
+        
     }
 
     public function closeModal()
     {
+       
         $this->isOpen = false;
     }
 
@@ -66,22 +62,17 @@ class Index extends Component
 
     public function store()
     {
-        $this->validate([
-            'name' => 'required|string|unique:provinces,name,' . $this->province_id,
-        ]);
+        $this->validate(['name' => 'required|string|unique:provinces,name,' . $this->province_id]);
 
-        Province::updateOrCreate(
-            ['id' => $this->province_id],
-            ['name' => $this->name]
-        );
+        Province::updateOrCreate(['id' => $this->province_id], ['name' => $this->name]);
 
-        
         $this->closeModal();
         $this->resetInput();
-        $this->dispatch('swal:success', [
+
+        $this->dispatch('success', [
             'type' => 'success',
-            'message' => $this->province_id ? 'Provinsi berhasil diupdate!' : 'Provinsi berhasil ditambahkan!'
-     ]);
+            'message' => $this->province_id ? 'Provinsi berhasil diupdate!' : 'Provinsi berhasil ditambahkan!',
+        ]);
     }
 
     public function confirmDelete($id)
@@ -92,11 +83,11 @@ class Index extends Component
 
     public function delete()
     {
-        Province::find($this->confirmingDelete)->delete();
-   
-         $this->dispatch('swal:success', [
+        Province::findOrFail($this->confirmingDelete)->delete();
+
+        $this->dispatch('success', [
             'type' => 'success',
-            'message' => 'Provinsi berhasil dihapus!'
+            'message' => 'Provinsi berhasil dihapus!',
         ]);
     }
 }
