@@ -94,7 +94,7 @@ class DatabaseSeeder extends Seeder
         }
 
         foreach ($memberIds as $mid) {
-            DB::table('bonus')->insert([
+            DB::table('bonuses')->insert([
                 'member_id' => $mid,
                 'balance' => rand(0, 500000),
                 'created_at' => now(),
@@ -116,6 +116,16 @@ class DatabaseSeeder extends Seeder
                 'hpp' => $hpp,
                 'balance' => $amount - $hpp,
                 'bonus' => $bonus,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+          foreach ($memberIds as $mid) {
+            DB::table('withdrawals')->insert([
+                'member_id' => $mid,
+                'withdrawal_amount' => rand(0, 500000),
+                'payment_receipt' => $faker->date(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
