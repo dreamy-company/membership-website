@@ -2,28 +2,23 @@
 
 namespace App\Livewire\Admin\Province;
 
-use App\Models\Province;
 use Livewire\Component;
+use App\Models\Province;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use \Livewire\WithPagination;
+    use WithPagination;
     public $title = 'Provinces';
     public $search = '';
-    public $page = 1;
-    public $totalPages = 10;
     public $perPage = 10; // Default pagination
     public $name, $province_id;
     public $isOpen = false;
+    public $confirmingDelete;
 
     public function updatingPerPage()
     {
         $this->resetPage(); // reset to page 1 whenever per page count is changed
-    }
-
-    public function gotoPage($num)
-    {
-        $this->page = $num;
     }
 
     protected $queryString = [
@@ -80,14 +75,28 @@ class Index extends Component
             ['name' => $this->name]
         );
 
-        session()->flash('message', $this->province_id ? 'Province updated.' : 'Province created.');
+        
         $this->closeModal();
         $this->resetInput();
+        $this->dispatch('swal:success', [
+            'type' => 'success',
+            'message' => $this->province_id ? 'Provinsi berhasil diupdate!' : 'Provinsi berhasil ditambahkan!'
+     ]);
     }
 
-    public function delete($id)
+    public function confirmDelete($id)
     {
-        Province::find($id)->delete();
-        session()->flash('message', 'Province deleted.');
+        $this->confirmingDelete = $id;
+        $this->dispatch('show-delete-confirmation');
+    }
+
+    public function delete()
+    {
+        Province::find($this->confirmingDelete)->delete();
+   
+         $this->dispatch('swal:success', [
+            'type' => 'success',
+            'message' => 'Provinsi berhasil dihapus!'
+        ]);
     }
 }

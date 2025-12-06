@@ -48,7 +48,7 @@
                             </td>
                             <td class="px-6 py-4">
                                 <x-widget.button color="neutral" name="Edit" action="openModal({{ $item->id }})" />
-                                <x-widget.button color="danger" name="Delete" action="delete({{ $item->id }})" />
+                                <x-widget.button color="danger" name="Delete" action="confirmDelete({{ $item->id }})" />
                             </td>
                             
                         </tr>
@@ -120,11 +120,36 @@
         </div>
     </div>
     @endif
-
-
-
    
+    <script>
+        window.addEventListener('swal:success', function (event) {
+            Swal.fire({
+                toast: true,
+                icon: event.detail[0].type,
+                title: event.detail[0].message,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000,
+                timerProgressBar: true,
+            });
+        });
 
+        window.addEventListener('show-delete-confirmation', event => {
+            Swal.fire({
+                title: 'Yakin hapus?',
+                text: "Data tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#aaa',
+                confirmButtonText: 'Ya, hapus!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('delete')
+                }
+            });
+        });
+    </script>
 
 
 </div>
