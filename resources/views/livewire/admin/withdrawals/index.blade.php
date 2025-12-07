@@ -75,44 +75,17 @@
                     </x-modal.select>
                 </div>
                 <div class="col-span-2">
-                    <x-modal.input name="withdrawal_amount" label="Withdrawal Amount" type="number" />
+                    <x-modal.input name="withdrawal_amount" label="Withdrawal Amount" type="number" placeholder="Contoh: 100000" />
                 </div>        
                 <div class="col-span-2">
-                    <x-modal.input name="payment_receipt" label="Payment Receipt" type="date" />
+                    <x-modal.input name="payment_receipt" label="Payment Receipt" type="date" placeholder="Contoh: 2024-06-01" />
                 </div>
             </div>
         </x-modal.form-modal>
     @endif
    
-    <script>
-        window.addEventListener('success', function (event) {
-            Swal.fire({
-                toast: true,
-                icon: event.detail[0].type,
-                title: event.detail[0].message,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2000,
-                timerProgressBar: true,
-            });
-        });
-
-        window.addEventListener('show-delete-confirmation', event => {
-            Swal.fire({
-                title: 'Yakin hapus?',
-                text: "Data tidak bisa dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#aaa',
-                confirmButtonText: 'Ya, hapus!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    @this.call('delete')
-                }
-            });
-        });
-    </script>
+    <x-alerts.success/>
+    <x-alerts.delete-confirmation/>
 
 
 </div>

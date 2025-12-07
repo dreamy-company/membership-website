@@ -129,35 +129,8 @@
         </x-modal.form-modal>
     @endif
    
-    <script>
-        window.addEventListener('success', function (event) {
-            Swal.fire({
-                toast: true,
-                icon: event.detail[0].type,
-                title: event.detail[0].message,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2000,
-                timerProgressBar: true,
-            });
-        });
-
-        window.addEventListener('show-delete-confirmation', event => {
-            Swal.fire({
-                title: 'Yakin hapus?',
-                text: "Data tidak bisa dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#aaa',
-                confirmButtonText: 'Ya, hapus!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    @this.call('delete')
-                }
-            });
-        });
-    </script>
+    <x-alerts.success/>
+    <x-alerts.delete-confirmation/>
 
 
 </div>
