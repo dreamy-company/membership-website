@@ -21,6 +21,7 @@
                     <flux:navlist.item icon="home" :href="route('admin.businesses.users')" :current="request()->routeIs('admin.businesses.users')" wire:navigate>{{ __('Businesses Users') }}</flux:navlist.item>
                     <flux:navlist.item icon="home" :href="route('admin.bonuses')" :current="request()->routeIs('admin.bonuses')" wire:navigate>{{ __('Bonuses') }}</flux:navlist.item>
                     <flux:navlist.item icon="home" :href="route('admin.transactions')" :current="request()->routeIs('admin.transactions')" wire:navigate>{{ __('Transactions') }}</flux:navlist.item>
+                    <flux:navlist.item icon="home" :href="route('admin.withdrawals')" :current="request()->routeIs('admin.withdrawals')" wire:navigate>{{ __('Withdrawals') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
