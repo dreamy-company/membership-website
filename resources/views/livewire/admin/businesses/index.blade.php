@@ -68,40 +68,13 @@
        <x-modal.form-modal :formTitle="$business_id ? 'Edit Business' : 'Add Business'"  action="store()" >
            <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
                 <div class="col-span-2">
-                    <label for="name" class="block mb-2.5 text-sm font-medium text-heading">Name</label>
-                    <input 
-                        type="text" 
-                        wire:model.defer="name"
-                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-md focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" 
-                        placeholder="Contoh: Bali"
-                    >
-                    @error('name')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <x-modal.input label="Name" type="text" name="name" placeholder="Contoh: Toko Sumber Rejeki" />
                 </div>
                 <div class="col-span-2">
-                    <label for="address" class="block mb-2.5 text-sm font-medium text-heading">Address</label>
-                    <input 
-                        type="text" 
-                        wire:model.defer="address"
-                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-md focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" 
-                        placeholder="Contoh: Jalan Sudirman No. 123"
-                    >
-                    @error('address')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <x-modal.input label="Address" type="text" name="address" placeholder="Contoh: Jalan Sudirman No. 123" />
                 </div>
                 <div class="col-span-2">
-                    <label for="phone" class="block mb-2.5 text-sm font-medium text-heading">Phone</label>
-                    <input 
-                        type="number" 
-                        wire:model.defer="phone"
-                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-md focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" 
-                        placeholder="Contoh: 08123456789"
-                    >
-                    @error('phone')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <x-modal.input label="Phone" type="number" name="phone" placeholder="Contoh: 08123456789" />
                 </div>
             </div>
         </x-modal.form-modal>

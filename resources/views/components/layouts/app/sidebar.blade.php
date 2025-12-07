@@ -15,7 +15,7 @@
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                     <flux:navlist.item icon="home" :href="route('admin.provinces')" :current="request()->routeIs('admin.provinces')" wire:navigate>{{ __('Provinces') }}</flux:navlist.item>
-                    <flux:navlist.item icon="home" :href="route('admin.businesses')" :current="request()->routeIs('admin.businesses')" wire:navigate>{{ __('Businesses') }}</flux:navlist.item>
+                    <flux:navlist.item icon="building-storefront" :href="route('admin.businesses')" :current="request()->routeIs('admin.businesses')" wire:navigate>{{ __('UMKM') }}</flux:navlist.item>
                     <flux:navlist.item icon="home" :href="route('admin.domicilies')" :current="request()->routeIs('admin.domicilies')" wire:navigate>{{ __('Domicilies') }}</flux:navlist.item>
                     <flux:navlist.item icon="home" :href="route('admin.members')" :current="request()->routeIs('admin.members')" wire:navigate>{{ __('Members') }}</flux:navlist.item>
                     <flux:navlist.item icon="home" :href="route('admin.businesses.users')" :current="request()->routeIs('admin.businesses.users')" wire:navigate>{{ __('Businesses Users') }}</flux:navlist.item>
