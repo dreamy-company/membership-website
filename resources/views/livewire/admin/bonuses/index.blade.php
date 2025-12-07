@@ -66,30 +66,16 @@
        <x-modal.form-modal :formTitle="$bonus_id ? 'Edit Bonus' : 'Add Bonus'"  action="store()" >
            <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
                 <div class="col-span-2">
-                    <label class="block mb-2 text-sm font-medium">Member</label>
-                    <select wire:model="member_id" class="w-full border px-3 py-2 rounded-md">
-                        <option value="">Choose a member</option>
+                    <x-modal.select name="member_id" label="Member">
                         @foreach($members as $member)
-                        <option value="{{ $member->id }}">
-                            {{ $member->user->name }}
-                        </option>
+                            <option value="{{ $member->id }}">
+                                {{ $member->user->name }}
+                            </option>
                         @endforeach
-                    </select>
-                    @error('member_id')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    </x-modal.select>
                 </div>
                 <div class="col-span-2">
-                    <label for="balance" class="block mb-2.5 text-sm font-medium text-heading">Balance</label>
-                    <input 
-                        type="number" 
-                        wire:model.defer="balance"
-                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-md focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" 
-                        placeholder="Contoh: 100000"
-                    >
-                    @error('balance')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <x-modal.input name="balance" label="Balance" type="number" placeholder="Contoh: 100000" />
                 </div>
             </div>
         </x-modal.form-modal>
