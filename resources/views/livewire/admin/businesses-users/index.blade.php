@@ -66,32 +66,22 @@
        <x-modal.form-modal :formTitle="$businesses_user_id ? 'Edit Business User' : 'Add Business User'"  action="store()" >
            <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
                 <div class="col-span-2">
-                    <label class="block mb-2 text-sm font-medium">User</label>
-                    <select wire:model="user_id" class="w-full border px-3 py-2 rounded-md">
-                        <option value="">Choose a user</option>
-                        @foreach($users as $user)
-                        <option value="{{ $user->id }}">
-                            {{ $user->name }}
-                        </option>
+                    <x-modal.select name="user_id" label="User" placeholder="Choose a user">
+                        @foreach($users as $item)
+                            <option value="{{ $item->id }}">
+                                {{ $item->name }}
+                            </option>
                         @endforeach
-                    </select>
-                    @error('user_id')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    </x-modal.select>
                 </div>
                 <div class="col-span-2">
-                    <label class="block mb-2 text-sm font-medium">Business</label>
-                    <select wire:model="businesses_id" class="w-full border px-3 py-2 rounded-md">
-                        <option value="">Choose a business</option>
-                        @foreach($businesses as $business)
-                        <option value="{{ $business->id }}" >
-                            {{ $business->name }}
-                        </option>
+                     <x-modal.select name="businesses_id" label="Business" placeholder="Choose a business">
+                        @foreach($businesses as $item)
+                            <option value="{{ $item->id }}">
+                                {{ $item->name }}
+                            </option>
                         @endforeach
-                    </select>
-                    @error('businesses_id')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    </x-modal.select>
                 </div>
             </div>
         </x-modal.form-modal>
