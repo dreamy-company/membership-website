@@ -69,7 +69,6 @@
            <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
                 <div class="col-span-2">
                     <x-modal.select name="member_id" label="Member">
-                        <option value="">-- Select Member --</option>
                         @foreach($members as $member)
                             <option value="{{ $member->id }}">{{ $member->user->name }}</option>
                         @endforeach

@@ -58,29 +58,14 @@
         <x-modal.form-modal :formTitle="$domicile_id ? 'Edit Domicile' : 'Add Domicile'" action="store()" >
            <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
                 <div class="col-span-2">
-                    <label for="name" class="block mb-2.5 text-sm font-medium text-heading">Name</label>
-                    <input 
-                        type="text" 
-                        wire:model.defer="name"
-                        class="bg-neutral-50 border border-default-medium text-heading text-sm rounded-md focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" 
-                        placeholder="Contoh: Bali"
-                    >
-                    @error('name')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <x-modal.input name="name" label="Name" type="text" placeholder="Contoh: Denpasar" />
                 </div>
                 <div class="col-span-2">
-                    <label for="province_id" class="block mb-2.5 text-sm font-medium text-heading">Province</label>
-                    <select id="province_id" class="bg-neutral-50 border border-default-medium text-heading text-sm rounded-md focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" wire:model.defer="province_id"
-                    >
-                        <option selected>Choose a province</option>
-                        @foreach ($provinces as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                        @endforeach  
-                    </select>
-                    @error('province_id')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <x-modal.select name="province_id" label="Province">
+                        @foreach($provinces as $province)
+                            <option value="{{ $province->id }}">{{ $province->name }}</option>
+                        @endforeach
+                    </x-modal.select>
                 </div>
                 
 
