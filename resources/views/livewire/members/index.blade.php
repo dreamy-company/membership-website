@@ -1,30 +1,29 @@
-<x-layouts.app :title="__('Dashboard')">
+<?php
+
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Validation\Rule;
+use Livewire\Volt\Component;
+
+new class extends Component {
+    public string $name = '';
+    public string $email = '';
+
+    /**
+     * Mount the component.
+     */
+    public function mount(): void
+    {
+        $this->name = Auth::user()->name;
+        $this->email = Auth::user()->email;
+    }
+}; ?>
+
+<section class="w-full">
+
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 p-8 flex flex-col justify-center gap-2">
-                <div class="flex gap-2">
-                    <flux:icon.star />
-                    <flux:text size="xl">
-                        Bonus
-                    </flux:text>
-                </div>
-
-                <flux:heading class="mb-1 text-3xl!">Rp. 1.000.000</flux:heading>
-                <flux:button variant="primary">See Detail</flux:button>
-            </div>
-            <div
-                class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 p-8 flex flex-col justify-center gap-2">
-                <div class="flex gap-2">
-                    <flux:icon.banknotes />
-                    <flux:text size="xl">
-                        Total Transactions
-                    </flux:text>
-                </div>
-
-                <flux:heading class="mb-1 text-3xl!">Rp. 100.000.000</flux:heading>
-                <flux:button variant="primary">See Detail</flux:button>
-            </div>
             <div
                 class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 p-8 flex flex-col justify-center gap-2">
                 <div class="flex gap-2">
@@ -35,7 +34,7 @@
                 </div>
 
                 <flux:heading class="mb-1 text-3xl!">20</flux:heading>
-                <flux:button href="{{ route('dashboard.members') }}" variant="primary">See Detail</flux:button>
+                <flux:button href="route" variant="primary">Add Member</flux:button>
             </div>
         </div>
         <div class="relative flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
@@ -120,4 +119,4 @@
 
         </div>
     </div>
-</x-layouts.app>
+</section>
