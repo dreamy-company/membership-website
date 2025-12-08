@@ -1,8 +1,16 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
+use Laravel\Fortify\Features;
+use Illuminate\Support\Facades\Route;
+use App\Livewire\Admin\Province\Index as ProvinceIndex;
+use App\Livewire\Admin\Businesses\Index as BusinessIndex;
+use App\Livewire\Admin\Domicilies\Index as DomicileIndex;
+use App\Livewire\Admin\Members\Index as MemberIndex;
+use App\Livewire\Admin\BusinessesUsers\Index as BusinessesUsersIndex;
+use App\Livewire\Admin\Bonuses\Index as BonusesIndex;
+use App\Livewire\Admin\Transactions\Index as TransactionIndex;
+use App\Livewire\Admin\Withdrawals\Index as WithdrawalIndex;
 
 Route::get('/', function () {
     return view('welcome');
@@ -31,4 +39,15 @@ Route::middleware(['auth'])->group(function () {
             ),
         )
         ->name('two-factor.show');
-});
+
+        Route::prefix('admin')->name('admin.')->group(function () {
+            Route::get('/provinces', ProvinceIndex::class)->name('provinces');
+            Route::get('/businesses', BusinessIndex::class)->name('businesses');
+            Route::get('/domicilies', DomicileIndex::class)->name('domicilies');
+            Route::get('/members', MemberIndex::class)->name('members');
+            Route::get('/businesses-users', BusinessesUsersIndex::class)->name('businesses.users');
+            Route::get('/bonuses', BonusesIndex::class)->name('bonuses');
+            Route::get('/transactions', TransactionIndex::class)->name('transactions');
+            Route::get('/withdrawals', WithdrawalIndex::class)->name('withdrawals');
+        });
+    });
