@@ -29,7 +29,7 @@
                         <x-table.th>No</x-table.th>
                         <x-table.th>Member</x-table.th>
                         <x-table.th>Withdrawal Amount</x-table.th>
-                        <x-table.th>Payment Receipt</x-table.th>
+                        <x-table.th>Date</x-table.th>
                         <x-table.th>Actions</x-table.th>
                     </x-table.tr>
                 </x-table.thead>
@@ -39,8 +39,8 @@
                         <x-table.tr>
                             <x-table.td>{{ $withdrawals->firstItem() + $loop->index }}</x-table.td>
                             <x-table.td>{{ $item->member->user->name }}</x-table.td>
-                            <x-table.td>{{ number_format($item->withdrawal_amount) }}</x-table.td>
-                            <x-table.td>{{ $item->payment_receipt }}</x-table.td>
+                            <x-table.td>{{ number_format($item->amount) }}</x-table.td>
+                            <x-table.td>{{ $item->date }}</x-table.td>
                             <x-table.td>
                                 <x-widget.button color="neutral" name="Edit" action="openModal({{ $item->id }})" />
                                 <x-widget.button color="danger" name="Delete" action="confirmDelete({{ $item->id }})" />
@@ -66,19 +66,63 @@
      <!-- Modal -->
     @if($isOpen)
        <x-modal.form-modal :formTitle="$withdrawal_id ? 'Edit Withdrawal' : 'Add Withdrawal'"  action="store()" >
-           <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
-                <div class="col-span-2">
-                    <x-modal.select name="member_id" label="Member">
-                        @foreach($members as $member)
-                            <option value="{{ $member->id }}">{{ $member->user->name }}</option>
-                        @endforeach
-                    </x-modal.select>
+           <div class="py-4 md:py-6">
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div class="gap-2">
+                        <x-modal.select name="member_id" label="Member">
+                            @foreach($members as $member)
+                                <option value="{{ $member->id }}">{{ $member->user->name }}</option>
+                            @endforeach
+                        </x-modal.select>
+                    </div>
+                    <div class="gap-2">
+                        <x-modal.input name="amount" label="Amount" type="number" placeholder="Contoh: 100000" />
+                    </div>        
                 </div>
-                <div class="col-span-2">
-                    <x-modal.input name="withdrawal_amount" label="Withdrawal Amount" type="number" placeholder="Contoh: 100000" />
-                </div>        
-                <div class="col-span-2">
-                    <x-modal.input name="payment_receipt" label="Payment Receipt" type="date" placeholder="Contoh: 2024-06-01" />
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div class="gap-2">
+                        <x-modal.input name="amount" label="Amount" type="number" placeholder="Contoh: 100000" />
+                    </div>        
+                    <div class="gap-2">
+                        <x-modal.input name="date" label="Date" type="date" placeholder="Contoh: 2024-06-01" />
+                    </div>        
+                </div>
+                <div class="grid grid-cols-1 gap-2 mb-4">
+                    <label class="block mb-2.5 text-sm font-medium text-heading">Payment Receipt</label>
+                    <div 
+                        class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-gray-400 transition"
+                        x-data
+                        @dragover.prevent="dragging=true"
+                        @dragleave.prevent="dragging=false"
+                        @drop.prevent="$refs.fileInput.files = $event.dataTransfer.files; $dispatch('input', $event.dataTransfer.files)"
+                    >
+                        <input 
+                            type="file" 
+                            wire:model="payment_receipt" 
+                            class="hidden" 
+                            x-ref="fileInput"
+                        />
+
+                        {{-- Preview --}}
+                        <div class="mb-2 w-full flex justify-center">
+                            @if ($payment_receipt instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
+                                <img src="{{ $payment_receipt->temporaryUrl() }}" alt="Preview" class="max-h-40 rounded-md border border-gray-300">
+                            @elseif(!empty($old_payment_receipt))
+                                <img src="{{ asset('storage/'.$old_payment_receipt) }}" alt="Old Image" class="max-h-40 rounded-md border border-gray-300">
+                            @endif
+                        </div>
+
+                        <span class="text-gray-500 text-sm">
+                            Drag & drop a file here or click to select
+                        </span>
+                        <button type="button" class="mt-2 px-3 py-1 bg-gray-200 rounded" @click="$refs.fileInput.click()">
+                            Select File
+                        </button>
+
+                        <div wire:loading wire:target="payment_receipt" class="text-gray-500 text-sm mt-2">
+                            Loading preview...
+                        </div>
+                    </div>
                 </div>
             </div>
         </x-modal.form-modal>

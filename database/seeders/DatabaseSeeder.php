@@ -127,7 +127,8 @@ class DatabaseSeeder extends Seeder
             DB::table('withdrawals')->insert([
                 'member_id' => $mid,
                 'amount' => rand(0, 500000),
-                'payment_receipt' => $faker->date(),
+                'date' => $faker->date(),
+                'payment_receipt' => $faker->imageUrl(),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

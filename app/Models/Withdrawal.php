@@ -14,7 +14,7 @@ class Withdrawal extends Model
          if ($term) {
             $term = "%{$term}%";
 
-            $query->where('withdrawal_amount', 'like', $term)
+            $query->where('amount', 'like', $term)
                 ->orWhere('payment_receipt', 'like', $term)
                 ->orWhereHas('member.user', function ($q) use ($term) {
                     $q->where('name', 'like', "%{$term}%");
