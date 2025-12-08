@@ -1,4 +1,14 @@
-<x-layouts.app :title="__('Dashboard')">
+<div>
+
+    {{-- header --}}
+    <div class="p-4 bg-white block sm:flex items-center justify-between lg:mt-1.5">
+        <div class="w-full mb-1">
+            <div class="mb-4">
+                <x-dashboard.breadcrumbs title="Dashboard" />
+                <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">{{ $title }}</h1>
+            </div>
+        </div>
+    </div>
     <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
             <div
@@ -120,4 +130,4 @@
 
         </div>
     </div>
-</x-layouts.app>
+</div>

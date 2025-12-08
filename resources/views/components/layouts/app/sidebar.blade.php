@@ -7,12 +7,13 @@
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-            <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
+            <a href="{{ route('dashboard.index') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
                 <x-app-logo />
             </a>
 
             <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Platform')" class="grid">
+                <flux:navlist.group :heading="__('Menu')" class="grid">
+                    @if (auth()->user()->role == 'admin') 
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                     <flux:navlist.item icon="globe-asia-australia" :href="route('admin.provinces')" :current="request()->routeIs('admin.provinces')" wire:navigate>{{ __('Provinces') }}</flux:navlist.item>
                     <flux:navlist.item icon="building-storefront" :href="route('admin.businesses')" :current="request()->routeIs('admin.businesses')" wire:navigate>{{ __('UMKM') }}</flux:navlist.item>
@@ -22,6 +23,10 @@
                     <flux:navlist.item icon="star" :href="route('admin.bonuses')" :current="request()->routeIs('admin.bonuses')" wire:navigate>{{ __('Bonuses') }}</flux:navlist.item>
                     <flux:navlist.item icon="banknotes" :href="route('admin.transactions')" :current="request()->routeIs('admin.transactions')" wire:navigate>{{ __('Transactions') }}</flux:navlist.item>
                     <flux:navlist.item icon="document-arrow-down" :href="route('admin.withdrawals')" :current="request()->routeIs('admin.withdrawals')" wire:navigate>{{ __('Withdrawals') }}</flux:navlist.item>
+                    @elseif(auth()->user()->role == 'member')
+                           <flux:navlist.item icon="home" :href="route('dashboard.index')" :current="request()->routeIs('dashboard.index')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                           <flux:navlist.item icon="home" :href="route('dashboard.members')" :current="request()->routeIs('dashboard.members')" wire:navigate>{{ __('Member') }}</flux:navlist.item> 
+                    @endif
                 </flux:navlist.group>
             </flux:navlist>
 
