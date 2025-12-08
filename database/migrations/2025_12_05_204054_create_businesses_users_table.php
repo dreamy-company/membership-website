@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('businesses_users', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('businesses_id')->constrained('businesses')->onDelete('cascade');
-            $table->timestamps();
-        });
+            Schema::create('businesses_users', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
+                $table->foreignId('business_id')->nullable()->constrained('businesses')->nullOnDelete();
+                $table->timestamps();
+                $table->softDeletes();
+            });
     }
 
     /**

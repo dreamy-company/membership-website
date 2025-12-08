@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
         $provinceIds = [];
         for ($i = 1; $i <= 10; $i++) {
             $provinceIds[] = DB::table('provinces')->insertGetId([
+                'code' => $faker->unique()->countryCode('numeric'),
                 'name' => $faker->city(),
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -44,6 +45,7 @@ class DatabaseSeeder extends Seeder
             for ($i = 0; $i < 3; $i++) {
                 $domicileIds[] = DB::table('domiciles')->insertGetId([
                     'province_id' => $prov,
+                    'code' => $faker->unique()->countryCode('numeric'),
                     'name' => $faker->streetName(),
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -87,7 +89,7 @@ class DatabaseSeeder extends Seeder
         foreach ($userIds as $uid) {
             DB::table('businesses_users')->insert([
                 'user_id' => $uid,
-                'businesses_id' => $faker->randomElement($businessIds),
+                'business_id' => $faker->randomElement($businessIds),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -108,7 +110,7 @@ class DatabaseSeeder extends Seeder
             $bonus = $amount * 0.05;
 
             DB::table('transactions')->insert([
-                'businesses_id' => $faker->randomElement($businessIds),
+                'business_id' => $faker->randomElement($businessIds),
                 'member_id' => $faker->randomElement($memberIds),
                 'transaction_code' => strtoupper($faker->bothify('TRX###??')),
                 'transaction_date' => $faker->date(),
@@ -124,7 +126,7 @@ class DatabaseSeeder extends Seeder
           foreach ($memberIds as $mid) {
             DB::table('withdrawals')->insert([
                 'member_id' => $mid,
-                'withdrawal_amount' => rand(0, 500000),
+                'amount' => rand(0, 500000),
                 'payment_receipt' => $faker->date(),
                 'created_at' => now(),
                 'updated_at' => now(),

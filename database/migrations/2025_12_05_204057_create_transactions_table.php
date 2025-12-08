@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('businesses_id')->constrained('businesses')->onDelete('cascade');
-            $table->foreignId('member_id')->constrained('members')->onDelete('cascade');
+            $table->foreignId('business_id')->nullable()->constrained('businesses')->nullOnDelete();
+            $table->foreignId('member_id')->nullable()->constrained('members')->nullOnDelete();
             $table->string('transaction_code')->unique();
             $table->date('transaction_date');
             $table->double('amount');
