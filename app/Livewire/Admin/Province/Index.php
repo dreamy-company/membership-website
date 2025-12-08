@@ -12,12 +12,13 @@ class Index extends Component
     use WithPagination;
 
     public $search = '';
-    public $name;
     public $province_id;
+    public $code;
+    public $name;
     public $isOpen = false;
     public $confirmingDelete;
     public $perPage = 10;
-    public $title = "Provinsi";
+    public $title = "Province Management";
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
@@ -29,9 +30,9 @@ class Index extends Component
 
     public function render()
     {
-        $provinces = Province::when($this->search, fn($q) => $q->where('name', 'like', '%' . $this->search . '%'))
-            ->latest()
-            ->paginate($this->perPage);
+       $provinces = Province::search($this->search)
+                      ->latest()
+                      ->paginate($this->perPage);
 
         return view('livewire.admin.province.index', compact('provinces'));
     }
@@ -42,36 +43,36 @@ class Index extends Component
         if ($id) {
             $province = Province::findOrFail($id);
             $this->province_id = $province->id;
+            $this->code = $province->code;
             $this->name = $province->name;
         }
         $this->isOpen = true;
+        
     }
 
     public function closeModal()
     {
-
+       
         $this->isOpen = false;
     }
 
     private function resetInput()
     {
+        $this->code = '';
         $this->name = '';
         $this->province_id = null;
     }
 
     public function store()
     {
-        $this->validate(['name' => 'required|string|unique:provinces,name,' . $this->province_id]);
+        $this->validate($this->rules());
 
-        Province::updateOrCreate(['id' => $this->province_id], ['name' => $this->name]);
+        $province = Province::updateOrCreate(
+            ['id' => $this->province_id],
+            $this->formData()
+        );
 
-        $this->closeModal();
-        $this->resetInput();
-
-        $this->dispatch('success', [
-            'type' => 'success',
-            'message' => $this->province_id ? 'Provinsi berhasil diupdate!' : 'Provinsi berhasil ditambahkan!',
-        ]);
+        $this->afterSave($province->wasRecentlyCreated);
     }
 
     public function confirmDelete($id)
@@ -86,7 +87,38 @@ class Index extends Component
 
         $this->dispatch('success', [
             'type' => 'success',
-            'message' => 'Provinsi berhasil dihapus!',
+            'message' => 'Province berhasil dihapus!',
+        ]);
+    }
+
+    protected function rules()
+    {
+        return [
+            'code'    => 'required|string|max:10',
+            'name' => 'required|string|max:255',
+        ];
+    }
+
+    protected function formData()
+    {
+        return [
+            'code'    => $this->code,
+            'name' => $this->name,
+        ];
+    }
+
+    protected function afterSave($created)
+    {
+        $this->closeModal();
+        $this->resetInput();
+
+        $message = $created
+            ? 'Province berhasil ditambahkan!'
+            : 'Province berhasil diupdate!';
+
+        $this->dispatch('success', [
+            'type' => 'success',
+            'message' => $message,
         ]);
     }
 }
