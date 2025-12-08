@@ -35,12 +35,12 @@
                 </div>
 
                 <flux:heading class="mb-1 text-3xl!">20</flux:heading>
-                <flux:button variant="primary">See Detail</flux:button>
+                <flux:button href="{{ route('dashboard.members') }}" variant="primary">See Detail</flux:button>
             </div>
         </div>
-        <div
-            class="relative flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <div class="relative h-full overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
+        <div class="relative flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
+            <div
+                class="relative h-full overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
                 <table class="w-full text-sm text-left rtl:text-right text-body">
                     <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-default-medium">
                         <tr>
