@@ -28,6 +28,6 @@ class BusinessesUsers extends Model
 
     public function business()
     {
-        return $this->belongsTo(Business::class, 'businesses_id');
+        return $this->belongsTo(Business::class, 'business_id');
     }
 }
