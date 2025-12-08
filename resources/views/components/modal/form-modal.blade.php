@@ -4,7 +4,7 @@
     id="crud-modal" 
     class="fixed inset-0 bg-black/30 z-50 flex justify-center items-center overflow-y-auto"
     >
-        <div class="relative p-4 w-full max-w-2xl max-h-full bg-slate-50 rounded-md shadow-sm border border-default md:p-6">
+        <div class="relative p-4 w-full max-w-2xl max-h-full bg-slate-50 rounded-md shadow-sm border border-default md:p-6 overflow-y-auto">
             <div class="relative">
 
                 <!-- Header -->

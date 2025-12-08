@@ -14,7 +14,7 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Menu')" class="grid">
                     @if (auth()->user()->role == 'admin') 
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    {{-- <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item> --}}
                     <flux:navlist.item icon="globe-asia-australia" :href="route('admin.provinces')" :current="request()->routeIs('admin.provinces')" wire:navigate>{{ __('Provinces') }}</flux:navlist.item>
                     <flux:navlist.item icon="building-storefront" :href="route('admin.businesses')" :current="request()->routeIs('admin.businesses')" wire:navigate>{{ __('UMKM') }}</flux:navlist.item>
                     <flux:navlist.item icon="map-pin" :href="route('admin.domicilies')" :current="request()->routeIs('admin.domicilies')" wire:navigate>{{ __('Domicilies') }}</flux:navlist.item>

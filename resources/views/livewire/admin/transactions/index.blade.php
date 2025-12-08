@@ -77,7 +77,7 @@
            <div class="grid gap-4 grid-cols-1 py-4 md:py-6">
                 <div class="grid grid-cols-2 gap-2">
                     <div class="mb-2">
-                        <x-modal.select name="businesses_id" label="UMKM">
+                        <x-modal.select name="business_id" label="UMKM">
                             @foreach($businesses as $business)
                                 <option value="{{ $business->id }}">
                                     {{ $business->name }}
@@ -98,29 +98,29 @@
 
                 <div class="grid grid-cols-2">
                     <div class="col-span-2">
-                        <x-modal.input name="transaction_code" label="Transaction Code" />
+                        <x-modal.input name="transaction_code" label="Transaction Code" placeholder="Enter transaction code" />
                     </div>
                     <div class="col-span-2">
-                        <x-modal.input name="transaction_date" label="Transaction Date" type="date" />
+                        <x-modal.input name="transaction_date" label="Transaction Date" type="date" placeholder="Select transaction date" />
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div class="mb-2">
-                        <x-modal.input name="amount" label="Amount" type="number" />
+                        <x-modal.input name="amount" label="Amount" type="number" placeholder="Enter amount" />
                     </div>
                     <div class="mb-2">
-                        <x-modal.input name="hpp" label="HPP" type="number" />
+                        <x-modal.input name="hpp" label="HPP" type="number" placeholder="Enter HPP" />
                     </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
                     <div class="mb-2">
-                        <x-modal.input name="balance" label="Balance" type="number" />
+                        <x-modal.input name="balance" label="Balance" type="number" placeholder="Enter balance" />
                     </div>
                     <div class="mb-2">
-                        <x-modal.input name="bonus" label="Bonus" type="number" />
+                        <x-modal.input name="bonus" label="Bonus" type="number" placeholder="Enter bonus" />
                     </div>
                 </div>
                 
