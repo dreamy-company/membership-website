@@ -12,13 +12,14 @@ use App\Livewire\Admin\Bonuses\Index as BonusesIndex;
 use App\Livewire\Admin\Transactions\Index as TransactionIndex;
 use App\Livewire\Admin\Withdrawals\Index as WithdrawalIndex;
 
+// Member Livewires
+use App\Livewire\Members\Member\Index as DashboardMemberIndex;
+use App\Livewire\Members\Dashboard\Index as DashboardIndex;
+
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
@@ -38,14 +39,19 @@ Route::middleware(['auth'])->group(function () {
         )
         ->name('two-factor.show');
 
-        Route::prefix('admin')->name('admin.')->group(function () {
-            Route::get('/provinces', ProvinceIndex::class)->name('provinces');
-            Route::get('/businesses', BusinessIndex::class)->name('businesses');
-            Route::get('/domicilies', DomicileIndex::class)->name('domicilies');
-            Route::get('/members', MemberIndex::class)->name('members');
-            Route::get('/businesses-users', BusinessesUsersIndex::class)->name('businesses.users');
-            Route::get('/bonuses', BonusesIndex::class)->name('bonuses');
-            Route::get('/transactions', TransactionIndex::class)->name('transactions');
-            Route::get('/withdrawals', WithdrawalIndex::class)->name('withdrawals');
-        });
+    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::get('/', DashboardIndex::class)->name('index');
+        Route::get('/members', DashboardMemberIndex::class)->name('members');
     });
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/provinces', ProvinceIndex::class)->name('provinces');
+        Route::get('/businesses', BusinessIndex::class)->name('businesses');
+        Route::get('/domicilies', DomicileIndex::class)->name('domicilies');
+        Route::get('/members', MemberIndex::class)->name('members');
+        Route::get('/businesses-users', BusinessesUsersIndex::class)->name('businesses.users');
+        Route::get('/bonuses', BonusesIndex::class)->name('bonuses');
+        Route::get('/transactions', TransactionIndex::class)->name('transactions');
+        Route::get('/withdrawals', WithdrawalIndex::class)->name('withdrawals');
+    });
+});
