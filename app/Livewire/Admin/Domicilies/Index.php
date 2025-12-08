@@ -13,8 +13,10 @@ class Index extends Component
 
     public $search = '';
     public $name;
+    public $code;
     public $domicile_id;
     public $province_id;
+    public $provinces;
     public $isOpen = false;
     public $confirmingDelete;
     public $perPage = 10;
@@ -28,14 +30,17 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function mount()
+    {
+        $this->provinces = Province::all();
+    }
+
     public function render()
     {
         $domiciles = Domicile::search($this->search)
                       ->latest()
                       ->paginate($this->perPage);
-        $provinces = Province::all();
-
-        return view('livewire.admin.domiciles.index', compact('domiciles', 'provinces'));
+        return view('livewire.admin.domiciles.index', compact('domiciles'));
     }
 
     public function openModal($id = null)
@@ -45,6 +50,7 @@ class Index extends Component
             $domicile = Domicile::findOrFail($id);
             $this->domicile_id = $domicile->id;
             $this->province_id = $domicile->province_id;
+            $this->code = $domicile->code;
             $this->name = $domicile->name;
         }
         $this->isOpen = true;
@@ -61,6 +67,7 @@ class Index extends Component
     {
         $this->name = '';
         $this->province_id = '';
+        $this->code = '';
         $this->domicile_id = null;
     }
 
@@ -95,6 +102,7 @@ class Index extends Component
     protected function rules()
     {
         return [
+            'code'    => 'required|string|max:3|unique:domiciles,code,' . $this->domicile_id,
             'name'    => 'required|string|unique:domiciles,name,' . $this->domicile_id,
             'province_id' => 'required|integer|exists:provinces,id',
         ];
@@ -103,6 +111,7 @@ class Index extends Component
     protected function formData()
     {
         return [
+            'code'    => $this->code,
             'name'    => $this->name,
             'province_id' => $this->province_id,
         ];
