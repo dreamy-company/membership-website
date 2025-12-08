@@ -15,9 +15,9 @@
                 <flux:navlist.group :heading="__('Menu')" class="grid">
                     @if (auth()->user()->role == 'admin') 
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    <flux:navlist.item icon="globe-asia-australia" :href="route('admin.provinces')" :current="request()->routeIs('admin.provinces')" wire:navigate>{{ __('Provinces') }}</flux:navlist.item>
-                    <flux:navlist.item icon="building-storefront" :href="route('admin.businesses')" :current="request()->routeIs('admin.businesses')" wire:navigate>{{ __('UMKM') }}</flux:navlist.item>
-                    <flux:navlist.item icon="map-pin" :href="route('admin.domicilies')" :current="request()->routeIs('admin.domicilies')" wire:navigate>{{ __('Domicilies') }}</flux:navlist.item>
+                    <flux:navlist.item icon="globe-asia-austral" :href="route('admin.businesses')" :current="request()->routeIs('admin.businesses')" wire:navigate>{{ __('UMKM') }}</flux:navlist.item>
+                    <flux:navlist.item icon="map-pin" :href="route('adia" :href="route('admin.provinces')" :current="request()->routeIs('admin.provinces')" wire:navigate>{{ __('Provinces') }}</flux:navlist.item>
+                    <flux:navlist.item icon="building-storefrontmin.domicilies')" :current="request()->routeIs('admin.domicilies')" wire:navigate>{{ __('Domicilies') }}</flux:navlist.item>
                     <flux:navlist.item icon="user" :href="route('admin.members')" :current="request()->routeIs('admin.members')" wire:navigate>{{ __('Members') }}</flux:navlist.item>
                     <flux:navlist.item icon="user-group" :href="route('admin.businesses.users')" :current="request()->routeIs('admin.businesses.users')" wire:navigate>{{ __('Businesses Users') }}</flux:navlist.item>
                     <flux:navlist.item icon="star" :href="route('admin.bonuses')" :current="request()->routeIs('admin.bonuses')" wire:navigate>{{ __('Bonuses') }}</flux:navlist.item>
@@ -25,22 +25,14 @@
                     <flux:navlist.item icon="document-arrow-down" :href="route('admin.withdrawals')" :current="request()->routeIs('admin.withdrawals')" wire:navigate>{{ __('Withdrawals') }}</flux:navlist.item>
                     @elseif(auth()->user()->role == 'member')
                            <flux:navlist.item icon="home" :href="route('dashboard.index')" :current="request()->routeIs('dashboard.index')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                           <flux:navlist.item icon="home" :href="route('dashboard.members')" :current="request()->routeIs('dashboard.members')" wire:navigate>{{ __('Member') }}</flux:navlist.item> 
+                           <flux:navlist.item icon="star" :href="route('dashboard.withdrawals')" :current="request()->routeIs('dashboard.withdrawals')" wire:navigate>{{ __('Bonus Balance') }}</flux:navlist.item> 
+                           <flux:navlist.item icon="banknotes" :href="route('dashboard.transactions')" :current="request()->routeIs('dashboard.transactions')" wire:navigate>{{ __('Transactions') }}</flux:navlist.item> 
+                           <flux:navlist.item icon="users" :href="route('dashboard.members')" :current="request()->routeIs('dashboard.members')" wire:navigate>{{ __('Member') }}</flux:navlist.item>  
                     @endif
                 </flux:navlist.group>
             </flux:navlist>
 
             <flux:spacer />
-
-            <flux:navlist variant="outline">
-                <flux:navlist.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit" target="_blank">
-                {{ __('Repository') }}
-                </flux:navlist.item>
-
-                <flux:navlist.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire" target="_blank">
-                {{ __('Documentation') }}
-                </flux:navlist.item> --}}
-        </flux:navlist>
 
         <!-- Desktop User Menu -->
         <flux:dropdown class="hidden lg:block" position="bottom" align="start">

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3644d4a2628aeaebed3f4f36c2238131",
+    "content-hash": "72833da6458ef9146e84c3096472b8a9",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -2186,16 +2186,16 @@
         },
         {
             "name": "livewire/flux",
-            "version": "v2.9.1",
+            "version": "v2.9.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/livewire/flux.git",
-                "reference": "041cdd07c74508fb2884d4614ee968c8f51765e7"
+                "reference": "6572847f70a18e7cf136bb31201d4064f5c8ade1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/livewire/flux/zipball/041cdd07c74508fb2884d4614ee968c8f51765e7",
-                "reference": "041cdd07c74508fb2884d4614ee968c8f51765e7",
+                "url": "https://api.github.com/repos/livewire/flux/zipball/6572847f70a18e7cf136bb31201d4064f5c8ade1",
+                "reference": "6572847f70a18e7cf136bb31201d4064f5c8ade1",
                 "shasum": ""
             },
             "require": {
@@ -2246,9 +2246,9 @@
             ],
             "support": {
                 "issues": "https://github.com/livewire/flux/issues",
-                "source": "https://github.com/livewire/flux/tree/v2.9.1"
+                "source": "https://github.com/livewire/flux/tree/v2.9.2"
             },
-            "time": "2025-12-01T23:27:11+00:00"
+            "time": "2025-12-04T17:09:39+00:00"
         },
         {
             "name": "livewire/livewire",
@@ -8870,12 +8870,12 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^8.2"
     },
-    "platform-dev": {},
+    "platform-dev": [],
     "plugin-api-version": "2.6.0"
 }

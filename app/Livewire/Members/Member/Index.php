@@ -2,91 +2,115 @@
 
 namespace App\Livewire\Members\Member;
 
-
 use Livewire\Component;
+use App\Models\Member;
 use Livewire\WithPagination;
-use App\Models\Province;
 
 class Index extends Component
 {
     use WithPagination;
 
     public $search = '';
-    public $name;
-    public $province_id;
-    public $isOpen = false;
-    public $confirmingDelete;
-    public $perPage = 10;
+    public $tree = [];
     public $title = "Member";
-
-    protected $queryString = ['search' => ['except' => '']];
-    protected $paginationTheme = 'tailwind';
+    
+    public function mount()
+    {
+        $this->loadRoot();
+    }
 
     public function updatingSearch()
     {
         $this->resetPage();
+        $this->loadRoot();
+    }
+
+    private function loadRoot()
+    {
+        $roots = Member::search($this->search)
+            ->where('parent_member_id', auth()->user()->id)
+            ->where('user_id', '!=', auth()->user()->id)
+            ->get();
+
+        $this->tree = $roots->map(fn($m) => $this->formatNode($m, 1))->toArray();
+
+    }
+
+    private function formatNode($m, $level = 1)
+    {
+        return [
+            'id' => $m->id,
+            'user_id' => $m->user_id,
+            'member_code' => $m->member_code,
+            'phone_number' => $m->phone_number,
+            'user' => [
+                'name' => $m->user->name ?? 'Tanpa Nama',
+                'profile_picture' => $m->user->profile_picture ?? null,
+            ],
+            'children' => [],
+            'expanded' => false,
+            'loading' => false,
+            'fetched' => false,
+            'level' => $level,
+        ];
+    }
+
+    public function toggleNode($memberId)
+    {
+        $this->updateNode($this->tree, $memberId, function (&$node) {
+
+            // Stop jika mencapai level 5
+            if ($node['level'] >= 5) {
+                // bisa kasih notifikasi, bisa juga diam saja
+                return;
+            }
+
+            if (!$node['fetched']) {
+                $node['loading'] = true;
+
+                $children = Member::where('parent_member_id', $node['id'])
+                    ->with('user')
+                    ->get();
+
+                $node['children'] = $children->map(
+                    fn($m) =>
+                    $this->formatNode($m, $node['level'] + 1)
+                )->toArray();
+
+                $node['fetched'] = true;
+                $node['loading'] = false;
+            }
+
+            $node['expanded'] = !$node['expanded'];
+        });
+    }
+
+
+    private function updateNode(&$nodes, $id, $callback)
+    {
+        foreach ($nodes as &$node) {
+
+            if ($node['id'] == $id) {
+                $callback($node);
+                return true;
+            }
+
+            if (!empty($node['children'])) {
+                if ($this->updateNode($node['children'], $id, $callback)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public function render()
     {
-        $provinces = Province::when($this->search, fn($q) => $q->where('name', 'like', '%' . $this->search . '%'))
-            ->latest()
-            ->paginate($this->perPage);
-
-        return view('livewire.members.index', compact('provinces'));
-    }
-
-    public function openModal($id = null)
-    {
-        $this->resetInput();
-        if ($id) {
-            $province = Province::findOrFail($id);
-            $this->province_id = $province->id;
-            $this->name = $province->name;
-        }
-        $this->isOpen = true;
-    }
-
-    public function closeModal()
-    {
-
-        $this->isOpen = false;
-    }
-
-    private function resetInput()
-    {
-        $this->name = '';
-        $this->province_id = null;
-    }
-
-    public function store()
-    {
-        $this->validate(['name' => 'required|string|unique:provinces,name,' . $this->province_id]);
-
-        Province::updateOrCreate(['id' => $this->province_id], ['name' => $this->name]);
-
-        $this->closeModal();
-        $this->resetInput();
-
-        $this->dispatch('success', [
-            'type' => 'success',
-            'message' => $this->province_id ? 'Provinsi berhasil diupdate!' : 'Provinsi berhasil ditambahkan!',
-        ]);
-    }
-
-    public function confirmDelete($id)
-    {
-        $this->confirmingDelete = $id;
-        $this->dispatch('show-delete-confirmation');
-    }
-
-    public function delete()
-    {
-        Province::findOrFail($this->confirmingDelete)->delete();
-
-        $this->dispatch('success', [
-            'type' => 'success',
-            'message' => 'Provinsi berhasil dihapus!',
+        
+        $totalMembers = Member::where('parent_member_id', auth()->user()->id)->count();
+        return view('livewire.members.member.index', [
+            'members' => $this->tree,
         ]);
     }
 }

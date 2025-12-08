@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         $faker = Faker::create('id_ID');
 
         $userIds = [];
-        for ($i = 1; $i <= 20; $i++) {
+        for ($i = 1; $i <= 100; $i++) {
             $userIds[] = DB::table('users')->insertGetId([
                 'name' => $faker->name(),
                 'email' => $faker->unique()->safeEmail(),

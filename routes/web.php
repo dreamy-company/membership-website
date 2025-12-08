@@ -12,9 +12,11 @@ use App\Livewire\Admin\Bonuses\Index as BonusesIndex;
 use App\Livewire\Admin\Transactions\Index as TransactionIndex;
 use App\Livewire\Admin\Withdrawals\Index as WithdrawalIndex;
 
-// Member Livewires
-use App\Livewire\Members\Member\Index as DashboardMemberIndex;
+// Member Livewire
 use App\Livewire\Members\Dashboard\Index as DashboardIndex;
+use App\Livewire\Members\Member\Index as DashboardMemberIndex;
+use App\Livewire\Members\Transactions\Index as DashboardTransactionIndex;
+use App\Livewire\Members\Withdrawals\Index as DashboardWithdrawalIndex;
 
 Route::get('/', function () {
     return view('welcome');
@@ -42,6 +44,8 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/', DashboardIndex::class)->name('index');
         Route::get('/members', DashboardMemberIndex::class)->name('members');
+        Route::get('/transactions', DashboardTransactionIndex::class)->name('transactions');
+        Route::get('/withdrawals', DashboardWithdrawalIndex::class)->name('withdrawals');
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {
