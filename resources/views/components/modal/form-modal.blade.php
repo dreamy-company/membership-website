@@ -4,8 +4,8 @@
     id="crud-modal" 
     class="fixed inset-0 bg-black/30 z-50 flex justify-center items-center overflow-y-auto"
     >
-        <div class="relative p-4 w-full max-w-md max-h-full">
-            <div class="relative bg-slate-50 border border-default rounded-md shadow-sm p-4 md:p-6">
+        <div class="relative p-4 w-full max-w-2xl max-h-full bg-slate-50 rounded-md shadow-sm border border-default md:p-6">
+            <div class="relative">
 
                 <!-- Header -->
                 <div class="flex items-center justify-between border-b border-default pb-4 md:pb-5">

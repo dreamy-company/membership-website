@@ -9,6 +9,8 @@ use App\Livewire\Admin\Domicilies\Index as DomicileIndex;
 use App\Livewire\Admin\Members\Index as MemberIndex;
 use App\Livewire\Admin\BusinessesUsers\Index as BusinessesUsersIndex;
 use App\Livewire\Admin\Bonuses\Index as BonusesIndex;
+use App\Livewire\Admin\Transactions\Index as TransactionIndex;
+use App\Livewire\Admin\Withdrawals\Index as WithdrawalIndex;
 
 Route::get('/', function () {
     return view('welcome');
@@ -43,5 +45,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/members', MemberIndex::class)->name('members');
             Route::get('/businesses-users', BusinessesUsersIndex::class)->name('businesses.users');
             Route::get('/bonuses', BonusesIndex::class)->name('bonuses');
+            Route::get('/transactions', TransactionIndex::class)->name('transactions');
+            Route::get('/withdrawals', WithdrawalIndex::class)->name('withdrawals');
         });
     });

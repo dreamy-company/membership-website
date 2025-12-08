@@ -12,7 +12,10 @@ class Domicile extends Model
     public function scopeSearch($query, $term)
     {
         if ($term) {
-            $query->where('name', 'like', "%{$term}%");
+            $query->where('name', 'like', "%{$term}%")
+                ->orWhereHas('province', function ($q) use ($term) {
+                    $q->where('name', 'like', "%{$term}%");
+                });
         }
     }
 

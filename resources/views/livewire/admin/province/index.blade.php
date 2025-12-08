@@ -56,50 +56,15 @@
         <x-modal.form-modal :formTitle="$province_id ? 'Edit Province' : 'Add Province'" action="store()" >
            <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
                 <div class="col-span-2">
-                    <label for="name" class="block mb-2.5 text-sm font-medium text-heading">Nama Provinsi</label>
-                    <input 
-                        type="text" 
-                        wire:model.defer="name"
-                        class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-md focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body" 
-                        placeholder="Contoh: Bali"
-                    >
-                    @error('name')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <x-modal.input name="name" label="Nama Provinsi" placeholder="Contoh: Bali" />
                 </div>
             </div>
         </x-modal.form-modal>
     @endif
    
-    <script>
-        window.addEventListener('success', function (event) {
-            Swal.fire({
-                toast: true,
-                icon: event.detail[0].type,
-                title: event.detail[0].message,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 2000,
-                timerProgressBar: true,
-            });
-        });
+    <x-alerts.success/>
+    <x-alerts.delete-confirmation/>
 
-        window.addEventListener('show-delete-confirmation', event => {
-            Swal.fire({
-                title: 'Yakin hapus?',
-                text: "Data tidak bisa dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#aaa',
-                confirmButtonText: 'Ya, hapus!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    @this.call('delete')
-                }
-            });
-        });
-    </script>
 
 
 </div>
