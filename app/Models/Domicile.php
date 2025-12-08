@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Domicile extends Model
 {
     protected $guarded = ['id'];
+    protected $table = 'domiciles';
 
     // ini function search yang ada di livewire
     public function scopeSearch($query, $term)

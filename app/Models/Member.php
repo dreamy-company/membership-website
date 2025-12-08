@@ -12,9 +12,11 @@ class Member extends Model
     public function scopeSearch($query, $term)
     {
         if ($term) {
-            $query->where('name', 'like', "%{$term}%")
-                ->orWhere('address', 'like', "%{$term}%")
-                ->orWhere('phone', 'like', "%{$term}%");
+            $query->where('address', 'like', "%{$term}%")
+                ->orWhere('phone_number', 'like', "%{$term}%")
+                ->orWhereHas('user', function($q) use ($term) {
+                    $q->where('name', 'like', "%{$term}%");
+                });
         }
     }
 
