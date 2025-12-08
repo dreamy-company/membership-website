@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Admin\Province;
+namespace App\Livewire\Members\Dashboard;
 
 
 use Livewire\Component;
@@ -17,7 +17,7 @@ class Index extends Component
     public $isOpen = false;
     public $confirmingDelete;
     public $perPage = 10;
-    public $title = "Provinsi";
+    public $title = "Member Dashboard";
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
@@ -33,7 +33,7 @@ class Index extends Component
             ->latest()
             ->paginate($this->perPage);
 
-        return view('livewire.admin.province.index', compact('provinces'));
+        return view('dashboard', compact('provinces'));
     }
 
     public function openModal($id = null)
