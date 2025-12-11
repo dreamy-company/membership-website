@@ -26,7 +26,6 @@
                 {{ $slot }}
 
             </div>
-
         </div>
         <!-- Footer -->
         <div class="flex items-center justify-end space-x-4 border-t border-default pt-4 md:pt-6">
