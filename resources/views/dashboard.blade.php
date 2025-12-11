@@ -5,23 +5,25 @@
         <div class="w-full mb-1">
             <div class="mb-4">
                 <x-dashboard.breadcrumbs title="Dashboard" />
-                <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">{{ $title }}</h1>
+                <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">Hello,
+                    {{ auth()->user()->name }}</h1>
             </div>
         </div>
     </div>
-    <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
+    <div class="flex h-full w-full flex-1 flex-col gap-0 rounded-xl">
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
             <div
                 class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 p-8 flex flex-col justify-center gap-2">
                 <div class="flex gap-2">
                     <flux:icon.star />
                     <flux:text size="xl">
-                        Bonus
+                        Bonus Balance
                     </flux:text>
                 </div>
 
-                <flux:heading class="mb-1 text-3xl!">Rp. 1.000.000</flux:heading>
-                <flux:button variant="primary">See Detail</flux:button>
+                <flux:heading class="mb-1 text-3xl!">Rp. {{ number_format($bonusTotal->balance ?? 0, 0) }}
+                </flux:heading>
+                <flux:button href="{{ route('dashboard.withdrawals') }}" variant="primary">See Detail</flux:button>
             </div>
             <div
                 class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 p-8 flex flex-col justify-center gap-2">
@@ -32,102 +34,79 @@
                     </flux:text>
                 </div>
 
-                <flux:heading class="mb-1 text-3xl!">Rp. 100.000.000</flux:heading>
-                <flux:button variant="primary">See Detail</flux:button>
+                <flux:heading class="mb-1 text-3xl!">Rp. {{ number_format($transactionTotal ?? 0, 0) }}</flux:heading>
+                <flux:button href="{{ route('dashboard.transactions') }}" variant="primary">See Detail</flux:button>
             </div>
             <div
                 class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 p-8 flex flex-col justify-center gap-2">
                 <div class="flex gap-2">
                     <flux:icon.users />
                     <flux:text size="xl">
-                        Members
+                        Total Members
                     </flux:text>
                 </div>
 
-                <flux:heading class="mb-1 text-3xl!">20</flux:heading>
+                <flux:heading class="mb-1 text-3xl!">{{ $totalMembers }}</flux:heading>
                 <flux:button href="{{ route('dashboard.members') }}" variant="primary">See Detail</flux:button>
             </div>
         </div>
-        <div class="relative flex-1 overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700">
-            <div
-                class="relative h-full overflow-y-auto overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-base border border-default">
-                <table class="w-full text-sm text-left rtl:text-right text-body">
-                    <thead class="text-sm text-body bg-neutral-secondary-medium border-b border-default-medium">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 font-medium">
-                                No
-                            </th>
-                            <th scope="col" class="px-6 py-3 font-medium">
-                                Product name
-                            </th>
-                            <th scope="col" class="px-6 py-3 font-medium">
-                                <div class="flex items-center">
-                                    Color
-                                    <a href="#">
-                                        <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                            width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                                stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
-                                        </svg>
-                                    </a>
-                                </div>
-                            </th>
-                            <th scope="col" class="px-6 py-3 font-medium">
-                                <div class="flex items-center">
-                                    Category
-                                    <a href="#">
-                                        <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                            width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                                stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
-                                        </svg>
-                                    </a>
-                                </div>
-                            </th>
-                            <th scope="col" class="px-6 py-3 font-medium">
-                                <div class="flex items-center">
-                                    Price
-                                    <a href="#">
-                                        <svg class="w-4 h-4 ms-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-                                            width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                                                stroke-width="2" d="m8 15 4 4 4-4m0-6-4-4-4 4" />
-                                        </svg>
-                                    </a>
-                                </div>
-                            </th>
-                            <th scope="col" class="px-6 py-3 font-medium">
-                                <span class="sr-only">Edit</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for ($i = 1; $i <= 20; $i++)
-                            <tr class="bg-neutral-primary-soft border-b  border-default">
-                                <th scope="row" class="px-6 py-4 font-medium text-heading whitespace-nowrap">
-                                    {{ $i }}
-                                </th>
-                                <th class="px-6 py-4">
-                                    Apple MacBook Pro 17"
-                                </th>
-                                <td class="px-6 py-4">
-                                    Silver
-                                </td>
-                                <td class="px-6 py-4">
-                                    Laptop
-                                </td>
-                                <td class="px-6 py-4">
-                                    $2999
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <a href="#" class="font-medium text-fg-brand hover:underline">Edit</a>
-                                </td>
-                            </tr>
-                        @endfor
-                    </tbody>
-                </table>
-            </div>
 
+        <div class="p-4 bg-white block sm:flex items-center justify-between lg:mt-1.5">
+            <div class="w-full">
+                <div>
+                    <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">Transactions</h1>
+                </div>
+            </div>
         </div>
+
+        {{-- table --}}
+        <div class="table w-full mt-6 px-4 pb-4">
+            <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-md border border-default">
+                <x-table.table>
+                    <x-table.thead>
+                        <x-table.tr>
+                            <x-table.th>No</x-table.th>
+                            <x-table.th>UMKM</x-table.th>
+                            <x-table.th>Member</x-table.th>
+                            <x-table.th>Transaction Code</x-table.th>
+                            <x-table.th>Transaction Date</x-table.th>
+                            <x-table.th>Amount</x-table.th>
+                            <x-table.th>Hpp</x-table.th>
+                            <x-table.th>Balance</x-table.th>
+                            <x-table.th>Bonus</x-table.th>
+                        </x-table.tr>
+                    </x-table.thead>
+
+                    <tbody>
+                        @forelse ($transactions as $item)
+                            <x-table.tr>
+                                <x-table.td>{{ $transactions->firstItem() + $loop->index }}</x-table.td>
+                                <x-table.td>{{ $item->business->name }}</x-table.td>
+                                <x-table.td>{{ $item->member->user->name }}</x-table.td>
+                                <x-table.td>{{ $item->transaction_code }}</x-table.td>
+                                <x-table.td>{{ $item->transaction_date }}</x-table.td>
+                                <x-table.td>{{ number_format($item->amount) }}</x-table.td>
+                                <x-table.td>{{ number_format($item->hpp) }}</x-table.td>
+                                <x-table.td>{{ number_format($item->balance) }}</x-table.td>
+                                <x-table.td>{{ number_format($item->bonus) }}</x-table.td>
+                            </x-table.tr>
+                        @empty
+                            <x-table.tr>
+                                <x-table.td colspan="5" class="text-center py-4">
+                                    No Transactions found.
+                                </x-table.td>
+                            </x-table.tr>
+                        @endforelse
+                    </tbody>
+                </x-table.table>
+                @if ($transactions->hasPages())
+                    <div class="p-4">
+                        {{ $transactions->links() }}
+                    </div>
+                @endif
+            </div>
+        </div>
+
+
     </div>
 </div>

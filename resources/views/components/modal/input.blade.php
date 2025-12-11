@@ -1,4 +1,4 @@
-@props(['name', 'label', 'type' => 'text', 'placeholder'])
+@props(['name', 'label', 'type' => 'text', 'placeholder' => ''])
 
 <label for="{{ $name }}" class="block mb-2.5 text-sm font-medium text-heading">{{ $label }}</label>
 <input 
