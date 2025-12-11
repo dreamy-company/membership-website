@@ -30,18 +30,13 @@
                         <x-table.th>Member Code</x-table.th>
                         <x-table.th>NIK</x-table.th>
                         <x-table.th>User</x-table.th>
-                        <x-table.th>Parent Member</x-table.th>
                         <x-table.th>Phone</x-table.th>
                         <x-table.th>Gender</x-table.th>
                         <x-table.th>Address</x-table.th>
                         <x-table.th>Birth Date</x-table.th>
-                        <x-table.th>NPWP</x-table.th>
                         <x-table.th>Province</x-table.th>
                         <x-table.th>Domicile</x-table.th>
                         <x-table.th>Bank Name</x-table.th>
-                        <x-table.th>Account Number</x-table.th>
-                        <x-table.th>Account Name</x-table.th>
-                        <x-table.th>Profile Picture</x-table.th>
                         <x-table.th>Actions</x-table.th>
                     </x-table.tr>
                 </x-table.thead>
@@ -53,18 +48,13 @@
                             <x-table.td>{{ $item->member_code }}</x-table.td>
                             <x-table.td>{{ $item->nik }}</x-table.td>
                             <x-table.td>{{ $item->user->name }}</x-table.td>
-                            <x-table.td>{{ $item->parentMember->user->name ?? '-' }}</x-table.td>
                             <x-table.td>{{ $item->phone_number }}</x-table.td>
                             <x-table.td>{{ $item->gender }}</x-table.td>
                             <x-table.td>{{ $item->address }}</x-table.td>
                             <x-table.td>{{ $item->birth_date }}</x-table.td>
-                            <x-table.td>{{ $item->npwp }}</x-table.td>
                             <x-table.td>{{ $item->province->name ?? '-' }}</x-table.td>
                             <x-table.td>{{ $item->domicile->name ?? '-' }}</x-table.td>
                             <x-table.td>{{ $item->bank_name }}</x-table.td>
-                            <x-table.td>{{ $item->account_number }}</x-table.td>
-                            <x-table.td>{{ $item->account_name }}</x-table.td>
-                            <x-table.td>{{ $item->profile_picture }}</x-table.td>
                             <x-table.td>
                                 <x-widget.button color="secondary" name="Detail" action="openCardModal({{ $item->id }})" />
                                 <x-widget.button color="neutral" name="Edit" action="openModal({{ $item->id }})" />

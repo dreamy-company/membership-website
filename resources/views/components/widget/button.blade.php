@@ -25,7 +25,7 @@ $c = $colors[$color] ?? $colors['primary'];
 <button 
     class="text-white {{ $c['bg'] }} {{ $c['hover'] }} {{ $c['ring'] }}
            border border-transparent shadow-xs font-medium leading-5 
-           text-sm px-4 py-1.5 focus:outline-none rounded-md cursor-pointer"
+           text-sm px-4 py-1.5 focus:outline-none rounded-md cursor-pointer mb-1"
     type="button" 
     wire:click="{{ $action }}"
 >

@@ -107,6 +107,13 @@ class Index extends Component
         $this->isOpen = false;
     }
 
+    public function closeCardModal()
+    {
+        $this->isCardOpen = false;
+    }
+    
+    
+
     private function resetInput()
     {
         $this->member_code = '';
