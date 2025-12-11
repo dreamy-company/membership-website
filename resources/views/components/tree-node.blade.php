@@ -4,13 +4,13 @@
 
     {{-- Row utama --}}
     <div
-        class="flex items-center justify-between gap-3 p-2 rounded border border-gray-200 w-full md:w-1/3 hover:bg-gray-100">
+        class="flex items-center justify-between gap-3 p-2 rounded border border-gray-200 w-full md:w-1/3 min-w-[300px] hover:bg-gray-100">
 
         <div class="flex gap-4">
 
             {{-- Profile --}}
-            <img src="{{ $node['user']['profile_picture'] ?? 'https://i.pravatar.cc/60?u=' . $node['id'] }}"
-                class="w-10 h-10 rounded-full border">
+            <img src="{{ asset('storage/' . $node['user']['profile_picture']) ?? 'https://i.pravatar.cc/60?u=' . $node['id'] }}"
+                class="w-10 h-10 rounded-full border object-cover">
 
             {{-- Info --}}
             <div>
@@ -26,9 +26,9 @@
         @endif
 
         @if ($node['level'] <= 5)
-
             {{-- Arrow and Count --}}
             <div class="flex items-center gap-2">
+                <x-widget.button color="neutral" name="Detail" action="openCardModal({{ $node['id'] }})" />
                 <div class="w-5 cursor-pointer" wire:click.stop="toggleNode({{ $node['id'] }})">
                     @if ($node['loading'])
                         <svg class="w-5 h-5 animate-spin text-gray-600" xmlns="http://www.w3.org/2000/svg"
