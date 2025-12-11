@@ -210,7 +210,9 @@
                         </div>
                     </div>
                 </div>
-
+                @foreach ($errors->all() as $error)
+                    <div class="text-red-500 text-sm">{{ $error }}</div>
+                @endforeach
             </div>
         </x-modal.form-modal>
     @endif

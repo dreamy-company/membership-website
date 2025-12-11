@@ -83,6 +83,8 @@ class Index extends Component
 
             $this->member_id = $member->id;
             $this->member_code = $member->member_code;
+            $this->name = $member->user->name;
+            $this->email = $member->user->email;
             $this->nik = $member->nik;
             $this->user_id = $member->user_id;
             $this->parent_member_id = $member->parent_member_id;
@@ -139,17 +141,27 @@ class Index extends Component
     {
         $this->validate();
 
-        // Create user
-        $user = User::create([
-            'name'     => $this->name,
-            'email'    => $this->email,
-            'password' => bcrypt($this->password),
-        ]);
+        // ==========================
+        // HANDLE USER
+        // ==========================
+        $user = User::updateOrCreate(
+            ['id' => $this->user_id], // kalau ada → update, kalau engga → create
+            [
+                'name'  => $this->name,
+                'email' => $this->email,
+                'password' => $this->password 
+                    ? bcrypt($this->password) 
+                    : User::find($this->user_id)?->password,
+            ]
+        );
 
-        // Handle profile picture
+        // ==========================
+        // HANDLE PROFILE PICTURE
+        // ==========================
         $filename = $this->old_profile_picture;
 
         if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+
             if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
                 Storage::disk('public')->delete($this->old_profile_picture);
             }
@@ -157,29 +169,43 @@ class Index extends Component
             $filename = $this->profile_picture->store('members', 'public');
         }
 
+        // ==========================
+        // GENERATE MEMBER CODE (only for create)
+        // ==========================
         $province = Province::find($this->province_id);
-        $member_code = $province->code . '-' . str_pad(Member::max('id') + 1, 4, '0', STR_PAD_LEFT);
 
-        Member::create([
-            'member_code' => $member_code,
-            'nik' => $this->nik,
-            'user_id' => $user->id,
-            'parent_member_id' => Member::find($this->parent_member_id)?->id,
-            'phone_number' => $this->phone_number,
-            'gender' => $this->gender,
-            'address' => $this->address,
-            'birth_date' => $this->birth_date,
-            'province_id' => $this->province_id,
-            'domicile_id' => $this->domicile_id,
-            'bank_name' => $this->bank_name,
-            'account_number' => $this->account_number,
-            'account_name' => $this->account_name,
-            'npwp' => $this->npwp,
-            'profile_picture' => $filename,
-        ]);
+        $member_code = $this->member_id
+            ? Member::find($this->member_id)->member_code // keep old if update
+            : $province->code . '-' . str_pad(Member::max('id') + 1, 4, '0', STR_PAD_LEFT);
+
+        
+        // ==========================
+        // HANDLE MEMBER
+        // ==========================
+        Member::updateOrCreate(
+            ['id' => $this->member_id],  // key
+            [
+                'member_code'      => $member_code,
+                'nik'              => $this->nik,
+                'user_id'          => $user->id,
+                'parent_member_id' => $this->parent_member_id ?: null,
+                'phone_number'     => $this->phone_number,
+                'gender'           => $this->gender,
+                'address'          => $this->address,
+                'birth_date'       => $this->birth_date,
+                'province_id'      => $this->province_id,
+                'domicile_id'      => $this->domicile_id,
+                'bank_name'        => $this->bank_name,
+                'account_number'   => $this->account_number,
+                'account_name'     => $this->account_name,
+                'npwp'             => $this->npwp,
+                'profile_picture'  => $filename,
+            ]
+        );
 
         $this->afterSave(!$this->member_id);
     }
+
 
 
     public function confirmDelete($id)
@@ -237,24 +263,25 @@ class Index extends Component
     protected function rules()
     {
         return [
-            'name'           => 'required|string',
-            'email'          => 'required|email|unique:users,email,' . $this->user_id,
-            'password'       => $this->member_id ? 'nullable|min:8|confirmed' : 'required|min:8|confirmed',
-            'nik'            => 'required|string|unique:members,nik,' . $this->member_id,
-            'phone_number'   => 'required|string',
-            'gender'         => 'required|in:male,female',
-            'address'        => 'required|string',
-            'birth_date'     => 'required|date',
-            'npwp'           => 'nullable|string|unique:members,npwp,' . $this->member_id,
-            'province_id'    => 'required|exists:provinces,id',
-            'domicile_id'    => 'required|exists:domiciles,id',
-            'bank_name'      => 'required|string',
-            'account_number' => 'required|string',
-            'account_name'   => 'required|string',
-            'profile_picture' => $this->member_id ? 'nullable|image|max:1024' : 'required|image|max:1024',
-            'parent_member_id' => 'nullable|exists:members,id'
+            'name'              => 'required|string',
+            'email'             => 'required|email|unique:users,email,' . $this->user_id,
+            'password'          => $this->member_id ? 'nullable|min:8|confirmed' : 'required|min:8|confirmed',
+            'nik'               => 'required|string|unique:members,nik,' . $this->member_id,
+            'phone_number'      => 'required|string',
+            'gender'            => 'required|in:male,female',
+            'address'           => 'required|string',
+            'birth_date'        => 'required|date',
+            'npwp'              => 'nullable|string|unique:members,npwp,' . $this->member_id,
+            'province_id'       => 'required|exists:provinces,id',
+            'domicile_id'       => 'required|exists:domiciles,id',
+            'bank_name'         => 'required|string',
+            'account_number'    => 'required|string',
+            'account_name'      => 'required|string',
+            'profile_picture'   => $this->member_id ? 'nullable|image|max:1024' : 'required|image|max:1024',
+            'parent_member_id'  => 'nullable|exists:members,id'
         ];
     }
+
 
 
     protected function formData()
