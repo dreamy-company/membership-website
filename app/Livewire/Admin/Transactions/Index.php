@@ -202,4 +202,9 @@ class Index extends Component
         $this->reset('file');
         $this->isOpenImport = false;
     }
+
+    public function redirectToActivityLog()
+    {
+        return redirect()->route('admin.activity-log');
+    }
 }
