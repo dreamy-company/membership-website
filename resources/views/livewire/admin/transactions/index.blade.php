@@ -13,6 +13,7 @@
                 </div>
                 <div>
                     <x-widget.button color="neutral" name="Add Transaction" action="openModal()" />
+                    <x-widget.button color="neutral" name="Import Transactions" action="openImportModal()" />
                 </div>
             </div>
         </div>
@@ -73,7 +74,7 @@
 
      <!-- Modal -->
     @if($isOpen)
-       <x-modal.form-modal :formTitle="$transaction_id ? 'Edit Transaction' : 'Add Transaction'"  action="store()" >
+        <x-modal.form-modal :formTitle="$transaction_id ? 'Edit Transaction' : 'Add Transaction'"  action="store()" >
            <div class="grid gap-4 grid-cols-1 py-4 md:py-6">
                 <div class="grid grid-cols-2 gap-2">
                     <div class="mb-2">
@@ -95,7 +96,6 @@
                         </x-modal.select>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-2">
                     <div class="col-span-2">
                         <x-modal.input name="transaction_code" label="Transaction Code" placeholder="Enter transaction code" />
@@ -112,7 +112,6 @@
                     <div class="mb-2">
                         <x-modal.input name="hpp" label="HPP" type="number" placeholder="Enter HPP" />
                     </div>
-                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
@@ -123,8 +122,23 @@
                         <x-modal.input name="bonus" label="Bonus" type="number" placeholder="Enter bonus" />
                     </div>
                 </div>
-                
-                
+            </div>
+        </x-modal.form-modal>
+    @endif
+
+    <!-- Modal -->
+    @if($isOpenImport)
+        <x-modal.form-modal :formTitle="'Import Transactions'" action="storeData()">
+           <div class="grid gap-4 grid-cols-1 py-4 md:py-6">
+                <div class="grid grid-cols-1 gap-2">
+                    <div class="mb-0">
+                       <input type="file" name="file" id="file" wire:model="file" class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none ">
+                        @error('file')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <p>Download template excel <a class="text-blue-500 underline" href="{{  asset('storage/templates/import_transaction.xlsx')}}">download here!!</a></p>
+                </div>
             </div>
         </x-modal.form-modal>
     @endif

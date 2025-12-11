@@ -6,11 +6,15 @@ use App\Models\Member;
 use Livewire\Component;
 use App\Models\Business;
 use App\Models\Transaction;
+use Illuminate\Http\Request;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use Livewire\WithFileUploads;
+use App\Imports\TransactionsImport;
 
 class Index extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public $search = '';
     public $transaction_id;
@@ -30,6 +34,11 @@ class Index extends Component
     public $confirmingDelete;
     public $perPage = 10;
     public $title = "Transaction Management";
+
+    // import
+    public $file;
+    public $isOpenImport = false;
+
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
@@ -161,5 +170,23 @@ class Index extends Component
             'type' => 'success',
             'message' => $message,
         ]);
+    }
+
+    public function openImportModal()
+    {
+        $this->file = null;
+        $this->isOpenImport = true;
+    }
+
+    public function storeData()
+    {
+        $this->validate([
+            'file' => 'required|file|mimes:xlsx,csv',
+        ]);
+
+        $excel = Excel::import(new TransactionsImport, $this->file->getRealPath());
+        
+        $this->reset('file');
+        $this->isOpenImport = false;
     }
 }

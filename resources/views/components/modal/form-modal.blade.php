@@ -26,12 +26,11 @@
                 {{ $slot }}
 
             </div>
-
         </div>
         <!-- Footer -->
         <div class="flex items-center justify-end space-x-4 border-t border-default pt-4 md:pt-6">
             <x-widget.button-outline color="stone" name="Cancel" action="closeModal()" />
-            <x-widget.button color="neutral" name="Send" action="store()"/>
+            <x-widget.button color="neutral" name="Send" action="{{ $action }}"/>
         </div>
     </div>
 </div>

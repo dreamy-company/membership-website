@@ -1,4 +1,4 @@
-@props(['label' => 'Upload File', 'model', 'old' => null, 'accept' => 'image/*,application/pdf'])
+@props(['label' => 'Upload File', 'model', 'old' => null, 'accept' => 'image/*,application/pdf/*'])
 
 <div class="grid grid-cols-1 gap-2 mb-4">
     <label class="block mb-2.5 text-sm font-medium text-heading">{{ $label }}</label>
