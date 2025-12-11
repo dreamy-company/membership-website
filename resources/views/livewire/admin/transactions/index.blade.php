@@ -130,15 +130,16 @@
     @if($isOpenImport)
         <x-modal.form-modal :formTitle="'Import Transactions'" action="storeData()">
            <div class="grid gap-4 grid-cols-1 py-4 md:py-6">
-                <div class="grid grid-cols-1 gap-2">
-                    <div class="mb-0">
-                       <input type="file" name="file" id="file" wire:model="file" class="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer focus:outline-none ">
-                        @error('file')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+                    <div class="grid grid-cols-1 gap-2">
+                        <div class="mb-0">
+                            <label class="block mb-2.5 text-sm font-medium text-heading" for="file_input">Upload file</label>
+                            <input name="file" id="file" wire:model="file" class="cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body" type="file">
+                            @error('file')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <p>Download template excel <a class="text-blue-500 underline" href="{{  asset('storage/templates/import_transaction.xlsx')}}">download here!!</a></p>
                     </div>
-                    <p>Download template excel <a class="text-blue-500 underline" href="{{  asset('storage/templates/import_transaction.xlsx')}}">download here!!</a></p>
-                </div>
             </div>
         </x-modal.form-modal>
     @endif

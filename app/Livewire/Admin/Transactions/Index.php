@@ -5,12 +5,13 @@ namespace App\Livewire\Admin\Transactions;
 use App\Models\Member;
 use Livewire\Component;
 use App\Models\Business;
+use App\Models\ActivityLog;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Livewire\WithPagination;
-use Maatwebsite\Excel\Facades\Excel;
 use Livewire\WithFileUploads;
 use App\Imports\TransactionsImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
@@ -184,7 +185,19 @@ class Index extends Component
             'file' => 'required|file|mimes:xlsx,csv',
         ]);
 
-        $excel = Excel::import(new TransactionsImport, $this->file->getRealPath());
+        Excel::import(new TransactionsImport, $this->file->getRealPath());
+
+        $this->dispatch('success', [
+            'type' => 'success',
+            'message' => 'Transactions imported successfully!',
+        ]);
+        
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'type' => 'upload',
+            'description' => 'Upload file Transactions via Excel',
+        ]);
+
         
         $this->reset('file');
         $this->isOpenImport = false;
