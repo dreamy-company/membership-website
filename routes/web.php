@@ -11,6 +11,7 @@ use App\Livewire\Admin\BusinessesUsers\Index as BusinessesUsersIndex;
 use App\Livewire\Admin\Bonuses\Index as BonusesIndex;
 use App\Livewire\Admin\Transactions\Index as TransactionIndex;
 use App\Livewire\Admin\Withdrawals\Index as WithdrawalIndex;
+use App\Livewire\Admin\Dashboard\Index as AdminDashboardIndex;
 
 // Member Livewires
 use App\Livewire\Members\Member\Index as DashboardMemberIndex;
@@ -45,6 +46,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {
+        Route::get('/', AdminDashboardIndex::class)->name('index');
         Route::get('/provinces', ProvinceIndex::class)->name('provinces');
         Route::get('/businesses', BusinessIndex::class)->name('businesses');
         Route::get('/domicilies', DomicileIndex::class)->name('domicilies');
