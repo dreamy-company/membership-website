@@ -6,21 +6,29 @@ use App\Models\Member;
 use Livewire\Component;
 use App\Models\Withdrawal;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 class Index extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public $search = '';
     public $withdrawal_id;
     public $member_id;
-    public $withdrawal_amount;
+    public $amount;
+    public $date;
     public $payment_receipt;
     public $members;
     public $isOpen = false;
     public $confirmingDelete;
     public $perPage = 10;
     public $title = "Withdrawal Management";
+    public $oldImage;
+    public $image;
+
+    public $old_payment_receipt;
+
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
@@ -30,9 +38,12 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function mount()
+    public function mount($withdrawal = null)
     {
         $this->members = Member::with('user')->get();
+        if ($withdrawal) {
+            $this->old_payment_receipt = $withdrawal->payment_receipt ? asset('storage/' . $withdrawal->payment_receipt) : null;
+        }
     }
 
     public function render()
@@ -44,19 +55,22 @@ class Index extends Component
         return view('livewire.admin.withdrawals.index', compact('withdrawals'));
     }
 
-    public function openModal($id = null)
+   public function openModal($id = null)
     {
         $this->resetInput();
+
         if ($id) {
             $withdrawal = Withdrawal::findOrFail($id);
             $this->withdrawal_id = $withdrawal->id;
             $this->member_id = $withdrawal->member_id;
-            $this->withdrawal_amount = $withdrawal->withdrawal_amount;
-            $this->payment_receipt = $withdrawal->payment_receipt;
+            $this->amount = $withdrawal->amount;
+            $this->date = $withdrawal->date;
+            $this->old_payment_receipt = $withdrawal->payment_receipt; // simpan path lama
         }
+
         $this->isOpen = true;
-        
     }
+
 
     public function closeModal()
     {
@@ -64,25 +78,47 @@ class Index extends Component
         $this->isOpen = false;
     }
 
-    private function resetInput()
+   private function resetInput()
     {
-        $this->withdrawal_amount = '';
-        $this->payment_receipt = '';
+        $this->amount = '';
+        $this->date = '';
+        $this->payment_receipt = null;
+        $this->old_payment_receipt = null;
         $this->member_id = null;
         $this->withdrawal_id = null;
     }
 
     public function store()
     {
-        $this->validate($this->rules());
+        $this->validate([
+            'amount' => 'required|numeric',
+            'member_id' => 'required|integer|exists:members,id',
+            'date' => 'required|date',
+            'payment_receipt' => $this->withdrawal_id
+                ? 'nullable|file|mimes:jpg,jpeg,png,pdf|max:1024'
+                : 'required|file|mimes:jpg,jpeg,png,pdf|max:1024',
+        ]);
 
-        $withdrawal = Withdrawal::updateOrCreate(
+        $filename = $this->old_payment_receipt;
+
+        if ($this->payment_receipt instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+            $filename = $this->payment_receipt->store('withdrawals', 'public');
+        }
+
+        Withdrawal::updateOrCreate(
             ['id' => $this->withdrawal_id],
-            $this->formData()
+            [
+                'amount' => $this->amount,
+                'member_id' => $this->member_id,
+                'date' => $this->date,
+                'payment_receipt' => $filename,
+            ]
         );
 
-        $this->afterSave($withdrawal->wasRecentlyCreated);
+        $this->afterSave(!$this->withdrawal_id);
     }
+
+
 
     public function confirmDelete($id)
     {
@@ -92,7 +128,15 @@ class Index extends Component
 
     public function delete()
     {
-        Withdrawal::findOrFail($this->confirmingDelete)->delete();
+        $withdrawal = Withdrawal::findOrFail($this->confirmingDelete);
+
+        // Hapus file payment_receipt jika ada
+        if ($withdrawal->payment_receipt && Storage::disk('public')->exists($withdrawal->payment_receipt)) {
+            Storage::disk('public')->delete($withdrawal->payment_receipt);
+        }
+
+        // Hapus record
+        $withdrawal->delete();
 
         $this->dispatch('success', [
             'type' => 'success',
@@ -103,17 +147,19 @@ class Index extends Component
     protected function rules()
     {
         return [
-            'withdrawal_amount'    => 'required|numeric',
+            'amount'    => 'required|numeric',
             'member_id' => 'required|integer|exists:members,id',
-            'payment_receipt'   => 'required|string|max:255',
+            'date' => 'required|date',
+            'payment_receipt'   => 'required|file|mimes:jpg,jpeg,png,pdf|max:1024',
         ];
     }
 
     protected function formData()
     {
         return [
-            'withdrawal_amount'    => $this->withdrawal_amount,
+            'amount'    => $this->amount,
             'member_id' => $this->member_id,
+            'date' => $this->date,
             'payment_receipt'   => $this->payment_receipt,
         ];
     }

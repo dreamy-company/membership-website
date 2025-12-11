@@ -14,7 +14,7 @@ class Index extends Component
 
     public $search = '';
     public $user_id;
-    public $businesses_id;
+    public $business_id;
     public $businesses_user_id;
     public $businesses;
     public $users;
@@ -56,7 +56,7 @@ class Index extends Component
         if ($id) {
             $businessesUser = BusinessesUsers::findOrFail($id);
             $this->businesses_user_id = $businessesUser->id;
-            $this->businesses_id = $businessesUser->businesses_id;
+            $this->business_id = $businessesUser->business_id;
             $this->user_id = $businessesUser->user_id;
         }
         $this->isOpen = true;
@@ -72,7 +72,7 @@ class Index extends Component
     private function resetInput()
     {
         $this->user_id = '';
-        $this->businesses_id = '';
+        $this->business_id = '';
         $this->businesses_user_id = null;
     }
 
@@ -100,7 +100,7 @@ class Index extends Component
 
         $this->dispatch('success', [
             'type' => 'success',
-            'message' => 'Businesses User berhasil dihapus!',
+            'message' => 'Business User berhasil dihapus!',
         ]);
     }
 
@@ -108,7 +108,7 @@ class Index extends Component
     {
         return [
            'user_id' => 'required|integer',
-           'businesses_id' => 'required|integer',
+           'business_id' => 'required|integer',
         ];
     }
 
@@ -116,7 +116,7 @@ class Index extends Component
     {
         return [
             'user_id' => $this->user_id,
-            'businesses_id' => $this->businesses_id,
+            'business_id' => $this->business_id,
         ];
     }
 
@@ -126,8 +126,8 @@ class Index extends Component
         $this->resetInput();
 
         $message = $created
-            ? 'Businesses User berhasil ditambahkan!'
-            : 'Businesses User berhasil diupdate!';
+            ? 'Business User berhasil ditambahkan!'
+            : 'Business User berhasil diupdate!';
 
         $this->dispatch('success', [
             'type' => 'success',

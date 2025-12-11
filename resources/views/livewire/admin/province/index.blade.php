@@ -27,6 +27,7 @@
                 <x-table.thead>
                     <x-table.tr>
                         <x-table.th>ID</x-table.th>
+                        <x-table.th>Code</x-table.th>
                         <x-table.th>Nama</x-table.th>
                         <x-table.th>Aksi</x-table.th>
                     </x-table.tr>
@@ -36,6 +37,7 @@
                     @foreach ($provinces as $province)
                         <x-table.tr>
                             <x-table.td>{{ $loop->iteration }}</x-table.td>
+                            <x-table.td>{{ $province->code }}</x-table.td>
                             <x-table.td>{{ $province->name }}</x-table.td>
                             <x-table.td>
                                 <x-widget.button color="neutral" name="Edit" action="openModal({{ $province->id }})" />
@@ -55,6 +57,9 @@
     @if($isOpen)
         <x-modal.form-modal :formTitle="$province_id ? 'Edit Province' : 'Add Province'" action="store()" >
            <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
+                    <div class="col-span-2">
+                        <x-modal.input name="code" label="Kode Provinsi" placeholder="Contoh: BA" />
+                    </div>
                 <div class="col-span-2">
                     <x-modal.input name="name" label="Nama Provinsi" placeholder="Contoh: Bali" />
                 </div>

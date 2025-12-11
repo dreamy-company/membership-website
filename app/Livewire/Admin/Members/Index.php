@@ -5,10 +5,12 @@ namespace App\Livewire\Admin\Members;
 use App\Models\Member;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
 
 class Index extends Component
 {
-     use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public $search = '';
     public $member_id;
@@ -26,15 +28,27 @@ class Index extends Component
     public $bank_name;
     public $account_number;
     public $account_name;
-    public $profile_picture;
-    
+    public $profile_picture; // untuk upload file
+    public $old_profile_picture; // untuk preview saat edit
+
     public $isOpen = false;
     public $confirmingDelete;
     public $perPage = 10;
     public $title = "Member";
 
+    public $users;
+    public $provinces;
+    public $domicilies;
+
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
+
+    public function mount()
+    {
+        $this->users = \App\Models\User::all();
+        $this->provinces = \App\Models\Province::all();
+        $this->domicilies = \App\Models\Domicile::all();
+    }
 
     public function updatingSearch()
     {
@@ -43,9 +57,9 @@ class Index extends Component
 
     public function render()
     {
-         $members = Member::search($this->search)
-                      ->latest()
-                      ->paginate($this->perPage);
+        $members = Member::search($this->search)
+                    ->latest()
+                    ->paginate($this->perPage);
 
         return view('livewire.admin.members.index', compact('members'));
     }
@@ -53,8 +67,10 @@ class Index extends Component
     public function openModal($id = null)
     {
         $this->resetInput();
+
         if ($id) {
             $member = Member::findOrFail($id);
+
             $this->member_id = $member->id;
             $this->member_code = $member->member_code;
             $this->nik = $member->nik;
@@ -70,15 +86,14 @@ class Index extends Component
             $this->bank_name = $member->bank_name;
             $this->account_number = $member->account_number;
             $this->account_name = $member->account_name;
-            $this->profile_picture = $member->profile_picture;
+            $this->old_profile_picture = $member->profile_picture;
         }
+
         $this->isOpen = true;
-        
     }
 
     public function closeModal()
     {
-       
         $this->isOpen = false;
     }
 
@@ -98,7 +113,8 @@ class Index extends Component
         $this->bank_name = '';
         $this->account_number = '';
         $this->account_name = '';
-        $this->profile_picture = '';
+        $this->profile_picture = null;
+        $this->old_profile_picture = null;
         $this->member_id = null;
     }
 
@@ -106,12 +122,26 @@ class Index extends Component
     {
         $this->validate($this->rules());
 
-        $member = Member::updateOrCreate(
+        // Handle profile picture upload
+        $filename = $this->old_profile_picture;
+
+        if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+            // hapus file lama jika ada
+            if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
+                Storage::disk('public')->delete($this->old_profile_picture);
+            }
+
+            $filename = $this->profile_picture->store('members', 'public');
+        }
+
+        Member::updateOrCreate(
             ['id' => $this->member_id],
-            $this->formData()
+            array_merge($this->formData(), [
+                'profile_picture' => $filename
+            ])
         );
 
-        $this->afterSave($member->wasRecentlyCreated);
+        $this->afterSave(!$this->member_id);
     }
 
     public function confirmDelete($id)
@@ -122,7 +152,13 @@ class Index extends Component
 
     public function delete()
     {
-        Member::findOrFail($this->confirmingDelete)->delete();
+        $member = Member::findOrFail($this->confirmingDelete);
+
+        if ($member->profile_picture && Storage::disk('public')->exists($member->profile_picture)) {
+            Storage::disk('public')->delete($member->profile_picture);
+        }
+
+        $member->delete();
 
         $this->dispatch('success', [
             'type' => 'success',
@@ -143,11 +179,11 @@ class Index extends Component
             'birth_date'     => 'required|date',
             'npwp'           => 'nullable|string|unique:members,npwp,' . $this->member_id,
             'province_id'    => 'required|exists:provinces,id',
-            'domicile_id'    => 'required|exists:domicilies,id',
+            'domicile_id'    => 'required|exists:domiciles,id',
             'bank_name'      => 'nullable|string',
             'account_number' => 'nullable|string',
             'account_name'   => 'nullable|string',
-            'profile_picture'=> 'nullable|string',
+            'profile_picture'=> 'nullable|image|max:1024', // jpg, png, dll max 1MB
         ];
     }
 
@@ -168,7 +204,6 @@ class Index extends Component
             'bank_name'      => $this->bank_name,
             'account_number' => $this->account_number,
             'account_name'   => $this->account_name,
-            'profile_picture'=> $this->profile_picture,
         ];
     }
 
@@ -178,8 +213,8 @@ class Index extends Component
         $this->resetInput();
 
         $message = $created
-            ? 'Business berhasil ditambahkan!'
-            : 'Business berhasil diupdate!';
+            ? 'Member berhasil ditambahkan!'
+            : 'Member berhasil diupdate!';
 
         $this->dispatch('success', [
             'type' => 'success',

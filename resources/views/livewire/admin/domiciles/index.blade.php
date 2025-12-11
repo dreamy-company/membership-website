@@ -27,6 +27,7 @@
                 <x-table.thead>
                     <x-table.tr>
                         <x-table.th>ID</x-table.th>
+                        <x-table.th>Code</x-table.th>
                         <x-table.th>Name</x-table.th>
                         <x-table.th>Province</x-table.th>
                         <x-table.th>Aksi</x-table.th>
@@ -37,6 +38,7 @@
                     @foreach ($domiciles as $item)
                         <x-table.tr>
                             <x-table.td>{{ $loop->iteration }}</x-table.td>
+                            <x-table.td>{{ $item->code }}</x-table.td>
                             <x-table.td>{{ $item->name }}</x-table.td>
                             <x-table.td>{{ $item->province->name }}</x-table.td>
                             <x-table.td>
@@ -57,6 +59,9 @@
     @if($isOpen)
         <x-modal.form-modal :formTitle="$domicile_id ? 'Edit Domicile' : 'Add Domicile'" action="store()" >
            <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
+                    <div class="col-span-2">
+                        <x-modal.input name="code" label="Code" type="text" placeholder="Contoh: DPS" />
+                    </div>
                 <div class="col-span-2">
                     <x-modal.input name="name" label="Name" type="text" placeholder="Contoh: Denpasar" />
                 </div>

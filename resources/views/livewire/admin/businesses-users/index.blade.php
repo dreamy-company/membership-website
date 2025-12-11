@@ -75,7 +75,7 @@
                     </x-modal.select>
                 </div>
                 <div class="col-span-2">
-                     <x-modal.select name="businesses_id" label="Business" placeholder="Choose a business">
+                     <x-modal.select name="business_id" label="Business" placeholder="Choose a business">
                         @foreach($businesses as $item)
                             <option value="{{ $item->id }}">
                                 {{ $item->name }}
@@ -87,7 +87,7 @@
         </x-modal.form-modal>
     @endif
    
-    <x-alerts.success/>
+        <x-alerts.success/>
     <x-alerts.delete-confirmation/>
 
 

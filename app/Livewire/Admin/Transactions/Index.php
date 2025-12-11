@@ -14,7 +14,7 @@ class Index extends Component
 
     public $search = '';
     public $transaction_id;
-    public $businesses_id;
+    public $business_id;
     public $member_id;
     public $transaction_code;
     public $transaction_date;
@@ -60,7 +60,7 @@ class Index extends Component
         if ($id) {
             $transaction = Transaction::findOrFail($id);
             $this->transaction_id = $transaction->id;
-            $this->businesses_id = $transaction->businesses_id;
+            $this->business_id = $transaction->business_id;
             $this->member_id = $transaction->member_id;
             $this->transaction_code = $transaction->transaction_code;
             $this->transaction_date = $transaction->transaction_date;
@@ -81,7 +81,7 @@ class Index extends Component
 
     private function resetInput()
     {
-        $this->businesses_id = '';
+        $this->business_id = '';
         $this->member_id = '';
         $this->transaction_code = '';
         $this->transaction_date = '';
@@ -123,7 +123,7 @@ class Index extends Component
     protected function rules()
     {
         return [
-            'businesses_id' => 'required|exists:businesses,id',
+            'business_id' => 'required|exists:businesses,id',
             'member_id' => 'required|exists:members,id',
             'transaction_code'    => 'required|string|unique:transactions,transaction_code,' . $this->transaction_id,
             'transaction_date' => 'required|date',
@@ -137,7 +137,7 @@ class Index extends Component
     protected function formData()
     {
         return [
-            'businesses_id' => $this->businesses_id,
+            'business_id' => $this->business_id,
             'member_id' => $this->member_id,
             'transaction_code'    => $this->transaction_code,
             'transaction_date' => $this->transaction_date,
