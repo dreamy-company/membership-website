@@ -28,6 +28,9 @@
         @if ($node['level'] <= 5)
             {{-- Arrow and Count --}}
             <div class="flex items-center gap-2">
+                @if ($node['level'] === 1)
+                    <x-widget.button color="warning" name="Edit" action="openModal({{ $node['id'] }})" />
+                @endif
                 <x-widget.button color="neutral" name="Detail" action="openCardModal({{ $node['id'] }})" />
                 <div class="w-5 cursor-pointer" wire:click.stop="toggleNode({{ $node['id'] }})">
                     @if ($node['loading'])
