@@ -16,6 +16,7 @@ class Index extends Component
 {
     use WithPagination, WithFileUploads;
     public $search = '';
+    public $id;
     public $province;
     public $domicile;
 
@@ -153,8 +154,7 @@ class Index extends Component
             $member = Member::findOrFail($id);
 
             $this->name = $member->user->name;
-            $this->name = $member->user->email;
-
+            $this->email = $member->user->email;
             $this->member_id = $member->id;
             $this->member_code = $member->member_code;
             $this->nik = $member->nik;
@@ -186,8 +186,9 @@ class Index extends Component
         $member = Member::with(['province', 'domicile'])->findOrFail($memberId);
 
         // Isi semua variabel
-        $this->name           = $member->name;
-        $this->email          = $member->email;
+        $this->id             = $member->id;
+        $this->name           = $member->user->name;
+        $this->email          = $member->user->email;
         $this->nik            = $member->nik;
         $this->phone_number   = $member->phone_number;
         $this->gender         = $member->gender;
@@ -289,6 +290,58 @@ class Index extends Component
         $this->loadRoot();
     }
 
+    public function update(string $memberId)
+    {
+
+        $member = Member::findOrFail($memberId);
+
+        $this->validate($this->updateRules($member->user_id));
+
+        $this->id = $member->user->id;
+
+        // Handle profile picture upload
+        $filename = $this->old_profile_picture;
+
+        if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+            // hapus file lama jika ada
+            if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
+                Storage::disk('public')->delete($this->old_profile_picture);
+            }
+
+            $filename = $this->profile_picture->store('members', 'public');
+        }
+
+        // Update user
+        $member->user->update([
+            'name' => $this->name,
+            'email' => $this->email,
+        ]);
+
+        // Update password jika ada perubahan
+        if (!empty($this->password)) {
+            $member->user->update(['password' => $this->password]);
+        }
+
+        // Update member
+        $member->update([
+            'nik' => $this->nik,
+            'phone_number' => $this->phone_number,
+            'gender' => $this->gender,
+            'address' => $this->address,
+            'birth_date' => $this->birth_date,
+            'province_id' => $this->province_id,
+            'domicile_id' => $this->domicile_id,
+            'bank_name' => $this->bank_name,
+            'account_number' => $this->account_number,
+            'account_name' => $this->account_name,
+            'npwp' => $this->npwp,
+            'profile_picture' => $filename,
+        ]);
+
+        $this->afterSave(false);
+        $this->loadRoot();
+    }
+
     public function confirmDelete($id)
     {
         $this->confirmingDelete = $id;
@@ -329,6 +382,27 @@ class Index extends Component
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
             'profile_picture' => 'required|image|max:1024', // jpg, png, dll max 1MB
+        ];
+    }
+
+    protected function updateRules($userId)
+    {
+        return [
+            'name'           => 'required|string',
+            'email'          => 'required|email|unique:users,email,' . $userId . ',id',
+            'password'       => 'nullable|string|min:8|confirmed',
+            'nik'            => 'required|string|unique:members,nik,' . $this->member_id,
+            'phone_number'   => 'required|string',
+            'gender'         => 'required|in:male,female',
+            'address'        => 'required|string',
+            'birth_date'     => 'required|date',
+            'npwp'           => 'nullable|string|unique:members,npwp,' . $this->member_id,
+            'province_id'    => 'required|exists:provinces,id',
+            'domicile_id'    => 'required|exists:domiciles,id',
+            'bank_name'      => 'required|string',
+            'account_number' => 'required|string',
+            'account_name'   => 'required|string',
+            'profile_picture' => 'nullable|image|max:1024', // jpg, png, dll max 1MB
         ];
     }
 
