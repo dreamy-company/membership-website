@@ -28,37 +28,34 @@
                     <x-table.tr>
                         <x-table.th>No</x-table.th>
                         <x-table.th>Member Code</x-table.th>
-                        <x-table.th>NIK</x-table.th>
                         <x-table.th>User</x-table.th>
+                        <x-table.th>Email</x-table.th>
                         <x-table.th>Phone</x-table.th>
                         <x-table.th>Gender</x-table.th>
                         <x-table.th>Address</x-table.th>
-                        <x-table.th>Birth Date</x-table.th>
-                        <x-table.th>Province</x-table.th>
-                        <x-table.th>Domicile</x-table.th>
                         <x-table.th>Bank Name</x-table.th>
+                        <x-table.th>Bonus</x-table.th>
                         <x-table.th>Actions</x-table.th>
                     </x-table.tr>
                 </x-table.thead>
-
+                
                 <tbody>
                     @forelse ($members as $item)
                         <x-table.tr>
                             <x-table.td>{{ $members->firstItem() + $loop->index }}</x-table.td>
                             <x-table.td>{{ $item->member_code }}</x-table.td>
-                            <x-table.td>{{ $item->nik }}</x-table.td>
                             <x-table.td>{{ $item->user->name }}</x-table.td>
+                            <x-table.td>{{ $item->user->email }}</x-table.td>
                             <x-table.td>{{ $item->phone_number }}</x-table.td>
                             <x-table.td>{{ $item->gender }}</x-table.td>
                             <x-table.td>{{ $item->address }}</x-table.td>
-                            <x-table.td>{{ $item->birth_date }}</x-table.td>
-                            <x-table.td>{{ $item->province->name ?? '-' }}</x-table.td>
-                            <x-table.td>{{ $item->domicile->name ?? '-' }}</x-table.td>
                             <x-table.td>{{ $item->bank_name }}</x-table.td>
+                            <x-table.td>{{ number_format($item->bonus->balance ?? 0)}}</x-table.td>
                             <x-table.td>
                                 <x-widget.button color="secondary" name="Detail" action="openCardModal({{ $item->id }})" />
                                 <x-widget.button color="neutral" name="Edit" action="openModal({{ $item->id }})" />
                                 <x-widget.button color="danger" name="Delete" action="confirmDelete({{ $item->id }})" />
+                                <x-widget.button color="primary" name="Withdrawal" action="openWithdrawal({{ $item->id }})" />
                             </x-table.td>
                         </x-table.tr>
                     @empty
@@ -218,7 +215,7 @@
     @endif
 
     {{-- card --}}
-     @if ($isCardOpen)
+    @if ($isCardOpen)
 
         <x-modal.card-modal :formTitle="'Detail'" action="store()">
             <div class="py-4 md:py-6">
@@ -321,8 +318,28 @@
             </div>
         </x-modal.card-modal>
     @endif
-   
+
+    {{-- withdrawal id --}}
+    @if ($openWithdrawalModal)
+        <x-modal.form-modal :formTitle="'Withdrawal'" action="processWithdrawal()" :height="'h-auto'">
+            <div class="py-4 md:py-6">
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div>
+                        <x-modal.input name="member_name" label="Member Name" type="text" :disabled="true"/>
+                    </div>
+                    <div>
+                        <x-modal.input name="bonus" label="Bonus" type="number" :disabled="true"/>
+                    </div>
+                </div>
+                <div>
+                    <x-modal.input name="withdrawal_amount" label="Withdrawal Amount" type="number"/>
+                </div>
+            </div>
+        </x-modal.form-modal>
+    @endif
+
     <x-alerts.success/>
+    <x-alerts.error/>
     <x-alerts.delete-confirmation/>
 
 
