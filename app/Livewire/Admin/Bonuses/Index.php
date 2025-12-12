@@ -37,7 +37,7 @@ class Index extends Component
     public function render()
     {
        $bonuses = Bonus::search($this->search)
-                      ->latest()
+                      ->orderBy('updated_at', 'desc')
                       ->paginate($this->perPage);
 
         return view('livewire.admin.bonuses.index', compact('bonuses'));
