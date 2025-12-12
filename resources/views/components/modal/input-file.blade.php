@@ -20,7 +20,7 @@
 
         {{-- Preview --}}
         <div class="mb-2 w-full flex justify-center">
-            @if (isset($$model) && $$model instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
+            @if (isset($$model) && $$model instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) dd($$model);
                 @if(str_contains($$model->getClientOriginalName(), '.pdf'))
                     <a href="{{ $$model->temporaryUrl() }}" target="_blank" class="text-blue-500 underline">Preview PDF</a>
                 @else

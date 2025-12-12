@@ -6,6 +6,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 // Models
 use App\Models\Member;
@@ -247,99 +248,124 @@ class Index extends Component
     {
         $this->validate($this->rules());
 
-        $user = User::create([
-            'name' => $this->name,
-            'email' => $this->email,
-            'password' => $this->password,
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Handle profile picture upload
-        $filename = $this->old_profile_picture;
+            $user = User::create([
+                'name' => $this->name,
+                'email' => $this->email,
+                'password' => $this->password,
+            ]);
 
-        if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-            // hapus file lama jika ada
-            if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
-                Storage::disk('public')->delete($this->old_profile_picture);
+            // Handle profile picture upload
+            $filename = $this->old_profile_picture;
+
+            if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                // hapus file lama jika ada
+                if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
+                    Storage::disk('public')->delete($this->old_profile_picture);
+                }
+
+                $filename = $this->profile_picture->store('members', 'public');
             }
 
-            $filename = $this->profile_picture->store('members', 'public');
+            $province = Province::find($this->province_id);
+            $member_code = $province->code . '-' . (strlen($province->code) === 3 ? '0' : '') . str_pad(Member::count() + 1, 4, '0', STR_PAD_LEFT);
+
+            $member = Member::create([
+                'member_code' => $member_code,
+                'nik' => $this->nik,
+                'user_id' => $user->id,
+                'parent_member_id' => auth()->user()->id,
+                'phone_number' => $this->phone_number,
+                'gender' => $this->gender,
+                'address' => $this->address,
+                'birth_date' => $this->birth_date,
+                'province_id' => $this->province_id,
+                'domicile_id' => $this->domicile_id,
+                'bank_name' => $this->bank_name,
+                'account_number' => $this->account_number,
+                'account_name' => $this->account_name,
+                'npwp' => $this->npwp,
+                'profile_picture' => $filename,
+            ]);
+
+            DB::commit();
+
+            $this->afterSave(!$this->member_id);
+            $this->loadRoot();
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            $this->dispatch('error', [
+                'type' => 'error',
+                'message' => 'Gagal menambahkan member: ' . $e->getMessage(),
+            ]);
         }
-
-        $province = Province::find($this->province_id);
-        $member_code = $province->code . '-' . (strlen($province->code) === 3 ? '0' : '') . str_pad(Member::count() + 1, 4, '0', STR_PAD_LEFT);
-
-        $member = Member::create([
-            'member_code' => $member_code,
-            'nik' => $this->nik,
-            'user_id' => $user->id,
-            'parent_member_id' => auth()->user()->id,
-            'phone_number' => $this->phone_number,
-            'gender' => $this->gender,
-            'address' => $this->address,
-            'birth_date' => $this->birth_date,
-            'province_id' => $this->province_id,
-            'domicile_id' => $this->domicile_id,
-            'bank_name' => $this->bank_name,
-            'account_number' => $this->account_number,
-            'account_name' => $this->account_name,
-            'npwp' => $this->npwp,
-            'profile_picture' => $filename,
-        ]);
-
-        $this->afterSave(!$this->member_id);
-        $this->loadRoot();
     }
 
     public function update(string $memberId)
     {
-
         $member = Member::findOrFail($memberId);
 
         $this->validate($this->updateRules($member->user_id));
 
-        $this->id = $member->user->id;
+        try {
+            DB::beginTransaction();
 
-        // Handle profile picture upload
-        $filename = $this->old_profile_picture;
+            $this->id = $member->user->id;
 
-        if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-            // hapus file lama jika ada
-            if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
-                Storage::disk('public')->delete($this->old_profile_picture);
+            // Handle profile picture upload
+            $filename = $this->old_profile_picture;
+
+            if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                // hapus file lama jika ada
+                if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
+                    Storage::disk('public')->delete($this->old_profile_picture);
+                }
+
+                $filename = $this->profile_picture->store('members', 'public');
             }
 
-            $filename = $this->profile_picture->store('members', 'public');
+            // Update user
+            $member->user->update([
+                'name' => $this->name,
+                'email' => $this->email,
+            ]);
+
+            // Update password jika ada perubahan
+            if (!empty($this->password)) {
+                $member->user->update(['password' => $this->password]);
+            }
+
+            // Update member
+            $member->update([
+                'nik' => $this->nik,
+                'phone_number' => $this->phone_number,
+                'gender' => $this->gender,
+                'address' => $this->address,
+                'birth_date' => $this->birth_date,
+                'province_id' => $this->province_id,
+                'domicile_id' => $this->domicile_id,
+                'bank_name' => $this->bank_name,
+                'account_number' => $this->account_number,
+                'account_name' => $this->account_name,
+                'npwp' => $this->npwp,
+                'profile_picture' => $filename,
+            ]);
+
+            DB::commit();
+
+            $this->afterSave(false);
+            $this->loadRoot();
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            $this->dispatch('error', [
+                'type' => 'error',
+                'message' => 'Gagal mengupdate member: ' . $e->getMessage(),
+            ]);
         }
-
-        // Update user
-        $member->user->update([
-            'name' => $this->name,
-            'email' => $this->email,
-        ]);
-
-        // Update password jika ada perubahan
-        if (!empty($this->password)) {
-            $member->user->update(['password' => $this->password]);
-        }
-
-        // Update member
-        $member->update([
-            'nik' => $this->nik,
-            'phone_number' => $this->phone_number,
-            'gender' => $this->gender,
-            'address' => $this->address,
-            'birth_date' => $this->birth_date,
-            'province_id' => $this->province_id,
-            'domicile_id' => $this->domicile_id,
-            'bank_name' => $this->bank_name,
-            'account_number' => $this->account_number,
-            'account_name' => $this->account_name,
-            'npwp' => $this->npwp,
-            'profile_picture' => $filename,
-        ]);
-
-        $this->afterSave(false);
-        $this->loadRoot();
     }
 
     public function confirmDelete($id)

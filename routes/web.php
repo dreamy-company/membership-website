@@ -19,13 +19,14 @@ use App\Livewire\Members\Member\Index as DashboardMemberIndex;
 use App\Livewire\Admin\BusinessesUsers\Index as BusinessesUsersIndex;
 use App\Livewire\Members\Withdrawals\Index as DashboardWithdrawalIndex;
 use App\Livewire\Members\Transactions\Index as DashboardTransactionIndex;
+use App\Livewire\Members\Profile\Index as DashboardProfileIndex;
 
 // Business Livewire
 use App\Livewire\Business\Transactions\Index as BusinessTransactionIndex;
 use App\Livewire\Business\Transactions\ActivyLog as BusinessActivityLog;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 })->name('home');
 
 
@@ -52,6 +53,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/members', DashboardMemberIndex::class)->name('members');
         Route::get('/transactions', DashboardTransactionIndex::class)->name('transactions');
         Route::get('/withdrawals', DashboardWithdrawalIndex::class)->name('withdrawals');
+        Route::get('/profile', DashboardProfileIndex::class)->name('profile');
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {
