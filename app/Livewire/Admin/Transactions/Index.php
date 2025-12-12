@@ -5,12 +5,17 @@ namespace App\Livewire\Admin\Transactions;
 use App\Models\Member;
 use Livewire\Component;
 use App\Models\Business;
+use App\Models\ActivityLog;
 use App\Models\Transaction;
+use Illuminate\Http\Request;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
+use App\Imports\TransactionsImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public $search = '';
     public $transaction_id;
@@ -30,6 +35,11 @@ class Index extends Component
     public $confirmingDelete;
     public $perPage = 10;
     public $title = "Transaction Management";
+
+    // import
+    public $file;
+    public $isOpenImport = false;
+
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
@@ -161,5 +171,40 @@ class Index extends Component
             'type' => 'success',
             'message' => $message,
         ]);
+    }
+
+    public function openImportModal()
+    {
+        $this->file = null;
+        $this->isOpenImport = true;
+    }
+
+    public function storeData()
+    {
+        $this->validate([
+            'file' => 'required|file|mimes:xlsx,csv',
+        ]);
+
+        Excel::import(new TransactionsImport, $this->file->getRealPath());
+
+        $this->dispatch('success', [
+            'type' => 'success',
+            'message' => 'Transactions imported successfully!',
+        ]);
+        
+        ActivityLog::create([
+            'user_id' => auth()->id(),
+            'type' => 'upload',
+            'description' => 'Upload file Transactions via Excel',
+        ]);
+
+        
+        $this->reset('file');
+        $this->isOpenImport = false;
+    }
+
+    public function redirectToActivityLog()
+    {
+        return redirect()->route('admin.activity-log');
     }
 }

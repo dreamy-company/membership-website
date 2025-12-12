@@ -29,6 +29,7 @@
                         <x-table.th>No</x-table.th>
                         <x-table.th>Member</x-table.th>
                         <x-table.th>Balance</x-table.th>
+                        <x-table.th>Last Update</x-table.th>
                         <x-table.th>Actions</x-table.th>
                     </x-table.tr>
                 </x-table.thead>
@@ -39,6 +40,7 @@
                             <x-table.td>{{ $bonuses->firstItem() + $loop->index }}</x-table.td>
                             <x-table.td>{{ $item->member->user->name}}</x-table.td>
                             <x-table.td>Rp. {{ number_format($item->balance) }}</x-table.td>
+                            <x-table.td><span class="bg-blue-500 border border-blue-500 text-fg-blue-900 text-white text-xs font-medium p-2 rounded">{{ $item->updated_at->diffForHumans()}}</span></x-table.td>
                             <x-table.td>
                                 <x-widget.button color="neutral" name="Edit" action="openModal({{ $item->id }})" />
                                 <x-widget.button color="danger" name="Delete" action="confirmDelete({{ $item->id }})" />
