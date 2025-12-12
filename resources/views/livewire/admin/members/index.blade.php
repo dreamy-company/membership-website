@@ -205,7 +205,7 @@
                             Select File
                         </button>
 
-                        <div wire:loading wire:target="payment_receipt" class="text-gray-500 text-sm mt-2">
+                        <div wire:loading wire:target="profile_picture" class="text-gray-500 text-sm mt-2">
                             Loading preview...
                         </div>
                     </div>
