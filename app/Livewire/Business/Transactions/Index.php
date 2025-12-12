@@ -1,17 +1,19 @@
 <?php
 
-namespace App\Livewire\Admin\Transactions;
+namespace App\Livewire\Business\Transactions;
 
 use App\Models\Member;
 use Livewire\Component;
 use App\Models\Business;
 use App\Models\ActivityLog;
 use App\Models\Transaction;
-use Illuminate\Http\Request;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
+use App\Models\BusinessesUsers;
 use App\Imports\TransactionsImport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Container\Attributes\DB;
+use App\Imports\TransactionsBusinessImport;
 
 class Index extends Component
 {
@@ -51,7 +53,7 @@ class Index extends Component
 
     public function mount()
     {
-        $this->businesses = Business::all();
+        $this->businesses = BusinessesUsers::where('user_id', auth()->id())->with('business')->get();
         $this->members = Member::with('user')->get();
     }
 
@@ -59,9 +61,10 @@ class Index extends Component
     {
        $transactions = Transaction::search($this->search)
                       ->latest()
+                      ->whereIn('business_id', $this->businesses->pluck('business_id'))
                       ->paginate($this->perPage);
 
-        return view('livewire.admin.transactions.index', compact('transactions'));
+        return view('livewire.business.transactions.index', compact('transactions'));
     }
 
     public function openModal($id = null)
@@ -186,8 +189,7 @@ class Index extends Component
         ]);
 
         try {
-
-            Excel::import(new TransactionsImport, $this->file->getRealPath());
+            Excel::import(new TransactionsBusinessImport, $this->file->getRealPath());
 
             ActivityLog::create([
                 'user_id' => auth()->id(),
@@ -217,6 +219,7 @@ class Index extends Component
 
     public function redirectToActivityLog()
     {
-        return redirect()->route('admin.activity-log');
+        return redirect()->route('business.activity-log');
     }
+
 }

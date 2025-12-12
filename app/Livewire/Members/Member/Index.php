@@ -469,7 +469,6 @@ class Index extends Component
 
     public function render()
     {
-
         $totalMembers = Member::where('parent_member_id', auth()->user()->id)->count();
         return view('livewire.members.member.index', [
             'members' => $this->tree,

@@ -39,5 +39,10 @@ class Member extends Model
     {
         return $this->belongsTo(Member::class, 'parent_member_id');
     }
+
+    public function bonus()
+    {
+        return $this->hasOne(Bonus::class, 'member_id');
+    }
    
 }

@@ -2,42 +2,42 @@
 
 namespace App\Imports;
 
-use App\Models\User;
 use App\Models\Bonus;
 use App\Models\Member;
-use App\Models\Business;
 use App\Models\Transaction;
+use App\Models\BusinessesUsers;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-class TransactionsImport implements ToCollection, WithHeadingRow
+class TransactionsBusinessImport implements ToCollection, WithHeadingRow
 {
     public function collection(Collection $rows)
     {
+        // Wrap all operations in a transaction
         DB::transaction(function() use ($rows) {
 
+            // Business ID tetap
+            $businessId = BusinessesUsers::where('user_id', auth()->id())->value('business_id');
+
+            if (!$businessId) {
+                throw new \Exception("Business ID not found for current user");
+            }
+
             foreach ($rows as $row) {
-                // Resolve member
-                $member = Member::whereHas('user', fn($q) =>
+                // Cari member berdasarkan nama
+                $member = Member::whereHas('user', fn($q) => 
                     $q->whereRaw('LOWER(name) = ?', [strtolower(trim($row['member_name']))])
                 )->first();
 
                 if (!$member) {
-                    throw new \Exception("Member '{$row['member_name']}' not found"); // rollback
-                }
-
-                // Resolve business
-                $business = Business::whereRaw('LOWER(name) = ?', [strtolower(trim($row['umkm_name']))])->first();
-
-                if (!$business) {
-                    throw new \Exception("Business '{$row['umkm_name']}' not found"); // rollback
+                    throw new \Exception("Member '{$row['member_name']}' not found"); // throw agar rollback
                 }
 
                 // Insert transaction
                 $transaction = Transaction::create([
-                    'business_id'      => $business->id,
+                    'business_id'      => $businessId,
                     'member_id'        => $member->id,
                     'transaction_code' => $row['transaction_code'] ?? '-',
                     'transaction_date' => now()->toDateString(),
@@ -53,6 +53,6 @@ class TransactionsImport implements ToCollection, WithHeadingRow
                 $bonus->save();
             }
 
-        }); // otomatis rollback kalau ada exception
+        }); // DB::transaction otomatis rollback kalau ada exception
     }
 }

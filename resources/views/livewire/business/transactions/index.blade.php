@@ -72,7 +72,6 @@
             @endif
         </div>
     </div>
-
      <!-- Modal -->
     @if($isOpen)
         <x-modal.form-modal :formTitle="$transaction_id ? 'Edit Transaction' : 'Add Transaction'"  action="store()" height="h-auto">
@@ -80,11 +79,7 @@
                 <div class="grid grid-cols-2 gap-2">
                     <div class="mb-2">
                         <x-modal.select name="business_id" label="UMKM">
-                            @foreach($businesses as $business)
-                                <option value="{{ $business->id }}">
-                                    {{ $business->name }}
-                                </option>
-                            @endforeach
+                           <option value="{{ $businesses[0]->business->id }}" selected>{{ $businesses[0]->business->name }}</option>
                         </x-modal.select>
                     </div>
                     <div class="mb-2">
@@ -139,7 +134,7 @@
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        <p>Download template excel <a class="text-blue-500 underline" href="{{  asset('storage/templates/import_transaction.xlsx')}}">download here!!</a></p>
+                        <p>Download template excel <a class="text-blue-500 underline" href="{{  asset('storage/templates/import_transaction_umkm.xlsx')}}">download here!!</a></p>
                     </div>
             </div>
         </x-modal.form-modal>

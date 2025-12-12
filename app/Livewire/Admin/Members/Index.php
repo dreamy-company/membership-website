@@ -6,8 +6,10 @@ use App\Models\User;
 use App\Models\Member;
 use Livewire\Component;
 use App\Models\Province;
+use App\Models\ActivityLog;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class Index extends Component
@@ -49,6 +51,11 @@ class Index extends Component
     public $provinces;
     public $domicilies;
     public $isCardOpen = false;
+
+    public $openWithdrawalModal = false;
+    public $member_name;
+    public $bonus;
+    public $withdrawal_amount;
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
@@ -107,6 +114,7 @@ class Index extends Component
     public function closeModal()
     {
         $this->isOpen = false;
+        $this->openWithdrawalModal = false;
     }
 
     public function closeCardModal()
@@ -114,8 +122,6 @@ class Index extends Component
         $this->isCardOpen = false;
     }
     
-    
-
     private function resetInput()
     {
         $this->member_code = '';
@@ -282,8 +288,6 @@ class Index extends Component
         ];
     }
 
-
-
     protected function formData()
     {
         return [
@@ -318,4 +322,75 @@ class Index extends Component
             'message' => $message,
         ]);
     }
+
+    public function openWithdrawal($memberId)
+    {
+        $this->member_id = $memberId;
+
+        // ambil member beserta bonusnya
+        $member = Member::with('bonus')->find($memberId);
+
+         // cek apakah member punya bonus
+      if ($member->bonus === null || empty($member->bonus->balance)) {
+            $this->dispatch('error', [
+                'type' => 'error',
+                'message' => 'Member tidak memiliki bonus untuk ditarik.',
+            ]);
+            return;
+        }
+
+        $this->member_name = $member->user->name;           // nama member
+        $this->bonus = $member->bonus->balance ?? 0; // bonus saat ini
+        $this->withdrawal_amount = 0;                 // default bisa diisi user nanti
+
+        $this->openWithdrawalModal = true;
+    }
+
+    public function processWithdrawal()
+    {
+        $this->validate([
+            'withdrawal_amount' => 'required|numeric|min:1|max:' . $this->bonus,
+        ]);
+
+        DB::beginTransaction(); // mulai transaction
+
+        try {
+            $member = Member::with('bonus')->findOrFail($this->member_id);
+
+            if ($member->bonus->balance == 0) {
+                throw new \Exception('Member tidak punya bonus.');
+            }
+
+            // kurangi balance bonus
+            $member->bonus->balance -= $this->withdrawal_amount;
+            $member->bonus->save();
+
+            // buat activity log
+            ActivityLog::create([
+                'user_id'    => auth()->id(),
+                'type'       => 'withdrawal',
+                'description'=> 'Member ID ' . $member->user->name . ' withdrew ' . $this->withdrawal_amount . ' from bonus account.',
+            ]);
+
+            DB::commit(); // commit jika semua sukses
+
+            // tutup modal dan reset input
+            $this->closeModal();
+            $this->resetInput();
+
+            $this->dispatch('success', [
+                'type' => 'success',
+                'message' => 'Penarikan bonus berhasil diproses!',
+            ]);
+
+        } catch (\Throwable $th) {
+            DB::rollBack(); // rollback kalau ada error
+
+            $this->dispatch('error', [
+                'type' => 'error',
+                'message' => 'Terjadi kesalahan saat memproses penarikan bonus: ' . $th->getMessage(),
+            ]);
+        }
+    }
+
 }
