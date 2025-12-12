@@ -75,7 +75,7 @@
 
      <!-- Modal -->
     @if($isOpen)
-        <x-modal.form-modal :formTitle="$transaction_id ? 'Edit Transaction' : 'Add Transaction'"  action="store()" >
+        <x-modal.form-modal :formTitle="$transaction_id ? 'Edit Transaction' : 'Add Transaction'"  action="store()" height="h-auto">
            <div class="grid gap-4 grid-cols-1 py-4 md:py-6">
                 <div class="grid grid-cols-2 gap-2">
                     <div class="mb-2">
@@ -129,12 +129,12 @@
 
     <!-- Modal -->
     @if($isOpenImport)
-        <x-modal.form-modal :formTitle="'Import Transactions'" action="storeData()">
+        <x-modal.form-modal :formTitle="'Import Transactions'" action="storeData()" height="h-auto">
            <div class="grid gap-4 grid-cols-1 py-4 md:py-6">
                     <div class="grid grid-cols-1 gap-2">
                         <div class="mb-0">
                             <label class="block mb-2.5 text-sm font-medium text-heading" for="file_input">Upload file</label>
-                            <input name="file" id="file" wire:model="file" class="cursor-pointer bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-brand focus:border-brand block w-full shadow-xs placeholder:text-body" type="file">
+                            <input name="file" id="file" wire:model="file" class="cursor-pointer bg-slate-50 border border-stone-500 text-heading text-sm rounded-md focus:ring-stone focus:border-stone block w-full shadow-xs placeholder:text-body p-2" type="file">
                             @error('file')
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror

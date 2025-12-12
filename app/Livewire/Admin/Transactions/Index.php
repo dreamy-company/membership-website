@@ -85,8 +85,8 @@ class Index extends Component
 
     public function closeModal()
     {
-       
         $this->isOpen = false;
+        $this->isOpenImport = false;
     }
 
     private function resetInput()
@@ -185,23 +185,35 @@ class Index extends Component
             'file' => 'required|file|mimes:xlsx,csv',
         ]);
 
-        Excel::import(new TransactionsImport, $this->file->getRealPath());
+        try {
 
-        $this->dispatch('success', [
-            'type' => 'success',
-            'message' => 'Transactions imported successfully!',
-        ]);
-        
-        ActivityLog::create([
-            'user_id' => auth()->id(),
-            'type' => 'upload',
-            'description' => 'Upload file Transactions via Excel',
-        ]);
+            Excel::import(new TransactionsImport, $this->file->getRealPath());
 
-        
+            ActivityLog::create([
+                'user_id' => auth()->id(),
+                'type' => 'upload',
+                'description' => 'Upload file Transactions via Excel',
+            ]);
+
+            $this->dispatch('success', [
+                'type' => 'success',
+                'message' => 'Transactions imported successfully!',
+            ]);
+
+        } catch (\Exception $e) {
+
+            // pesan error buat user
+            $this->dispatch('error', [
+                'type' => 'error',
+                'message' => 'Gagal mengimport data: ' . $e->getMessage(),
+            ]);
+        }
+
+        // ini tetap jalan entah sukses / gagal
         $this->reset('file');
         $this->isOpenImport = false;
     }
+
 
     public function redirectToActivityLog()
     {

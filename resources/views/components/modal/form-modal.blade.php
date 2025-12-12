@@ -1,4 +1,4 @@
-@props(['formTitle', 'action'])
+@props(['formTitle', 'action', 'height' => 'h-[600px]'])
 
 <div id="crud-modal" class="fixed inset-0 bg-black/30 z-50 flex justify-center items-center overflow-y-auto ">
     <div
@@ -19,7 +19,7 @@
             </button>
         </div>
         <div class="relative">
-            <div class="h-[600px] overflow-y-auto">
+            <div class="{{ $height }} overflow-y-auto">
 
 
                 <!-- Body -->
@@ -30,7 +30,7 @@
         <!-- Footer -->
         <div class="flex items-center justify-end space-x-4 border-t border-default pt-4 md:pt-6">
             <x-widget.button-outline color="stone" name="Cancel" action="closeModal()" />
-            @if ($action === 'store()')
+            @if ($action === 'store()' || $action === 'storeData()')
                 <x-widget.button color="neutral" name="Send" action="{{ $action }}" />
             @else
                 <x-widget.button color="warning" name="Update" action="{{ $action }}" />
