@@ -19,7 +19,7 @@ use App\Livewire\Members\Transactions\Index as DashboardTransactionIndex;
 use App\Livewire\Members\Withdrawals\Index as DashboardWithdrawalIndex;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
 })->name('home');
 
 
