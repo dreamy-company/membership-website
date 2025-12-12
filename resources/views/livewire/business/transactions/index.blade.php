@@ -134,7 +134,7 @@
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        <p>Download template excel <a class="text-blue-500 underline" href="{{  asset('storage/templates/import_transaction.xlsx')}}">download here!!</a></p>
+                        <p>Download template excel <a class="text-blue-500 underline" href="{{  asset('storage/templates/import_transaction_umkm.xlsx')}}">download here!!</a></p>
                     </div>
             </div>
         </x-modal.form-modal>

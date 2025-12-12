@@ -9,9 +9,11 @@ use App\Models\ActivityLog;
 use App\Models\Transaction;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
-use App\Imports\TransactionsImport;
 use App\Models\BusinessesUsers;
+use App\Imports\TransactionsImport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Container\Attributes\DB;
+use App\Imports\TransactionsBusinessImport;
 
 class Index extends Component
 {
@@ -187,8 +189,7 @@ class Index extends Component
         ]);
 
         try {
-
-            Excel::import(new TransactionsImport, $this->file->getRealPath());
+            Excel::import(new TransactionsBusinessImport, $this->file->getRealPath());
 
             ActivityLog::create([
                 'user_id' => auth()->id(),
