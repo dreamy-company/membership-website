@@ -22,6 +22,7 @@ use App\Livewire\Members\Transactions\Index as DashboardTransactionIndex;
 
 // Business Livewire
 use App\Livewire\Business\Transactions\Index as BusinessTransactionIndex;
+use App\Livewire\Business\Transactions\ActivyLog as BusinessActivityLog;
 
 Route::get('/', function () {
     return view('welcome');
@@ -67,5 +68,6 @@ Route::middleware(['auth'])->group(function () {
     });
     Route::prefix('business')->name('business.')->group(function () {
         Route::get('/transactions', BusinessTransactionIndex::class)->name('transactions');
+        Route::get('/activity-log', BusinessActivityLog::class)->name('activity-log');
     });
 });

@@ -219,7 +219,7 @@ class Index extends Component
 
     public function redirectToActivityLog()
     {
-        return redirect()->route('admin.activity-log');
+        return redirect()->route('business.activity-log');
     }
 
 }
