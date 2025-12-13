@@ -4,13 +4,23 @@
 
     {{-- Row utama --}}
     <div
-        class="flex items-center justify-between gap-3 p-2 rounded border border-gray-200 w-full md:w-1/3 min-w-[300px] hover:bg-gray-100">
+        class="flex items-center justify-between gap-3 p-2 rounded border border-gray-200 w-full md:w-2/3 min-w-[400px] hover:bg-gray-100">
 
         <div class="flex gap-4">
 
             {{-- Profile --}}
-            <img src="{{ asset('storage/' . $node['user']['profile_picture']) ?? 'https://i.pravatar.cc/60?u=' . $node['id'] }}"
-                class="w-10 h-10 rounded-full border object-cover">
+            @if ($node['user']['profile_picture'])
+                <img src="{{ asset("storage/{$node['user']['profile_picture']}") }}" alt="Profile"
+                    class="w-10 h-10 object-cover rounded-full shadow-lg border-4 border-white">
+            @else
+                <div
+                    class="w-10 h-10 rounded-full shadow-lg border-4 border-white bg-gray-300 flex items-center justify-center">
+                <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                            clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+            @endif
 
             {{-- Info --}}
             <div>

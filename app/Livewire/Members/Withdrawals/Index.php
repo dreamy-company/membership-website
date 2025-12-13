@@ -5,6 +5,9 @@ namespace App\Livewire\Members\Withdrawals;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+
+// Models
+use App\Models\Bonus;
 use App\Models\Withdrawal;
 
 class Index extends Component
@@ -14,6 +17,21 @@ class Index extends Component
     public $search = '';
     public $perPage = 10;
     public $title = "Withdrawals";
+    
+    public $isOpen = false;
+
+    public $payment_receipt;
+
+
+    public function openModal($path){
+        $this->isOpen = true;
+        $this->payment_receipt = $path;
+    }
+
+    public function closeModal(){
+        $this->isOpen = false;
+        $this->payment_receipt = null;
+    }
 
 
     protected $queryString = ['search' => ['except' => '']];
@@ -30,6 +48,8 @@ class Index extends Component
             ->latest()
             ->paginate($this->perPage);
 
-        return view('livewire.members.withdrawals.index', compact('withdrawals'));
+        $bonusTotal = Bonus::where('member_id', auth()->user()->id)->first();
+
+        return view('livewire.members.withdrawals.index', compact('withdrawals', 'bonusTotal'));
     }
 }

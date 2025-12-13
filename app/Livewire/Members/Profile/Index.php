@@ -140,7 +140,7 @@ class Index extends Component
             $this->afterSave(false);
 
             // Clear password field
-            $this->reset('password', 'password_confirmation');
+            $this->reset('password', 'password_confirmation', 'profile_picture');
         } catch (\Exception $e) {
             DB::rollBack();
             $this->dispatch('error', [

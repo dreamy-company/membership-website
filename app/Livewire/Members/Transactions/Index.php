@@ -5,7 +5,7 @@ namespace App\Livewire\Members\Transactions;
 
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Province;
+
 use App\Models\Transaction;
 
 class Index extends Component
@@ -14,9 +14,6 @@ class Index extends Component
 
     public $search = '';
     public $name;
-    public $province_id;
-    public $isOpen = false;
-    public $confirmingDelete;
     public $perPage = 10;
     public $title = "Transactions";
 
@@ -34,6 +31,8 @@ class Index extends Component
                       ->latest()
                       ->paginate($this->perPage);
 
-        return view('livewire.members.transactions.index', compact('transactions'));
+        $transactionTotal = Transaction::where('member_id', auth()->user()->id)->sum('amount');
+
+        return view('livewire.members.transactions.index', compact('transactions', 'transactionTotal'));
     }
 }
