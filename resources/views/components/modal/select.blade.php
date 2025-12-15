@@ -2,7 +2,7 @@
 
 
     <label class="block mb-2 text-sm font-medium">{{ $label }}</label>
-    <select wire:model="{{ $name }}" class="w-full border px-3 py-2 rounded-md">
+    <select wire:model="{{ $name }}" class="w-full border px-3 py-2 rounded-md text-black">
         <option value="">Choose a {{ $label }}</option>
         {{ $slot }}
     </select>
