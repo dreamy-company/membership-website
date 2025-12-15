@@ -1,17 +1,20 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
-    <head>
-        @include('partials.head')
-    </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-            <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-            <a href="{{ route('dashboard.index') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
-                <x-app-logo />
-            </a>
+<head>
+    @include('partials.head')
+</head>
 
-            <flux:navlist variant="outline">
+<body class="min-h-screen bg-white dark:bg-zinc-800">
+    <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+        <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
+
+        <a href="{{ route('dashboard.index') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse"
+            wire:navigate>
+            <x-app-logo />
+        </a>
+
+        <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Menu')" class="grid">
                     @if (auth()->user()->role == 'admin') 
                         <flux:navlist.item icon="home" :href="route('admin.index')" :current="request()->routeIs('admin.index')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
@@ -30,14 +33,13 @@
                         <flux:navlist.item icon="users" :href="route('dashboard.members')" :current="request()->routeIs('dashboard.members')" wire:navigate>{{ __('Member') }}</flux:navlist.item>  
                     @elseif(auth()->user()->role == 'business')
                         <flux:navlist.item icon="home" :href="route('business.transactions')" :current="request()->routeIs('business.transactions')" wire:navigate>{{ __('Transactions') }}</flux:navlist.item>
-                        {{-- <flux:navlist.item icon="star" :href="route('dashboard.withdrawals')" :current="request()->routeIs('dashboard.withdrawals')" wire:navigate>{{ __('Bonus Balance') }}</flux:navlist.item> 
+                        <flux:navlist.item icon="star" :href="route('dashboard.withdrawals')" :current="request()->routeIs('dashboard.withdrawals')" wire:navigate>{{ __('Bonus Balance') }}</flux:navlist.item> 
                         <flux:navlist.item icon="banknotes" :href="route('dashboard.transactions')" :current="request()->routeIs('dashboard.transactions')" wire:navigate>{{ __('Transactions') }}</flux:navlist.item> 
-                        <flux:navlist.item icon="users" :href="route('dashboard.members')" :current="request()->routeIs('dashboard.members')" wire:navigate>{{ __('Member') }}</flux:navlist.item>   --}}
+                        <flux:navlist.item icon="users" :href="route('dashboard.members')" :current="request()->routeIs('dashboard.members')" wire:navigate>{{ __('Member') }}</flux:navlist.item>  
                     @endif
                 </flux:navlist.group>
-            </flux:navlist>
-
-            <flux:spacer />
+            </flux:navlist>  
+        <flux:spacer />
 
         <!-- Desktop User Menu -->
         <flux:dropdown class="hidden lg:block" position="bottom" align="start">
@@ -56,8 +58,8 @@
                             </span>
 
                             <div class="grid flex-1 text-start text-sm leading-tight">
-                                <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
-                                <span class="truncate text-xs">{{ auth()->user()->email }}</span>
+                                <span class="truncate text-black dark:text-white font-semibold">{{ auth()->user()->name }}</span>
+                                <span class="truncate text-black dark:text-white text-xs">{{ auth()->user()->email }}</span>
                             </div>
                         </div>
                     </div>
@@ -114,7 +116,8 @@
                 <flux:menu.separator />
 
                 <flux:menu.radio.group>
-                    <flux:menu.item :href="route('dashboard.profile')" icon="cog" wire:navigate>{{ __('Settings') }}
+                    <flux:menu.item :href="route('dashboard.profile')" icon="cog" wire:navigate>
+                        {{ __('Settings') }}
                     </flux:menu.item>
                 </flux:menu.radio.group>
 
@@ -136,8 +139,9 @@
     @fluxScripts
 </body>
 
-        @fluxScripts
+@fluxScripts
 
-        @livewireScripts
-    </body>
+@livewireScripts
+</body>
+
 </html>

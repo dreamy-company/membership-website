@@ -1,6 +1,6 @@
 @props(['title', 'total', 'route'])
 
-<div class="bg-transparent block max-w-sm p-6 rounded-md shadow-sm">
+<div class="bg-transparent block max-w-sm p-6 rounded-md shadow-sm text-black">
     <div class="flex flex-row justify-between items-center">
         <h5 class="mb-3 text-xl font-semibold tracking-tight text-heading leading-8">{{ $title }}</h5>
         <h5 class="mb-3 text-2xl font-semibold tracking-tight text-heading leading-8">{{ $total }}</h5>

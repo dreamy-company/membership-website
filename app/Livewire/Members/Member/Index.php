@@ -48,6 +48,8 @@ class Index extends Component
     public $confirmingDelete;
     public $perPage = 10;
 
+    public $memberUserId;
+
     public $users;
     public $provinces;
     public $domicilies;
@@ -99,6 +101,7 @@ class Index extends Component
 
     public function toggleNode($memberId)
     {
+        $this->memberUserId = Member::findOrFail($memberId);
         $this->updateNode($this->tree, $memberId, function (&$node) {
 
             // Stop jika mencapai level 5
@@ -110,7 +113,7 @@ class Index extends Component
             if (!$node['fetched']) {
                 $node['loading'] = true;
 
-                $children = Member::where('parent_member_id', $node['id'])
+                $children = Member::where('parent_member_id', $this->memberUserId->user->id)
                     ->with('user')
                     ->get();
 

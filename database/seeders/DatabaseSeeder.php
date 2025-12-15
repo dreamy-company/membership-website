@@ -16,6 +16,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $user = User::create([
+            'name' => 'Admin Membership',
+            'email' => 'admin@membership.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+        ]);
+
         $faker = Faker::create('id_ID');
 
         $userIds = [];

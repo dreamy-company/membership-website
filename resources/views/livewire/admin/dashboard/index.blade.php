@@ -1,7 +1,6 @@
 <div>
     {{-- header --}}
-    <div
-        class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 mb-2">
+    <div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 mb-2">
         <div class="w-full mb-1">
             <div class="mb-4">
                 <x-dashboard.breadcrumbs title="Admin Dashboard" />
@@ -9,14 +8,26 @@
             </div>
             <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
                 <div class="flex items-center mb-4 sm:mb-0">
-                    <flux:input icon="magnifying-glass" wire:model.live.debounce.250ms="search" placeholder="Search Members" />
+                    <flux:input icon="magnifying-glass" wire:model.live.debounce.250ms="search"
+                        placeholder="Search Members" />
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="grid grid-cols-4 gap-4">
+        <x-dashboard.card title="Total Transactions" :total="$transactionsCount" route="admin.transactions" />
+        <x-dashboard.card title="Total Members" :total="$membersCount" route="admin.members" />
+        {{-- <x-dashboard.card
+            title="Total Users"
+            :total="$usersCount "
+            route="admin.users" /> --}}
+        <x-dashboard.card title="Total UMKM" :total="$businessesCount" route="admin.businesses" />
+        <x-dashboard.card title="Total Provinces" :total="$provincesCount" route="admin.provinces" />
+    </div>
+
     @if ($members->count() > 0)
-       <div class="w-full mt-6 px-4 pb-4 mb-4">
+        <div class="w-full mt-6 px-4 pb-4 mb-4">
             <div class="overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-md border border-default">
                 <x-table.table>
                     <x-table.thead>
@@ -61,8 +72,10 @@
                                 <x-table.td>{{ $item->account_name }}</x-table.td>
                                 <x-table.td>{{ $item->profile_picture }}</x-table.td>
                                 <x-table.td>
-                                    <x-widget.button color="neutral" name="Edit" action="openModal({{ $item->id }})" />
-                                    <x-widget.button color="danger" name="Delete" action="confirmDelete({{ $item->id }})" />
+                                    <x-widget.button color="neutral" name="Edit"
+                                        action="openModal({{ $item->id }})" />
+                                    <x-widget.button color="danger" name="Delete"
+                                        action="confirmDelete({{ $item->id }})" />
                                 </x-table.td>
                             </x-table.tr>
                         @empty
@@ -74,36 +87,13 @@
                         @endforelse
                     </tbody>
                 </x-table.table>
-            @if ($members->hasPages())
+                @if ($members->hasPages())
                     <div class="p-4">
                         {{ $members->links() }}
                     </div>
                 @endif
             </div>
-        </div>    
+        </div>
     @endif
 
-    <div class="grid grid-cols-4 gap-4">
-        <x-dashboard.card
-            title="Total Transactions"
-            :total="$transactionsCount"
-            route="admin.transactions" />
-        <x-dashboard.card
-            title="Total Members"
-            :total="$membersCount"
-            route="admin.members" />
-        {{-- <x-dashboard.card
-            title="Total Users"
-            :total="$usersCount "
-            route="admin.users" /> --}}
-        <x-dashboard.card
-            title="Total UMKM"
-            :total="$businessesCount"
-            route="admin.businesses" />
-        <x-dashboard.card
-            title="Total Provinces"
-            :total="$provincesCount"
-            route="admin.provinces" />
-    </div>
-    
 </div>
