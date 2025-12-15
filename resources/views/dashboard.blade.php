@@ -15,7 +15,7 @@
             <div
                 class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 p-8 flex flex-col justify-center gap-2">
                 <div class="flex gap-2">
-                    <flux:icon.star />
+                    <flux:icon.star class="text-black" />
                     <flux:text size="xl">
                         Bonus Balance
                     </flux:text>
@@ -23,31 +23,37 @@
 
                 <flux:heading class="mb-1 text-3xl!">Rp. {{ number_format($bonusTotal->balance ?? 0, 0) }}
                 </flux:heading>
-                <flux:button href="{{ route('dashboard.withdrawals') }}" variant="primary">See Detail</flux:button>
+                <flux:button href="{{ route('dashboard.withdrawals') }}" variant="primary"
+                    class="bg-black text-white hover:bg-gray-700">
+                    See Detail</flux:button>
             </div>
             <div
                 class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 p-8 flex flex-col justify-center gap-2">
                 <div class="flex gap-2">
-                    <flux:icon.banknotes />
+                    <flux:icon.banknotes class="text-black" />
                     <flux:text size="xl">
                         Total Transactions
                     </flux:text>
                 </div>
 
                 <flux:heading class="mb-1 text-3xl!">Rp. {{ number_format($transactionTotal ?? 0, 0) }}</flux:heading>
-                <flux:button href="{{ route('dashboard.transactions') }}" variant="primary">See Detail</flux:button>
+                <flux:button href="{{ route('dashboard.transactions') }}" variant="primary"
+                    class="bg-black text-white hover:bg-gray-700">
+                    See Detail</flux:button>
             </div>
             <div
                 class="relative aspect-video overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-700 p-8 flex flex-col justify-center gap-2">
                 <div class="flex gap-2">
-                    <flux:icon.users />
+                    <flux:icon.users class="text-black" />
                     <flux:text size="xl">
                         Total Members
                     </flux:text>
                 </div>
 
                 <flux:heading class="mb-1 text-3xl!">{{ $totalMembers }}</flux:heading>
-                <flux:button href="{{ route('dashboard.members') }}" variant="primary">See Detail</flux:button>
+                <flux:button href="{{ route('dashboard.members') }}" variant="primary"
+                    class="bg-black text-white hover:bg-gray-700">See
+                    Detail</flux:button>
             </div>
         </div>
 

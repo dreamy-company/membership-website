@@ -1,7 +1,7 @@
 @props(['label' => 'Upload File', 'model', 'old' => null, 'accept' => 'image/*,application/pdf/*'])
 
 <div class="grid grid-cols-1 gap-2 mb-4">
-    <label class="block mb-2.5 text-sm font-medium text-heading">{{ $label }}</label>
+    <label class="block mb-2.5 text-sm font-medium text-heading text-black">{{ $label }}</label>
 
     <div 
         class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-gray-400 transition"

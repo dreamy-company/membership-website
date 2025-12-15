@@ -7,7 +7,7 @@
     'value' => null, // optional default value
 ])
 
-<label for="{{ $name }}" class="block mb-2.5 text-sm font-medium text-heading">
+<label for="{{ $name }}" class="block mb-2.5 text-sm font-medium text-heading text-black">
     {{ $label }}
 </label>
 
@@ -18,7 +18,7 @@
     value="{{ old($name, $value) }}"
     placeholder="{{ $placeholder }}"
     {{ $disabled ? 'disabled' : '' }}
-    class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-md focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body"
+    class="bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-md focus:ring-brand focus:border-brand block w-full px-3 py-2.5 shadow-xs placeholder:text-body text-black"
 />
 
 @error($name)
