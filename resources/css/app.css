@@ -9,6 +9,13 @@
 /* @custom-variant dark (&:where(.dark, .dark *)); */
 @custom-variant dark (&:not(*));
 
+/* resources/css/app.css */
+[data-flux-navlist-item][data-current] {
+    background-color: #000000 !important; /* Black background */
+    color: #ffffff !important;           /* White text */
+}
+
+
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 

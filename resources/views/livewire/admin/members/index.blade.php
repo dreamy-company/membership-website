@@ -182,7 +182,6 @@
                         x-data @dragover.prevent="dragging=true" @dragleave.prevent="dragging=false"
                         @drop.prevent="$refs.fileInput.files = $event.dataTransfer.files; $dispatch('input', $event.dataTransfer.files)">
                         <input type="file" wire:model="profile_picture" class="hidden" x-ref="fileInput" />
-
                         {{-- Preview --}}
                         <div class="mb-2 w-full flex justify-center">
                             @if ($profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
@@ -191,6 +190,11 @@
                             @elseif(!empty($old_profile_picture))
                                 <img src="{{ asset('storage/' . $old_profile_picture) }}" alt="Old Image"
                                     class="max-h-40 rounded-md border border-gray-300">
+                            @else
+                                <div
+                                    class="w-full h-40 rounded-md border border-gray-300 bg-gray-100 flex items-center justify-center">
+                                    <span class="text-gray-400">No Profile Picture</span>
+                                </div>
                             @endif
                         </div>
 
@@ -229,8 +233,16 @@
 
                     {{-- FOTO PROFIL --}}
                     <div class="flex justify-center -mt-16 mb-4">
-                        <img src="{{ asset('storage/' . $profile_picture) }}" alt="Profile"
-                            class="w-32 h-32 object-cover rounded-full shadow-lg border-4 border-white">
+                        @if($profile_picture)
+                            <img src="{{ asset("storage/{$profile_picture}") }}" alt="Profile"
+                                class="w-32 h-32 object-cover rounded-full shadow-lg border-4 border-white">
+                        @else
+                            <div class="w-32 h-32 rounded-full shadow-lg border-4 border-white bg-gray-300 flex items-center justify-center">
+                                <svg class="w-16 h-16 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        @endif
                     </div>
 
                     {{-- NAMA & EMAIL --}}

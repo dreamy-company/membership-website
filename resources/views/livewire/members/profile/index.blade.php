@@ -18,24 +18,36 @@
     <div class="py-4 md:py-6">
         {{-- FOTO PROFIL --}}
         <div class="flex justify-center mt-16 mb-4">
-            <img src="{{ asset('storage/' . $old_profile_picture) }}" alt="Profile"
-                class="w-32 h-32 object-cover rounded-full shadow-lg border-4 border-white">
+            <div class="flex justify-center -mt-16 mb-4">
+                @if ($old_profile_picture)
+                    <img src="{{ asset("storage/{$old_profile_picture}") }}" alt="Profile"
+                        class="w-32 h-32 object-cover rounded-full shadow-lg border-4 border-white">
+                @else
+                    <div
+                        class="w-32 h-32 rounded-full shadow-lg border-4 border-white bg-gray-300 flex items-center justify-center">
+                        <svg class="w-16 h-16 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                @endif
+            </div>
         </div>
         <div class="p-4 shadow-sm rounded-md bg-white">
             <h3 class="font-semibold mb-4">Profile Picture</h3>
-            <div
-                class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-gray-400 transition">
+            <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-gray-400 transition"
+                onclick="document.getElementById('profile_picture_input').click()">
                 {{-- Preview --}}
                 <div class="mb-2 w-full flex justify-center">
                     @if ($profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
                         <img src="{{ $profile_picture->temporaryUrl() }}" alt="Preview"
                             class="max-h-40 rounded-md border border-gray-300">
-                    @elseif(!empty($old_profile_picture))
-                        <img src="{{ asset("storage/{$old_profile_picture}") }}" alt="Old Image"
-                            class="max-h-40 rounded-md border border-gray-300">
                     @endif
                 </div>
-                <input type="file" wire:model="profile_picture" accept="image/*" />
+
+                <input type="file" id="profile_picture_input" wire:model="profile_picture" accept="image/*"
+                    class="hidden" />
+                <label class="text-center text-gray-600 text-sm mt-2">Choose File</label>
 
                 <span class="text-gray-500 text-sm">
                     Drag & drop a file here or click to select

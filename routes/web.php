@@ -1,7 +1,12 @@
 <?php
 
 use Livewire\Volt\Volt;
+
+// Fortify
 use Laravel\Fortify\Features;
+use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
+use Laravel\Fortify\RoutePath;
+
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Admin\Transactions\ActivityLog;
 use App\Livewire\Admin\Members\Index as MemberIndex;
@@ -29,7 +34,6 @@ Route::get('/', function () {
     return redirect()->route('login');
 })->name('home');
 
-
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
@@ -47,29 +51,29 @@ Route::middleware(['auth'])->group(function () {
             ),
         )
         ->name('two-factor.show');
+});
 
-    Route::prefix('dashboard')->name('dashboard.')->group(function () {
-        Route::get('/', DashboardIndex::class)->name('index');
-        Route::get('/members', DashboardMemberIndex::class)->name('members');
-        Route::get('/transactions', DashboardTransactionIndex::class)->name('transactions');
-        Route::get('/withdrawals', DashboardWithdrawalIndex::class)->name('withdrawals');
-        Route::get('/profile', DashboardProfileIndex::class)->name('profile');
-    });
+Route::middleware(['auth', 'role:member'])->prefix('dashboard')->name('dashboard.')->group(function () {
+    Route::get('/', DashboardIndex::class)->name('index');
+    Route::get('/members', DashboardMemberIndex::class)->name('members');
+    Route::get('/transactions', DashboardTransactionIndex::class)->name('transactions');
+    Route::get('/withdrawals', DashboardWithdrawalIndex::class)->name('withdrawals');
+    Route::get('/profile', DashboardProfileIndex::class)->name('profile');
+});
 
-    Route::prefix('admin')->name('admin.')->group(function () {
-        Route::get('/', AdminDashboardIndex::class)->name('index');
-        Route::get('/provinces', ProvinceIndex::class)->name('provinces');
-        Route::get('/businesses', BusinessIndex::class)->name('businesses');
-        Route::get('/domicilies', DomicileIndex::class)->name('domicilies');
-        Route::get('/members', MemberIndex::class)->name('members');
-        Route::get('/businesses-users', BusinessesUsersIndex::class)->name('businesses.users');
-        Route::get('/bonuses', BonusesIndex::class)->name('bonuses');
-        Route::get('/transactions', TransactionIndex::class)->name('transactions');
-        Route::get('/activity-log', ActivityLog::class)->name('activity-log');
-        Route::get('/withdrawals', WithdrawalIndex::class)->name('withdrawals');
-    });
-    Route::prefix('business')->name('business.')->group(function () {
-        Route::get('/transactions', BusinessTransactionIndex::class)->name('transactions');
-        Route::get('/activity-log', BusinessActivityLog::class)->name('activity-log');
-    });
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', AdminDashboardIndex::class)->name('index');
+    Route::get('/provinces', ProvinceIndex::class)->name('provinces');
+    Route::get('/businesses', BusinessIndex::class)->name('businesses');
+    Route::get('/domicilies', DomicileIndex::class)->name('domicilies');
+    Route::get('/members', MemberIndex::class)->name('members');
+    Route::get('/businesses-users', BusinessesUsersIndex::class)->name('businesses.users');
+    Route::get('/bonuses', BonusesIndex::class)->name('bonuses');
+    Route::get('/transactions', TransactionIndex::class)->name('transactions');
+    Route::get('/activity-log', ActivityLog::class)->name('activity-log');
+    Route::get('/withdrawals', WithdrawalIndex::class)->name('withdrawals');
+});
+Route::middleware(['auth', 'role:business'])->prefix('business')->name('business.')->group(function () {
+    Route::get('/transactions', BusinessTransactionIndex::class)->name('transactions');
+    Route::get('/activity-log', BusinessActivityLog::class)->name('activity-log');
 });

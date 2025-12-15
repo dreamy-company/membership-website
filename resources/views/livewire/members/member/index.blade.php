@@ -6,6 +6,10 @@
                 <x-dashboard.breadcrumbs title="Provinces" />
                 <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">{{ $title }}</h1>
             </div>
+            <div class="mb-4">
+                <h1 class="text-xl font-semibold text-blue-600 sm:text-2xl dark:text-white">Total Members:
+                    {{ $totalMembers ?? 0 }}</h1>
+            </div>
             <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
                 {{-- <div class="flex items-center mb-4 sm:mb-0">
                     <flux:input icon="magnifying-glass" wire:model.live.debounce.250ms="search"
@@ -177,11 +181,18 @@
 
                     {{-- HEADER BACKGROUND --}}
                     <div class="h-32 bg-gradient-to-r from-blue-500 to-blue-600"></div>
-
                     {{-- FOTO PROFIL --}}
                     <div class="flex justify-center -mt-16 mb-4">
-                        <img src="{{ asset('storage/' . $profile_picture) }}" alt="Profile"
-                            class="w-32 h-32 object-cover rounded-full shadow-lg border-4 border-white">
+                        @if($profile_picture)
+                            <img src="{{ asset("storage/{$profile_picture}") }}" alt="Profile"
+                                class="w-32 h-32 object-cover rounded-full shadow-lg border-4 border-white">
+                        @else
+                            <div class="w-32 h-32 rounded-full shadow-lg border-4 border-white bg-gray-300 flex items-center justify-center">
+                                <svg class="w-16 h-16 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                                </svg>
+                            </div>
+                        @endif
                     </div>
 
                     {{-- NAMA & EMAIL --}}

@@ -7,4 +7,4 @@
     />
 </svg> --}}
 
-<h1 class="text-center">Membership Website</h1>
+<h1 class="text-center text-black">Membership Website</h1>

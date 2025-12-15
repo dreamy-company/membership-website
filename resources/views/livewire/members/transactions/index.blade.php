@@ -6,6 +6,9 @@
                 <x-dashboard.breadcrumbs title="Transactions" />
                 <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">{{ $title }}</h1>
             </div>
+            <div class="mb-4">
+                <h1 class="text-xl font-semibold text-blue-600 sm:text-2xl dark:text-white">Total Transactions: Rp. {{ number_format($transactionTotal ?? 0) }}</h1>
+            </div>
             <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
                 <div class="flex items-center mb-4 sm:mb-0">
                     <flux:input icon="magnifying-glass" wire:model.live.debounce.250ms="search"
@@ -18,7 +21,6 @@
     {{-- @dd($members) --}}
 
     {{-- table --}}
-    <div class="table w-full mt-6 px-4 pb-4">
         <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-md border border-default">
             <x-table.table>
                 <x-table.thead>
@@ -63,18 +65,6 @@
                 </div>
             @endif
         </div>
-    </div>
-
-    <!-- Modal -->
-    @if ($isOpen)
-        <x-modal.form-modal :formTitle="$province_id ? 'Edit Province' : 'Add Province'" action="store()">
-            <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
-                <div class="col-span-2">
-                    <x-modal.input name="name" label="Nama Provinsi" placeholder="Contoh: Bali" />
-                </div>
-            </div>
-        </x-modal.form-modal>
-    @endif
 
     <x-alerts.success />
     <x-alerts.delete-confirmation />
