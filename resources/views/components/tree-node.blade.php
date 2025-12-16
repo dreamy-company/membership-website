@@ -15,7 +15,7 @@
             @else
                 <div
                     class="w-10 h-10 rounded-full shadow-lg border-4 border-white bg-gray-300 flex items-center justify-center">
-                <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
                             clip-rule="evenodd"></path>
                     </svg>
@@ -24,23 +24,19 @@
 
             {{-- Info --}}
             <div>
-                <div class="font-semibold text-sm">{{ $node['member_code'] }}</div>
-                <div class="text-gray-600 text-sm">
+                <div class="font-semibold text-sm text-black">{{ $node['member_code'] }}</div>
+                <div class="text-black text-sm">
                     {{ $node['user']['name'] ?? 'Tanpa Nama' }}
                 </div>
             </div>
         </div>
 
-        @if ($node['level'] > 5)
-            <div class="text-sm text-red-500 italic">Maks level tercapai</div>
-        @endif
-
-        @if ($node['level'] <= 5)
             {{-- Arrow and Count --}}
             <div class="flex items-center gap-2">
-                @if ($node['level'] === 1)
-                    <x-widget.button color="warning" name="Edit" action="openModal({{ $node['id'] }})" />
-                @endif
+                <x-widget.button color="neutral" name="Add Member" action="openMemberModal({{ $node['user_id'] }})" />
+                {{-- @if ($node['level'] === 1) --}}
+                <x-widget.button color="warning" name="Edit" action="openModal({{ $node['id'] }})" />
+                {{-- @endif --}}
                 <x-widget.button color="neutral" name="Detail" action="openCardModal({{ $node['id'] }})" />
                 <div class="w-5 cursor-pointer" wire:click.stop="toggleNode({{ $node['id'] }})">
                     @if ($node['loading'])
@@ -64,13 +60,12 @@
                         </span>
                     @endif
                 </div>
-                @if (!empty($node['children']) && $node['level'] <= 5)
+                @if (!empty($node['children']) && $node['level'])
                     <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
                         {{ count($node['children']) }}
                     </span>
                 @endif
             </div>
-        @endif
     </div>
 
     {{-- Children --}}

@@ -37,7 +37,7 @@
 
     <!-- Modal -->
     @if ($isOpen)
-        <x-modal.form-modal :formTitle="$member_id ? 'Edit Member | ' . $name : 'Add Member'" :action="$member_id ? 'update(' . $member_id . ')' : 'store()'">
+        <x-modal.form-modal :formTitle="$member_id ? 'Edit Member | ' . $name : 'Add Member ' . ' | On ' . $parentName" :action="$member_id ? 'update(' . $member_id . ')' : 'store()'">
             <div class="py-4 md:py-6">
 
                 <div class="grid grid-cols-1 gap-2 mb-4 border-b p-4 shadow-sm rounded-md bg-white">

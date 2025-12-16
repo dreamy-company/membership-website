@@ -35,9 +35,9 @@ class Member extends Model
         return $this->belongsTo(Domicile::class);
     }
 
-    public function parentMember()
+    public function parentUser()
     {
-        return $this->belongsTo(Member::class, 'parent_member_id');
+        return $this->belongsTo(User::class, 'parent_user_id');
     }
 
     public function bonus()

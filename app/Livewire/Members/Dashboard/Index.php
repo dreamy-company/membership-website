@@ -35,7 +35,7 @@ class Index extends Component
 
         $transactionTotal = Transaction::where('member_id', auth()->user()->id)->sum('amount');
         $bonusTotal = Bonus::where('member_id', auth()->user()->id)->first();
-        $totalMembers = Member::where('parent_member_id', auth()->user()->id)->count();
+        $totalMembers = Member::where('parent_user_id', auth()->user()->id)->count();
 
         return view('dashboard', compact('transactions', 'transactionTotal', 'bonusTotal', 'totalMembers'));
     }

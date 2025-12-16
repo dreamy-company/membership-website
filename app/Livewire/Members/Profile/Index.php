@@ -29,7 +29,7 @@ class Index extends Component
     public $password_confirmation;
     public $nik;
     public $user_id;
-    public $parent_member_id;
+    public $parent_user_id;
     public $phone_number;
     public $gender;
     public $address;
@@ -69,7 +69,7 @@ class Index extends Component
         $this->member_code = $member->member_code;
         $this->nik = $member->nik;
         $this->user_id = $member->user_id;
-        $this->parent_member_id = $member->parent_member_id;
+        $this->parent_user_id = $member->parent_user_id;
         $this->phone_number = $member->phone_number;
         $this->gender = $member->gender;
         $this->address = $member->address;
