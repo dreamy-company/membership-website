@@ -36,7 +36,7 @@
                             <x-table.th>Member Code</x-table.th>
                             <x-table.th>NIK</x-table.th>
                             <x-table.th>User</x-table.th>
-                            <x-table.th>Parent Member</x-table.th>
+                            <x-table.th>Parent User</x-table.th>
                             <x-table.th>Phone</x-table.th>
                             <x-table.th>Gender</x-table.th>
                             <x-table.th>Address</x-table.th>
@@ -59,7 +59,7 @@
                                 <x-table.td>{{ $item->member_code }}</x-table.td>
                                 <x-table.td>{{ $item->nik }}</x-table.td>
                                 <x-table.td>{{ $item->user->name }}</x-table.td>
-                                <x-table.td>{{ $item->parentMember->user->name ?? '-' }}</x-table.td>
+                                <x-table.td>{{ $item->parentUser->user->name ?? '-' }}</x-table.td>
                                 <x-table.td>{{ $item->phone_number }}</x-table.td>
                                 <x-table.td>{{ $item->gender }}</x-table.td>
                                 <x-table.td>{{ $item->address }}</x-table.td>

@@ -147,10 +147,10 @@
                     </div>
 
                     <div>
-                        <x-modal.select name="parent_member_id" label="Parent Member">
-                            <option value="">-- Select Parent Member --</option>
+                        <x-modal.select name="parent_user_id" label="Parent User">
+                            <option value="">-- Select Parent User --</option>
                             @foreach ($members as $member)
-                                <option value="{{ $member->id }}">{{ $member->member_code }} - {{ $member->user->name }}</option>
+                                <option value="{{ $member->user->id }}">{{ $member->member_code }} - {{ $member->user->name }}</option>
                             @endforeach
                         </x-modal.select>
                     </div>

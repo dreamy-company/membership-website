@@ -28,7 +28,7 @@ class Index extends Component
     public $password_confirmation;
     public $nik;
     public $user_id;
-    public $parent_member_id;
+    public $parent_user_id;
     public $phone_number;
     public $gender;
     public $address;
@@ -75,8 +75,8 @@ class Index extends Component
     public function render()
     {
         $members = Member::search($this->search)
-                    ->latest()
-                    ->paginate($this->perPage);
+            ->latest()
+            ->paginate($this->perPage);
 
         return view('livewire.admin.members.index', compact('members'));
     }
@@ -94,7 +94,7 @@ class Index extends Component
             $this->email = $member->user->email;
             $this->nik = $member->nik;
             $this->user_id = $member->user_id;
-            $this->parent_member_id = $member->parent_member_id;
+            $this->parent_user_id = $member->parent_user_id;
             $this->phone_number = $member->phone_number;
             $this->gender = $member->gender;
             $this->address = $member->address;
@@ -121,13 +121,13 @@ class Index extends Component
     {
         $this->isCardOpen = false;
     }
-    
+
     private function resetInput()
     {
         $this->member_code = '';
         $this->nik = '';
         $this->user_id = '';
-        $this->parent_member_id = '';
+        $this->parent_user_id = '';
         $this->phone_number = '';
         $this->gender = '';
         $this->address = '';
@@ -155,8 +155,8 @@ class Index extends Component
             [
                 'name'  => $this->name,
                 'email' => $this->email,
-                'password' => $this->password 
-                    ? bcrypt($this->password) 
+                'password' => $this->password
+                    ? bcrypt($this->password)
                     : User::find($this->user_id)?->password,
             ]
         );
@@ -184,7 +184,7 @@ class Index extends Component
             ? Member::find($this->member_id)->member_code // keep old if update
             : $province->code . '-' . str_pad(Member::max('id') + 1, 4, '0', STR_PAD_LEFT);
 
-        
+
         // ==========================
         // HANDLE MEMBER
         // ==========================
@@ -194,7 +194,7 @@ class Index extends Component
                 'member_code'      => $member_code,
                 'nik'              => $this->nik,
                 'user_id'          => $user->id,
-                'parent_member_id' => $this->parent_member_id ?: null,
+                'parent_user_id' => $user->id ?: null,
                 'phone_number'     => $this->phone_number,
                 'gender'           => $this->gender,
                 'address'          => $this->address,
@@ -284,7 +284,7 @@ class Index extends Component
             'account_number'    => 'required|string',
             'account_name'      => 'required|string',
             'profile_picture'   => $this->member_id ? 'nullable|image|max:1024' : 'required|image|max:1024',
-            'parent_member_id'  => 'nullable|exists:members,id'
+            'parent_user_id'  => 'nullable|exists:users,id'
         ];
     }
 
@@ -330,8 +330,8 @@ class Index extends Component
         // ambil member beserta bonusnya
         $member = Member::with('bonus')->find($memberId);
 
-         // cek apakah member punya bonus
-      if ($member->bonus === null || empty($member->bonus->balance)) {
+        // cek apakah member punya bonus
+        if ($member->bonus === null || empty($member->bonus->balance)) {
             $this->dispatch('error', [
                 'type' => 'error',
                 'message' => 'Member tidak memiliki bonus untuk ditarik.',
@@ -369,7 +369,7 @@ class Index extends Component
             ActivityLog::create([
                 'user_id'    => auth()->id(),
                 'type'       => 'withdrawal',
-                'description'=> 'Member ID ' . $member->user->name . ' withdrew ' . $this->withdrawal_amount . ' from bonus account.',
+                'description' => 'Member ID ' . $member->user->name . ' withdrew ' . $this->withdrawal_amount . ' from bonus account.',
             ]);
 
             DB::commit(); // commit jika semua sukses
@@ -382,7 +382,6 @@ class Index extends Component
                 'type' => 'success',
                 'message' => 'Penarikan bonus berhasil diproses!',
             ]);
-
         } catch (\Throwable $th) {
             DB::rollBack(); // rollback kalau ada error
 
@@ -392,5 +391,4 @@ class Index extends Component
             ]);
         }
     }
-
 }

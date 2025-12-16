@@ -24,12 +24,13 @@ class Index extends Component
     public $member_id;
     public $member_code;
     public $name;
+    public $parentName;
     public $email;
     public $password;
     public $password_confirmation;
     public $nik;
     public $user_id;
-    public $parent_member_id;
+    public $parent_user_id;
     public $phone_number;
     public $gender;
     public $address;
@@ -49,6 +50,7 @@ class Index extends Component
     public $perPage = 10;
 
     public $memberUserId;
+    public $parentUserId;
 
     public $users;
     public $provinces;
@@ -73,7 +75,7 @@ class Index extends Component
     private function loadRoot()
     {
         $roots = Member::search($this->search)
-            ->where('parent_member_id', auth()->user()->id)
+            ->where('parent_user_id', auth()->user()->id)
             ->where('user_id', '!=', auth()->user()->id)
             ->get();
 
@@ -87,6 +89,7 @@ class Index extends Component
             'user_id' => $m->user_id,
             'member_code' => $m->member_code,
             'phone_number' => $m->phone_number,
+            'parent_user_id' => $m->parent_user_id,
             'user' => [
                 'name' => $m->user->name ?? 'Tanpa Nama',
                 'profile_picture' => $m->profile_picture ?? null,
@@ -101,19 +104,12 @@ class Index extends Component
 
     public function toggleNode($memberId)
     {
-        $this->memberUserId = Member::findOrFail($memberId);
-        $this->updateNode($this->tree, $memberId, function (&$node) {
-
-            // Stop jika mencapai level 5
-            if ($node['level'] >= 5) {
-                // bisa kasih notifikasi, bisa juga diam saja
-                return;
-            }
+        $this->updateNode($this->tree, $memberId, function (&$node) { 
 
             if (!$node['fetched']) {
                 $node['loading'] = true;
 
-                $children = Member::where('parent_member_id', $this->memberUserId->user->id)
+                $children = Member::where('parent_user_id', $node['user_id'])
                     ->with('user')
                     ->get();
 
@@ -163,7 +159,7 @@ class Index extends Component
             $this->member_code = $member->member_code;
             $this->nik = $member->nik;
             $this->user_id = $member->user_id;
-            $this->parent_member_id = $member->parent_member_id;
+            $this->parent_user_id = $member->parent_user_id;
             $this->phone_number = $member->phone_number;
             $this->gender = $member->gender;
             $this->address = $member->address;
@@ -176,6 +172,18 @@ class Index extends Component
             $this->account_name = $member->account_name;
             $this->old_profile_picture = $member->profile_picture;
         }
+
+        $this->isOpen = true;
+    }
+
+    public function openMemberModal($id = null)
+    {
+        $this->resetInput();
+
+        $user = User::findOrFail($id);
+
+        $this->parent_user_id = $id;
+        $this->parentName = $user->name;
 
         $this->isOpen = true;
     }
@@ -231,7 +239,7 @@ class Index extends Component
         $this->password_confirmation = '';
         $this->nik = '';
         $this->user_id = '';
-        $this->parent_member_id = '';
+        $this->parent_user_id = '';
         $this->phone_number = '';
         $this->gender = '';
         $this->address = '';
@@ -275,11 +283,18 @@ class Index extends Component
             $province = Province::find($this->province_id);
             $member_code = $province->code . '-' . (strlen($province->code) === 3 ? '0' : '') . str_pad(Member::count() + 1, 4, '0', STR_PAD_LEFT);
 
+            $parentUserId = null;
+            if ($this->parent_user_id) {
+                $parentUserId = $this->parent_user_id;
+            } else {
+                $parentUserId = auth()->user()->id;
+            }
+
             $member = Member::create([
                 'member_code' => $member_code,
                 'nik' => $this->nik,
                 'user_id' => $user->id,
-                'parent_member_id' => auth()->user()->id,
+                'parent_user_id' => $parentUserId,
                 'phone_number' => $this->phone_number,
                 'gender' => $this->gender,
                 'address' => $this->address,
@@ -472,7 +487,7 @@ class Index extends Component
 
     public function render()
     {
-        $totalMembers = Member::where('parent_member_id', auth()->user()->id)->count();
+        $totalMembers = Member::where('parent_user_id', auth()->user()->id)->count();
         return view('livewire.members.member.index', [
             'members' => $this->tree,
             'totalMembers' => $totalMembers,

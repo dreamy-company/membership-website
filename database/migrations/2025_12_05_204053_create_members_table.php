@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('member_code')->unique();
             $table->string('nik')->unique();
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->foreignId('parent_member_id')->nullable()->constrained('members')->nullOnDelete();
+            $table->foreignId('parent_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('phone_number')->nullable();
             $table->enum('gender', ['male', 'female'])->nullable();
             $table->text('address')->nullable();
