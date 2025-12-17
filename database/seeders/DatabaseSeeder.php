@@ -25,63 +25,37 @@ class DatabaseSeeder extends Seeder
 
         $faker = Faker::create('id_ID');
 
-        $provinces = [
-            ['code' => '11', 'name' => 'ACEH'],
-            ['code' => '12', 'name' => 'SUMATERA UTARA'],
-            ['code' => '13', 'name' => 'SUMATERA BARAT'],
-            ['code' => '14', 'name' => 'RIAU'],
-            ['code' => '15', 'name' => 'JAMBI'],
-            ['code' => '16', 'name' => 'SUMATERA SELATAN'],
-            ['code' => '17', 'name' => 'BENGKULU'],
-            ['code' => '18', 'name' => 'LAMPUNG'],
-            ['code' => '19', 'name' => 'KEPULAUAN BANGKA BELITUNG'],
-            ['code' => '21', 'name' => 'KEPULAUAN RIAU'],
-            ['code' => '31', 'name' => 'DKI JAKARTA'],
-            ['code' => '32', 'name' => 'JAWA BARAT'],
-            ['code' => '33', 'name' => 'JAWA TENGAH'],
-            ['code' => '34', 'name' => 'DI YOGYAKARTA'],
-            ['code' => '35', 'name' => 'JAWA TIMUR'],
-            ['code' => '36', 'name' => 'BANTEN'],
-            ['code' => '51', 'name' => 'BALI'],
-            ['code' => '52', 'name' => 'NUSA TENGGARA BARAT'],
-            ['code' => '53', 'name' => 'NUSA TENGGARA TIMUR'],
-            ['code' => '61', 'name' => 'KALIMANTAN BARAT'],
-            ['code' => '62', 'name' => 'KALIMANTAN TENGAH'],
-            ['code' => '63', 'name' => 'KALIMANTAN SELATAN'],
-            ['code' => '64', 'name' => 'KALIMANTAN TIMUR'],
-            ['code' => '65', 'name' => 'KALIMANTAN UTARA'],
-            ['code' => '71', 'name' => 'SULAWESI UTARA'],
-            ['code' => '72', 'name' => 'SULAWESI TENGAH'],
-            ['code' => '73', 'name' => 'SULAWESI SELATAN'],
-            ['code' => '74', 'name' => 'SULAWESI TENGGARA'],
-            ['code' => '75', 'name' => 'GORONTALO'],
-            ['code' => '76', 'name' => 'SULAWESI BARAT'],
-            ['code' => '81', 'name' => 'MALUKU'],
-            ['code' => '82', 'name' => 'MALUKU UTARA'],
-            ['code' => '91', 'name' => 'PAPUA BARAT'],
-            ['code' => '94', 'name' => 'PAPUA'],
+        // PROVINCE
+        $provinceId = DB::table('provinces')->insertGetId([
+            'code'       => '51',
+            'name'       => 'BALI',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // DOMICILES (Kabupaten/Kota Bali)
+        $domiciles = [
+            ['code' => '5101', 'name' => 'Badung'],
+            ['code' => '5102', 'name' => 'Bangli'],
+            ['code' => '5103', 'name' => 'Buleleng'],
+            ['code' => '5104', 'name' => 'Gianyar'],
+            ['code' => '5105', 'name' => 'Jembrana'],
+            ['code' => '5106', 'name' => 'Karangasem'],
+            ['code' => '5107', 'name' => 'Klungkung'],
+            ['code' => '5108', 'name' => 'Tabanan'],
+            ['code' => '5171', 'name' => 'Kota Denpasar'],
         ];
 
-        $provinceIds = [];
-        foreach ($provinces as $province) {
-            $provinceIds[] = DB::table('provinces')->insertGetId([
-                'code' => $province['code'],
-                'name' => $province['name'],
+        foreach ($domiciles as $domicile) {
+            DB::table('domiciles')->insert([
+                'province_id' => $provinceId,
+                'code'        => $domicile['code'],
+                'name'        => $domicile['name'],
+                'created_at'  => now(),
+                'updated_at'  => now(),
             ]);
         }
 
-        $domicileIds = [];
-        foreach ($provinceIds as $prov) {
-            for ($i = 0; $i < 3; $i++) {
-                $domicileIds[] = DB::table('domiciles')->insertGetId([
-                    'province_id' => $prov,
-                    'code' => $faker->unique()->numerify('###'),
-                    'name' => $faker->streetName(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        }
         
         $userIds = [];
         for ($i = 1; $i <= 10; $i++) {
