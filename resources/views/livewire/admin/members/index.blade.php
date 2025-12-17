@@ -346,6 +346,13 @@
                 <div>
                     <x-modal.input name="withdrawal_amount" label="Withdrawal Amount" type="number"/>
                 </div>
+                <div class="mb-0">
+                    <label class="block mb-2.5 text-sm font-medium text-heading" for="file_input">Upload file</label>
+                    <input name="payment_receipt" id="file" wire:model="payment_receipt" class="cursor-pointer bg-slate-50 border border-stone-500 text-heading text-sm rounded-md focus:ring-stone focus:border-stone block w-full shadow-xs placeholder:text-body p-2" type="file">
+                    @error('payment_receipt')
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
             </div>
         </x-modal.form-modal>
     @endif
