@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Member;
 use Livewire\Component;
 use App\Models\Province;
+use App\Models\Withdrawal;
 use App\Models\ActivityLog;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -56,6 +57,8 @@ class Index extends Component
     public $member_name;
     public $bonus;
     public $withdrawal_amount;
+    public $payment_receipt;
+    public $old_payment_receipt;
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
@@ -349,32 +352,58 @@ class Index extends Component
     public function processWithdrawal()
     {
         $this->validate([
-            'withdrawal_amount' => 'required|numeric|min:1|max:' . $this->bonus,
+            'withdrawal_amount' => 'required|numeric|min:1',
+            'payment_receipt'   => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:1024',
         ]);
 
-        DB::beginTransaction(); // mulai transaction
+        $filename = null;
+
+        DB::beginTransaction();
 
         try {
-            $member = Member::with('bonus')->findOrFail($this->member_id);
+            $member = Member::with('bonus')
+                ->lockForUpdate()
+                ->findOrFail($this->member_id);
 
-            if ($member->bonus->balance == 0) {
+            if (!$member->bonus || $member->bonus->balance <= 0) {
                 throw new \Exception('Member tidak punya bonus.');
             }
 
-            // kurangi balance bonus
-            $member->bonus->balance -= $this->withdrawal_amount;
-            $member->bonus->save();
+            if ($this->withdrawal_amount > $member->bonus->balance) {
+                throw new \Exception('Saldo bonus tidak mencukupi.');
+            }
 
-            // buat activity log
-            ActivityLog::create([
-                'user_id'    => auth()->id(),
-                'type'       => 'withdrawal',
-                'description' => 'Member ID ' . $member->user->name . ' withdrew ' . $this->withdrawal_amount . ' from bonus account.',
+            $balanceBefore = $member->bonus->balance;
+            $balanceAfter  = $balanceBefore - $this->withdrawal_amount;
+
+            // upload receipt
+            if ($this->payment_receipt instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                $filename = $this->payment_receipt->store('withdrawals', 'public');
+            }
+
+            // INSERT withdrawal history
+            Withdrawal::create([
+                'member_id'        => $member->id,
+                'amount'           => $this->withdrawal_amount,
+                'date'             => now(),
+                'payment_receipt'  => $filename,
             ]);
 
-            DB::commit(); // commit jika semua sukses
+            // UPDATE bonus balance
+            $member->bonus->update([
+                'balance' => $balanceAfter,
+            ]);
 
-            // tutup modal dan reset input
+            // activity log
+            ActivityLog::create([
+                'user_id'     => auth()->id(),
+                'type'        => 'withdrawal',
+                'description' => 'Member ' . $member->user->name .
+                                ' withdrawal ' . number_format($this->withdrawal_amount),
+            ]);
+
+            DB::commit();
+
             $this->closeModal();
             $this->resetInput();
 
@@ -382,13 +411,19 @@ class Index extends Component
                 'type' => 'success',
                 'message' => 'Penarikan bonus berhasil diproses!',
             ]);
-        } catch (\Throwable $th) {
-            DB::rollBack(); // rollback kalau ada error
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            if ($filename && Storage::disk('public')->exists($filename)) {
+                Storage::disk('public')->delete($filename);
+            }
 
             $this->dispatch('error', [
                 'type' => 'error',
-                'message' => 'Terjadi kesalahan saat memproses penarikan bonus: ' . $th->getMessage(),
+                'message' => $e->getMessage(),
             ]);
         }
     }
+
 }
