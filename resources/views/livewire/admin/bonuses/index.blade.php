@@ -65,8 +65,8 @@
 
      <!-- Modal -->
     @if($isOpen)
-       <x-modal.form-modal :formTitle="$bonus_id ? 'Edit Bonus' : 'Add Bonus'"  action="store()" >
-           <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
+       <x-modal.form-modal :formTitle="$bonus_id ? 'Edit Bonus' : 'Add Bonus'"  action="store()" height="h-auto">
+           <div class="grid gap-4 grid-cols-2 py-4 px-2 md:py-6">
                 <div class="col-span-2">
                     <x-modal.select name="member_id" label="Member">
                         @foreach($members as $member)

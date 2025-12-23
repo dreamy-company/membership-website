@@ -63,8 +63,8 @@
 
      <!-- Modal -->
     @if($isOpen)
-       <x-modal.form-modal :formTitle="$businesses_user_id ? 'Edit Business User' : 'Add Business User'"  action="store()" >
-           <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
+       <x-modal.form-modal :formTitle="$businesses_user_id ? 'Edit Business User' : 'Add Business User'"  action="store()" height="h-auto">
+           <div class="grid gap-4 grid-cols-2 px-2 py-4 md:py-6">
                 <div class="col-span-2">
                     <x-modal.select name="user_id" label="User" placeholder="Choose a user">
                         @foreach($users as $item)

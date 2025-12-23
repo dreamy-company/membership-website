@@ -66,7 +66,7 @@
      <!-- Modal -->
     @if($isOpen)
        <x-modal.form-modal :formTitle="$withdrawal_id ? 'Edit Withdrawal' : 'Add Withdrawal'"  action="store()" >
-           <div class="py-4 md:py-6">
+           <div class="py-4 px-2 md:py-6">
                 <div class="grid grid-cols-2 gap-2 mb-4">
                     <div class="gap-2">
                         <x-modal.select name="member_id" label="Member">

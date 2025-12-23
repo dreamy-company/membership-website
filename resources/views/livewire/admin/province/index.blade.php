@@ -55,8 +55,8 @@
 
      <!-- Modal -->
     @if($isOpen)
-        <x-modal.form-modal :formTitle="$province_id ? 'Edit Province' : 'Add Province'" action="store()" >
-           <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
+        <x-modal.form-modal :formTitle="$province_id ? 'Edit Province' : 'Add Province'" action="store()" height="h-auto">
+           <div class="grid gap-4 grid-cols-2 px-2 py-4 md:py-6">
                     <div class="col-span-2">
                         <x-modal.input name="code" label="Kode Provinsi" placeholder="Contoh: BA" />
                     </div>
