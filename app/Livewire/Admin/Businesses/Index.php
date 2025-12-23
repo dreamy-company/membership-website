@@ -18,7 +18,7 @@ class Index extends Component
     public $isOpen = false;
     public $confirmingDelete;
     public $perPage = 10;
-    public $title = "Business Management";
+    public $title = "UMKM Management";
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
