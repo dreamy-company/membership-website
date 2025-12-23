@@ -1,17 +1,38 @@
 <?php
 
-use App\Livewire\Admin\Provinces;
-use Illuminate\Support\Facades\Route;
-use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
-Route::get('/', function () {
-    return view('welcome');
-})->name('home');
+// Fortify
+use Laravel\Fortify\Features;
+use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
+use Laravel\Fortify\RoutePath;
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+use Illuminate\Support\Facades\Route;
+use App\Livewire\Admin\Transactions\ActivityLog;
+use App\Livewire\Admin\Members\Index as MemberIndex;
+use App\Livewire\Admin\Bonuses\Index as BonusesIndex;
+use App\Livewire\Admin\Province\Index as ProvinceIndex;
+use App\Livewire\Admin\Businesses\Index as BusinessIndex;
+use App\Livewire\Admin\Domicilies\Index as DomicileIndex;
+use App\Livewire\Members\Dashboard\Index as DashboardIndex;
+use App\Livewire\Admin\Withdrawals\Index as WithdrawalIndex;
+use App\Livewire\Admin\Dashboard\Index as AdminDashboardIndex;
+
+// Member Livewire
+use App\Livewire\Admin\Transactions\Index as TransactionIndex;
+use App\Livewire\Members\Member\Index as DashboardMemberIndex;
+use App\Livewire\Admin\BusinessesUsers\Index as BusinessesUsersIndex;
+use App\Livewire\Members\Withdrawals\Index as DashboardWithdrawalIndex;
+use App\Livewire\Members\Transactions\Index as DashboardTransactionIndex;
+use App\Livewire\Members\Profile\Index as DashboardProfileIndex;
+
+// Business Livewire
+use App\Livewire\Business\Transactions\Index as BusinessTransactionIndex;
+use App\Livewire\Business\Transactions\ActivyLog as BusinessActivityLog;
+
+Route::get('/', function () {
+    return redirect()->route('login');
+})->name('home');
 
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
@@ -30,6 +51,29 @@ Route::middleware(['auth'])->group(function () {
             ),
         )
         ->name('two-factor.show');
+});
 
-        Route::get('/admin/provinces', Provinces::class)->name('provinces');
-    });
+Route::middleware(['auth', 'role:member'])->prefix('dashboard')->name('dashboard.')->group(function () {
+    Route::get('/', DashboardIndex::class)->name('index');
+    Route::get('/members', DashboardMemberIndex::class)->name('members');
+    Route::get('/transactions', DashboardTransactionIndex::class)->name('transactions');
+    Route::get('/withdrawals', DashboardWithdrawalIndex::class)->name('withdrawals');
+    Route::get('/profile', DashboardProfileIndex::class)->name('profile');
+});
+
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', AdminDashboardIndex::class)->name('index');
+    Route::get('/provinces', ProvinceIndex::class)->name('provinces');
+    Route::get('/businesses', BusinessIndex::class)->name('businesses');
+    Route::get('/domicilies', DomicileIndex::class)->name('domicilies');
+    Route::get('/members', MemberIndex::class)->name('members');
+    Route::get('/businesses-users', BusinessesUsersIndex::class)->name('businesses.users');
+    Route::get('/bonuses', BonusesIndex::class)->name('bonuses');
+    Route::get('/transactions', TransactionIndex::class)->name('transactions');
+    Route::get('/activity-log', ActivityLog::class)->name('activity-log');
+    Route::get('/withdrawals', WithdrawalIndex::class)->name('withdrawals');
+});
+Route::middleware(['auth', 'role:business'])->prefix('business')->name('business.')->group(function () {
+    Route::get('/transactions', BusinessTransactionIndex::class)->name('transactions');
+    Route::get('/activity-log', BusinessActivityLog::class)->name('activity-log');
+});

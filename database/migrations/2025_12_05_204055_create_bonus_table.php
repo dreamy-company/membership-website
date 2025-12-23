@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('bonus', function (Blueprint $table) {
+        Schema::create('bonuses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('member_id')->constrained('members')->onDelete('cascade');
+            $table->foreignId('member_id')->nullable()->constrained('members')->nullOnDelete();
             $table->integer('balance')->default(0);
             $table->timestamps();
         });
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('bonus');
+        Schema::dropIfExists('bonuses');
     }
 };

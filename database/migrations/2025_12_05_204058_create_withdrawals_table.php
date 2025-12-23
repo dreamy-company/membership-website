@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('withdrawals', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('member_id')->nullable()->constrained('members')->nullOnDelete();
+            $table->double('amount');
+            $table->date('payment_receipt');
             $table->timestamps();
         });
     }
