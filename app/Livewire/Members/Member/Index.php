@@ -18,6 +18,8 @@ class Index extends Component
     use WithPagination, WithFileUploads;
     public $search = '';
     public $id;
+    // [BARU] Simpan ID node yang sedang terbuka
+    public $expandedNodes = [];
     public $province;
     public $domicile;
 
@@ -28,6 +30,7 @@ class Index extends Component
     public $email;
     public $password;
     public $password_confirmation;
+    public $viewType = 'list'; // Default 'list' (tampilan lama) atau 'chart' (tampilan tree baru)
     public $nik;
     public $user_id;
     public $parent_user_id;
@@ -79,11 +82,31 @@ class Index extends Component
             ->where('user_id', '!=', auth()->user()->id)
             ->get();
 
+        // formatNode sekarang akan otomatis mengecek $expandedNodes
         $this->tree = $roots->map(fn($m) => $this->formatNode($m, 1))->toArray();
     }
 
     private function formatNode($m, $level = 1)
     {
+        // [BARU] Cek apakah node ini ada di daftar expandedNodes
+        $isExpanded = in_array($m->id, $this->expandedNodes);
+
+        $children = [];
+        $fetched = false;
+
+        // [BARU] Jika expanded, load children-nya SEKARANG juga (agar tree tetap terbuka setelah refresh)
+        if ($isExpanded) {
+            $childModels = Member::where('parent_user_id', $m->user_id)
+                ->with('user')
+                ->get();
+
+            $children = $childModels->map(
+                fn($child) => $this->formatNode($child, $level + 1)
+            )->toArray();
+
+            $fetched = true;
+        }
+
         return [
             'id' => $m->id,
             'user_id' => $m->user_id,
@@ -94,38 +117,28 @@ class Index extends Component
                 'name' => $m->user->name ?? 'Tanpa Nama',
                 'profile_picture' => $m->profile_picture ?? null,
             ],
-            'children' => [],
-            'expanded' => false,
+            'children' => $children,     // Isi children jika expanded
+            'expanded' => $isExpanded,   // Set true jika expanded
             'loading' => false,
-            'fetched' => false,
+            'fetched' => $fetched,       // Tandai sudah di-fetch
             'level' => $level,
         ];
     }
 
     public function toggleNode($memberId)
     {
-        $this->updateNode($this->tree, $memberId, function (&$node) { 
+        // [BARU] Logika state management
+        if (in_array($memberId, $this->expandedNodes)) {
+            // Jika sudah ada, hapus (Collapse)
+            $this->expandedNodes = array_diff($this->expandedNodes, [$memberId]);
+        } else {
+            // Jika belum ada, tambah (Expand)
+            $this->expandedNodes[] = $memberId;
+        }
 
-            if (!$node['fetched']) {
-                $node['loading'] = true;
-
-                $children = Member::where('parent_user_id', $node['user_id'])
-                    ->with('user')
-                    ->get();
-
-                $node['children'] = $children->map(
-                    fn($m) =>
-                    $this->formatNode($m, $node['level'] + 1)
-                )->toArray();
-
-                $node['fetched'] = true;
-                $node['loading'] = false;
-            }
-
-            $node['expanded'] = !$node['expanded'];
-        });
+        // Refresh tree untuk menerapkan perubahan tampilan
+        $this->loadRoot();
     }
-
 
     private function updateNode(&$nodes, $id, $callback)
     {
@@ -310,7 +323,16 @@ class Index extends Component
 
             DB::commit();
 
+            // [BARU] Setelah sukses tambah, kita harus memastikan Parent-nya Expanded
+            // Agar user langsung melihat data yang baru ditambahkan
+            $parentMember = Member::where('user_id', $parentUserId)->first();
+            if ($parentMember && !in_array($parentMember->id, $this->expandedNodes)) {
+                $this->expandedNodes[] = $parentMember->id;
+            }
+
             $this->afterSave(!$this->member_id);
+
+            // Reload tree akan membaca $expandedNodes yang baru
             $this->loadRoot();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -374,7 +396,11 @@ class Index extends Component
 
             DB::commit();
 
+            // Di akhir update:
             $this->afterSave(false);
+
+            // Saat loadRoot dipanggil, dia akan merender ulang tree 
+            // dengan posisi expand/collapse yang sama persis seperti sebelum tombol edit ditekan
             $this->loadRoot();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -395,17 +421,18 @@ class Index extends Component
     public function delete()
     {
         $member = Member::findOrFail($this->confirmingDelete);
-
         if ($member->profile_picture && Storage::disk('public')->exists($member->profile_picture)) {
             Storage::disk('public')->delete($member->profile_picture);
         }
-
         $member->delete();
 
         $this->dispatch('success', [
             'type' => 'success',
             'message' => 'Member berhasil dihapus!',
         ]);
+
+        // Load root akan mempertahankan state parent yang terbuka
+        $this->loadRoot();
     }
 
     protected function rules()
@@ -414,18 +441,18 @@ class Index extends Component
             'name'           => 'required|string',
             'email'          => 'required|email|unique:users,email,',
             'password'       => 'required|string|min:8|confirmed',
-            'nik'            => 'required|string|unique:members,nik,' . $this->member_id,
-            'phone_number'   => 'required|string',
+            'nik'            => 'required|string|numeric|unique:members,nik,' . $this->member_id,
+            'phone_number'   => 'required|string|numeric',
             'gender'         => 'required|in:male,female',
             'address'        => 'required|string',
             'birth_date'     => 'required|date',
-            'npwp'           => 'nullable|string|unique:members,npwp,' . $this->member_id,
+            'npwp'           => 'nullable|string|numeric|unique:members,npwp,' . $this->member_id,
             'province_id'    => 'required|exists:provinces,id',
             'domicile_id'    => 'required|exists:domiciles,id',
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'profile_picture' => 'required|image|max:1024', // jpg, png, dll max 1MB
+            'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 1MB
         ];
     }
 
@@ -435,18 +462,18 @@ class Index extends Component
             'name'           => 'required|string',
             'email'          => 'required|email|unique:users,email,' . $userId . ',id',
             'password'       => 'nullable|string|min:8|confirmed',
-            'nik'            => 'required|string|unique:members,nik,' . $this->member_id,
-            'phone_number'   => 'required|string',
+            'nik'            => 'required|string|numeric|unique:members,nik,' . $this->member_id,
+            'phone_number'   => 'required|string|numeric',
             'gender'         => 'required|in:male,female',
             'address'        => 'required|string',
             'birth_date'     => 'required|date',
-            'npwp'           => 'nullable|string|unique:members,npwp,' . $this->member_id,
+            'npwp'           => 'nullable|string|numeric|unique:members,npwp,' . $this->member_id,
             'province_id'    => 'required|exists:provinces,id',
             'domicile_id'    => 'required|exists:domiciles,id',
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'profile_picture' => 'nullable|image|max:1024', // jpg, png, dll max 1MB
+            'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 1MB
         ];
     }
 
@@ -483,6 +510,12 @@ class Index extends Component
             'type' => 'success',
             'message' => $message,
         ]);
+    }
+
+    // Tambahkan method untuk ganti view
+    public function switchView($type)
+    {
+        $this->viewType = $type;
     }
 
     public function render()

@@ -16,6 +16,9 @@ use App\Models\Province;
 class Index extends Component
 {
     use WithPagination, WithFileUploads;
+    // [BARU] Tambahkan variable ini untuk memaksa render ulang input
+    public $formKey = 1;
+
     public $search = '';
     public $id;
     public $province;
@@ -25,8 +28,11 @@ class Index extends Component
     public $member_code;
     public $name;
     public $email;
-    public $password;
-    public $password_confirmation;
+
+    // Inisialisasi password dengan string kosong agar reactive
+    public $password = '';
+    public $password_confirmation = '';
+
     public $nik;
     public $user_id;
     public $parent_user_id;
@@ -40,8 +46,8 @@ class Index extends Component
     public $bank_name;
     public $account_number;
     public $account_name;
-    public $profile_picture; // untuk upload file
-    public $old_profile_picture; // untuk preview saat edit
+    public $profile_picture;
+    public $old_profile_picture;
 
     public $isOpen = false;
     public $isCardOpen = false;
@@ -62,25 +68,7 @@ class Index extends Component
 
         $member = Member::findOrFail(auth()->user()->member->id);
 
-        $this->member_id = $member->id;
-        $this->name = $member->user->name;
-        $this->email = $member->user->email;
-        $this->member_id = $member->id;
-        $this->member_code = $member->member_code;
-        $this->nik = $member->nik;
-        $this->user_id = $member->user_id;
-        $this->parent_user_id = $member->parent_user_id;
-        $this->phone_number = $member->phone_number;
-        $this->gender = $member->gender;
-        $this->address = $member->address;
-        $this->birth_date = $member->birth_date;
-        $this->npwp = $member->npwp;
-        $this->province_id = $member->province_id;
-        $this->domicile_id = $member->domicile_id;
-        $this->bank_name = $member->bank_name;
-        $this->account_number = $member->account_number;
-        $this->account_name = $member->account_name;
-        $this->old_profile_picture = $member->profile_picture;
+        $this->loadMemberData($member);
     }
 
     public function update(string $memberId)
@@ -107,15 +95,17 @@ class Index extends Component
             }
 
             // Update user
-            $member->user->update([
+            $userData = [
                 'name' => $this->name,
                 'email' => $this->email,
-            ]);
+            ];
 
-            // Update password jika ada perubahan
+            // Update password jika ada perubahan (tidak kosong)
             if (!empty($this->password)) {
-                $member->user->update(['password' => $this->password]);
+                $userData['password'] = $this->password;
             }
+
+            $member->user->update($userData);
 
             // Update member
             $member->update([
@@ -135,12 +125,18 @@ class Index extends Component
 
             DB::commit();
 
-            $member->refresh(); // pastikan ambil data terbaru
+            $member->refresh();
             $this->loadMemberData($member);
             $this->afterSave(false);
 
-            // Clear password field
-            $this->reset('password', 'password_confirmation', 'profile_picture');
+            // [PERBAIKAN DISINI]
+            // 1. Kosongkan variable
+            $this->password = '';
+            $this->password_confirmation = '';
+            $this->profile_picture = null;
+
+            // 2. [KUNCI UTAMA] Ubah key agar elemen HTML dihancurkan dan dibuat ulang
+            $this->formKey++;
         } catch (\Exception $e) {
             DB::rollBack();
             $this->dispatch('error', [
@@ -152,6 +148,11 @@ class Index extends Component
 
     private function loadMemberData($member)
     {
+        $this->member_id = $member->id;
+        $this->user_id = $member->user_id;
+        $this->parent_user_id = $member->parent_user_id;
+        $this->member_code = $member->member_code;
+
         $this->name = $member->user->name;
         $this->email = $member->user->email;
         $this->nik = $member->nik;
@@ -167,8 +168,9 @@ class Index extends Component
         $this->npwp = $member->npwp;
         $this->old_profile_picture = $member->profile_picture;
 
-        $this->password = null;
-        $this->password_confirmation = null;
+        // Pastikan saat load data awal/refresh, password dikosongkan
+        $this->password = '';
+        $this->password_confirmation = '';
     }
 
 
@@ -189,13 +191,12 @@ class Index extends Component
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'profile_picture' => 'nullable|image|max:1024', // jpg, png, dll max 1MB
+            'profile_picture' => 'nullable|image|max:1024',
         ];
     }
 
     protected function afterSave($created)
     {
-
         $message = $created
             ? 'Member berhasil ditambahkan!'
             : 'Berhasil update data diri';

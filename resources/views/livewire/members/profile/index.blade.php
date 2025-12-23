@@ -65,14 +65,19 @@
             <div>
                 <x-modal.input name="email" label="Email" type="email" placeholder="Contoh: user@example.com" />
             </div>
-            <div>
-                <x-modal.input name="password" label="Password" type="password" placeholder="********" />
-                <p class="text-sm text-gray-500 mt-1">Leave blank if you do not want to change the password.
-                </p>
+            {{-- PASSWORD FIELD --}}
+            {{-- Tambahkan wire:key dan autocomplete --}}
+            <div wire:key="pw-field-{{ $formKey }}">
+                <x-modal.input name="password" label="Password" type="password" placeholder="********"
+                    autocomplete="new-password" />
+                <p class="text-sm text-gray-500 mt-1">Leave blank if you do not want to change the password.</p>
             </div>
-            <div>
+
+            {{-- CONFIRM PASSWORD FIELD --}}
+            {{-- Tambahkan wire:key dan autocomplete --}}
+            <div wire:key="pw-confirm-field-{{ $formKey }}">
                 <x-modal.input name="password_confirmation" label="Confirm Password" type="password"
-                    placeholder="********" />
+                    placeholder="********" autocomplete="new-password" />
             </div>
         </div>
         <div class="border-b p-4 shadow-sm rounded-md mb-4 bg-white">
