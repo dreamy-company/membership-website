@@ -334,7 +334,7 @@
     {{-- withdrawal id --}}
     @if ($openWithdrawalModal)
         <x-modal.form-modal :formTitle="'Withdrawal'" action="processWithdrawal()" :height="'h-auto'">
-            <div class="py-4 md:py-6">
+            <div class="py-4 px-2 md:py-6">
                 <div class="grid grid-cols-2 gap-2 mb-4">
                     <div>
                         <x-modal.input name="member_name" label="Member Name" type="text" :disabled="true"/>
