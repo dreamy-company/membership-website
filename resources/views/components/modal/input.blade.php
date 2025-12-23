@@ -8,7 +8,7 @@
 ])
 
 <label for="{{ $name }}" class="block mb-2.5 text-sm font-medium text-heading text-black">
-    {{ $label }}
+    {!! $label !!}
 </label>
 
 <input 
