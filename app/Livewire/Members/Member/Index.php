@@ -286,11 +286,33 @@ class Index extends Component
 
             if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
                 // hapus file lama jika ada
-                if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
-                    Storage::disk('public')->delete($this->old_profile_picture);
+                if ($this->old_profile_picture && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->old_profile_picture)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($this->old_profile_picture);
                 }
 
-                $filename = $this->profile_picture->store('members', 'public');
+                // --- BAGIAN INI YANG DIUBAH UNTUK KOMPRESI ---
+                // Menggunakan Intervention Image v3 (Pastikan sudah terinstall via composer)
+                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+
+                // Baca file gambar dari temp upload
+                $image = $manager->read($this->profile_picture->getRealPath());
+
+                // Resize: Ubah ukuran agar tidak terlalu besar (maksimal lebar 800px, tinggi menyesuaikan)
+                $image->scaleDown(width: 800);
+
+                // Compress: Ubah format ke WebP dengan kualitas 75%
+                $encoded = $image->toWebp(quality: 75);
+
+                // Buat nama file unik dengan ekstensi .webp
+                $name = pathinfo($this->profile_picture->hashName(), PATHINFO_FILENAME) . '.webp';
+                $path = 'members/' . $name;
+
+                // Simpan hasil kompresi ke storage public menggunakan 'put'
+                \Illuminate\Support\Facades\Storage::disk('public')->put($path, (string) $encoded);
+
+                // Set filename ke path yang baru
+                $filename = $path;
+                // --- BATAS PERUBAHAN KOMPRESI ---
             }
 
             $province = Province::find($this->province_id);
@@ -300,7 +322,7 @@ class Index extends Component
             if ($this->parent_user_id) {
                 $parentUserId = $this->parent_user_id;
             } else {
-                $parentUserId = auth()->user()->id;
+                $parentUserId = auth()->user()->id; // Asumsi auth() tersedia
             }
 
             $member = Member::create([
@@ -343,7 +365,7 @@ class Index extends Component
             ]);
         }
     }
-
+    
     public function update(string $memberId)
     {
         $member = Member::findOrFail($memberId);
@@ -359,12 +381,34 @@ class Index extends Component
             $filename = $this->old_profile_picture;
 
             if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                // hapus file lama jika ada
-                if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
-                    Storage::disk('public')->delete($this->old_profile_picture);
+                // 1. Hapus file lama jika ada
+                if ($this->old_profile_picture && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->old_profile_picture)) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($this->old_profile_picture);
                 }
 
-                $filename = $this->profile_picture->store('members', 'public');
+                // --- MULAI LOGIKA KOMPRESI IMAGE ---
+                // Init Manager (Intervention Image v3)
+                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+
+                // Baca file
+                $image = $manager->read($this->profile_picture->getRealPath());
+
+                // Resize: Max lebar 800px (aspek rasio tetap)
+                $image->scaleDown(width: 800);
+
+                // Compress & Convert ke WebP (Quality 75%)
+                $encoded = $image->toWebp(quality: 75);
+
+                // Generate nama file baru dengan ekstensi .webp
+                $name = pathinfo($this->profile_picture->hashName(), PATHINFO_FILENAME) . '.webp';
+                $path = 'members/' . $name;
+
+                // Simpan file hasil kompresi secara manual menggunakan 'put'
+                \Illuminate\Support\Facades\Storage::disk('public')->put($path, (string) $encoded);
+
+                // Update variabel filename
+                $filename = $path;
+                // --- SELESAI LOGIKA KOMPRESI ---
             }
 
             // Update user
@@ -402,6 +446,9 @@ class Index extends Component
             // Saat loadRoot dipanggil, dia akan merender ulang tree 
             // dengan posisi expand/collapse yang sama persis seperti sebelum tombol edit ditekan
             $this->loadRoot();
+            
+            $this->dispatch('success', 'Member berhasil diperbarui.');
+
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -452,7 +499,7 @@ class Index extends Component
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 1MB
+            'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 10MB
         ];
     }
 
@@ -473,7 +520,7 @@ class Index extends Component
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 1MB
+            'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 10MB
         ];
     }
 
