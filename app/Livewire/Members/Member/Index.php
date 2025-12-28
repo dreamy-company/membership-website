@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Members\Member;
 
+use App\Models\Domicile;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -294,7 +295,8 @@ class Index extends Component
             }
 
             $province = Province::find($this->province_id);
-            $member_code = $province->code . '-' . (strlen($province->code) === 3 ? '0' : '') . str_pad(Member::count() + 1, 4, '0', STR_PAD_LEFT);
+            $domicile = Domicile::find($this->domicile_id);
+            $member_code = $domicile->code . '-' . (strlen($domicile->code) === 3 ? '0' : '') . str_pad(Member::count() + 1, 4, '0', STR_PAD_LEFT);
 
             $parentUserId = null;
             if ($this->parent_user_id) {
@@ -399,7 +401,7 @@ class Index extends Component
             // Di akhir update:
             $this->afterSave(false);
 
-            // Saat loadRoot dipanggil, dia akan merender ulang tree 
+            // Saat loadRoot dipanggil, dia akan merender ulang tree
             // dengan posisi expand/collapse yang sama persis seperti sebelum tombol edit ditekan
             $this->loadRoot();
         } catch (\Exception $e) {

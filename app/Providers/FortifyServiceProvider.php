@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 // Fortify
 use Laravel\Fortify\Fortify;
@@ -17,6 +18,10 @@ use Laravel\Fortify\Contracts\LogoutResponse;
 
 use App\Http\Responses\LoginResponse as CustomLoginResponse;
 use App\Http\Responses\LogoutResponse as CustomLogoutResponse;
+
+// Models
+use App\Models\User;
+use App\Models\Member;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -39,6 +44,34 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        Fortify::authenticateUsing(function (Request $request) {
+            $loginId = $request->login_id;
+            $user = null;
+
+            // Cek apakah input adalah format Email yang valid
+            $isEmail = filter_var($loginId, FILTER_VALIDATE_EMAIL);
+
+            if ($isEmail) {
+                // JALUR 1: Cari berdasarkan Email di tabel users
+                $user = User::where('email', $loginId)->first();
+            } else {
+                // JALUR 2: Cari berdasarkan Member Code di tabel members
+                // Menggunakan with('user') untuk mengambil data user relasinya
+                $member = Member::where('member_code', $loginId)->with('user')->first();
+
+                if ($member) {
+                    $user = $member->user;
+                }
+            }
+
+            // Verifikasi Password (jika user ditemukan dari salah satu jalur di atas)
+            if ($user && Hash::check($request->password, $user->password)) {
+                return $user;
+            }
+
+            // Gagal login
+            return null;
+        });
     }
 
     /**
