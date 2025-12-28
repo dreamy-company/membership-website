@@ -426,4 +426,9 @@ class Index extends Component
         }
     }
 
+    public function redirectToMemberDetails()
+    {
+        return redirect()->route('admin.members.detail');
+    }
+
 }
