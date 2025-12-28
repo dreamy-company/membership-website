@@ -11,6 +11,8 @@ use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver; // Driver GD (bawaan PHP)
 
 class Details extends Component
 {
@@ -325,12 +327,34 @@ class Details extends Component
             $filename = $this->old_profile_picture;
 
             if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                // hapus file lama jika ada
+                // 1. Hapus file lama jika ada
                 if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
                     Storage::disk('public')->delete($this->old_profile_picture);
                 }
 
-                $filename = $this->profile_picture->store('members', 'public');
+                // 2. Siapkan Image Manager
+                $manager = new ImageManager(new Driver());
+
+                // 3. Baca file dari temporary upload Livewire
+                $image = $manager->read($this->profile_picture->getRealPath());
+
+                // 4. RESIZE: Ubah ukuran agar tidak terlalu besar (misal max lebar 800px)
+                // scaleDown() menjaga aspek rasio dan tidak memperbesar gambar kecil
+                $image->scaleDown(width: 800);
+
+                // 5. COMPRESS: Ubah kualitas (misal 75%) dan format (disarankan WebP atau JPEG)
+                // Format WebP jauh lebih ringan dibanding PNG/JPG biasa
+                $encoded = $image->toWebp(quality: 75); 
+                
+                // 6. Buat nama file unik dan path penyimpanan
+                // Kita ganti ekstensi jadi .webp karena hasil convertnya webp
+                $name = pathinfo($this->profile_picture->hashName(), PATHINFO_FILENAME) . '.webp';
+                $path = 'members/' . $name;
+
+                // 7. Simpan hasil encode ke storage public
+                Storage::disk('public')->put($path, (string) $encoded);
+
+                $filename = $path;
             }
 
             $province = Province::find($this->province_id);
@@ -396,30 +420,52 @@ class Details extends Component
 
             $this->id = $member->user->id;
 
-            // Handle profile picture upload
+            // 1. Setup Default Filename (Pakai yang lama dulu)
             $filename = $this->old_profile_picture;
 
+            // 2. Cek apakah ada file baru yang diupload
             if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                // hapus file lama jika ada
+                
+                // A. Hapus file lama jika ada di storage (Agar hemat space)
                 if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
                     Storage::disk('public')->delete($this->old_profile_picture);
                 }
 
-                $filename = $this->profile_picture->store('members', 'public');
+                // B. PROSES KOMPRESI GAMBAR (Intervention Image v3)
+                $manager = new ImageManager(new Driver());
+                
+                // Baca file dari temp livewire
+                $image = $manager->read($this->profile_picture->getRealPath());
+
+                // Resize: Max lebar 800px (tinggi menyesuaikan)
+                $image->scaleDown(width: 800);
+
+                // Compress & Convert ke WebP (Quality 75%)
+                $encoded = $image->toWebp(quality: 75);
+
+                // Buat nama file unik + ekstensi .webp
+                $name = pathinfo($this->profile_picture->hashName(), PATHINFO_FILENAME) . '.webp';
+                $path = 'members/' . $name;
+
+                // Simpan file hasil kompresi ke storage public
+                Storage::disk('public')->put($path, (string) $encoded);
+
+                // Update variabel filename dengan path baru
+                $filename = $path;
             }
 
-            // Update user
+            // 3. Update Data User (Login Info)
             $member->user->update([
                 'name' => $this->name,
                 'email' => $this->email,
             ]);
 
-            // Update password jika ada perubahan
+            // Update password hanya jika diisi
             if (!empty($this->password)) {
-                $member->user->update(['password' => $this->password]);
+                $member->user->update(['password' => $this->password]); // Password otomatis di-hash oleh model user (biasanya)
             }
 
-            // Update member
+            // 4. Update Data Member (Detail Info + Gambar Baru)
             $member->update([
                 'nik' => $this->nik,
                 'phone_number' => $this->phone_number,
@@ -432,17 +478,21 @@ class Details extends Component
                 'account_number' => $this->account_number,
                 'account_name' => $this->account_name,
                 'npwp' => $this->npwp,
-                'profile_picture' => $filename,
+                'profile_picture' => $filename, // Path gambar yang sudah dikompres
             ]);
 
             DB::commit();
 
-            // Di akhir update:
+            // 5. Reset Form & Tutup Modal
             $this->afterSave(false);
 
-            // Saat loadRoot dipanggil, dia akan merender ulang tree 
-            // dengan posisi expand/collapse yang sama persis seperti sebelum tombol edit ditekan
+            // 6. Refresh Tree View
+            // Karena kita menggunakan logika loadRoot yang baru, 
+            // posisi expand/collapse akan tetap terjaga.
             $this->loadRoot();
+            
+            $this->dispatch('success', 'Data member berhasil diperbarui.');
+
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -493,7 +543,7 @@ class Details extends Component
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 1MB
+            'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 10MB
         ];
     }
 
@@ -514,7 +564,7 @@ class Details extends Component
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 1MB
+            'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 1MB
         ];
     }
 
