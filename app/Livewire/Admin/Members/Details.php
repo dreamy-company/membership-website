@@ -104,6 +104,7 @@ class Details extends Component
                 ->map(fn ($c) => $this->formatNode($c, 2))
                 ->toArray();
 
+                dump($node);
             $this->tree = [$node];
 
         } else {
@@ -168,18 +169,16 @@ class Details extends Component
 
     public function toggleNode($memberId)
     {
-        // [BARU] Logika state management
         if (in_array($memberId, $this->expandedNodes)) {
-            // Jika sudah ada, hapus (Collapse)
-            $this->expandedNodes = array_diff($this->expandedNodes, [$memberId]);
+            $this->expandedNodes = array_values(
+                array_diff($this->expandedNodes, [$memberId])
+            );
         } else {
-            // Jika belum ada, tambah (Expand)
             $this->expandedNodes[] = $memberId;
         }
-
-        // Refresh tree untuk menerapkan perubahan tampilan
-        $this->loadRoot($memberId);
+        $this->loadRoot();
     }
+
 
     private function updateNode(&$nodes, $id, $callback)
     {
@@ -205,7 +204,7 @@ class Details extends Component
         $this->resetInput();
 
         if ($id) {
-            $member = Member::findOrFail($id);
+            $member = Member::where('user_id', $id)->first();
 
             $this->name = $member->user->name;
             $this->email = $member->user->email;
@@ -249,7 +248,7 @@ class Details extends Component
 
     public function openCardModal($memberId)
     {
-        $member = Member::with(['province', 'domicile'])->findOrFail($memberId);
+        $member = Member::with(['province', 'domicile'])->where('user_id', $memberId)->first();
 
         // Isi semua variabel
         $this->id             = $member->id;

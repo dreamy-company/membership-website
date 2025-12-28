@@ -241,10 +241,7 @@
         </x-modal.form-modal>
     @endif
 
-
-
     @if ($isCardOpen)
-
         <x-modal.card-modal :formTitle="'Detail'" action="store()">
             <div class="py-4 md:py-6">
 
