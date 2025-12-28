@@ -340,8 +340,9 @@ class Details extends Component
             if ($this->parent_user_id) {
                 $parentUserId = $this->parent_user_id;
             } else {
-                $parentUserId = auth()->user()->id;
+                $parentUserId = $user->id;
             }
+
 
             $member = Member::create([
                 'member_code' => $member_code,
