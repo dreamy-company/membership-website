@@ -10,6 +10,7 @@ use Laravel\Fortify\RoutePath;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Admin\Transactions\ActivityLog;
 use App\Livewire\Admin\Members\Index as MemberIndex;
+use App\Livewire\Admin\Members\Details as MemberDetail;
 use App\Livewire\Admin\Bonuses\Index as BonusesIndex;
 use App\Livewire\Admin\Province\Index as ProvinceIndex;
 use App\Livewire\Admin\Businesses\Index as BusinessIndex;
@@ -26,9 +27,11 @@ use App\Livewire\Members\Withdrawals\Index as DashboardWithdrawalIndex;
 use App\Livewire\Members\Transactions\Index as DashboardTransactionIndex;
 use App\Livewire\Members\Profile\Index as DashboardProfileIndex;
 
+
 // Business Livewire
 use App\Livewire\Business\Transactions\Index as BusinessTransactionIndex;
 use App\Livewire\Business\Transactions\ActivyLog as BusinessActivityLog;
+use App\Models\Member;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -67,6 +70,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/businesses', BusinessIndex::class)->name('businesses');
     Route::get('/domicilies', DomicileIndex::class)->name('domicilies');
     Route::get('/members', MemberIndex::class)->name('members');
+    Route::get('/members/detail', MemberDetail::class)->name('members.detail');
     Route::get('/businesses-users', BusinessesUsersIndex::class)->name('businesses.users');
     Route::get('/bonuses', BonusesIndex::class)->name('bonuses');
     Route::get('/transactions', TransactionIndex::class)->name('transactions');
