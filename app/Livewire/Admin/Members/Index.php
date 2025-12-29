@@ -8,6 +8,7 @@ use Livewire\Component;
 use App\Models\Province;
 use App\Models\Withdrawal;
 use App\Models\ActivityLog;
+use App\Models\Domicile;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\DB;
@@ -182,10 +183,11 @@ class Index extends Component
         // GENERATE MEMBER CODE (only for create)
         // ==========================
         $province = Province::find($this->province_id);
+        $domicile = Domicile::find($this->domicile_id);
 
         $member_code = $this->member_id
             ? Member::find($this->member_id)->member_code // keep old if update
-            : $province->code . '-' . str_pad(Member::max('id') + 1, 4, '0', STR_PAD_LEFT);
+            : $domicile->code . '-' . str_pad(Member::max('id') + 1, 4, '0', STR_PAD_LEFT);
 
 
         // ==========================
@@ -424,6 +426,11 @@ class Index extends Component
                 'message' => $e->getMessage(),
             ]);
         }
+    }
+
+    public function redirectToMemberDetails()
+    {
+        return redirect()->route('admin.members.detail');
     }
 
 }

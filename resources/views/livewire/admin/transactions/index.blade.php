@@ -130,7 +130,7 @@
     <!-- Modal -->
     @if($isOpenImport)
         <x-modal.form-modal :formTitle="'Import Transactions'" action="storeData()" height="h-auto">
-           <div class="grid gap-4 grid-cols-1 py-4 md:py-6">
+           <div class="grid gap-4 grid-cols-1 px-2 py-4 md:py-6">
                     <div class="grid grid-cols-1 gap-2">
                         <div class="mb-0">
                             <label class="block mb-2.5 text-sm font-medium text-heading" for="file_input">Upload file</label>

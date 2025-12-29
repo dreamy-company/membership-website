@@ -1,20 +1,20 @@
 <?php
 
-namespace App\Livewire\Members\Member;
+namespace App\Livewire\Admin\Members;
 
-use App\Models\Domicile;
+use App\Models\User;
+use App\Models\Member;
 use Livewire\Component;
+use App\Models\Domicile;
+use App\Models\Province;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver; // Driver GD (bawaan PHP)
 
-// Models
-use App\Models\Member;
-use App\Models\User;
-use App\Models\Province;
-
-class Index extends Component
+class Details extends Component
 {
     use WithPagination, WithFileUploads;
     public $search = '';
@@ -76,40 +76,82 @@ class Index extends Component
         $this->loadRoot();
     }
 
-    private function loadRoot()
+    public function loadRoot($memberId = null)
     {
-        $roots = Member::search($this->search)
-            ->where('parent_user_id', auth()->user()->id)
-            ->where('user_id', '!=', auth()->user()->id)
-            ->get();
+        if ($memberId) {
 
-        // formatNode sekarang akan otomatis mengecek $expandedNodes
-        $this->tree = $roots->map(fn($m) => $this->formatNode($m, 1))->toArray();
+            // parent
+            $parent = Member::where('user_id', $memberId)->first();
+
+            if (!$parent) {
+                $this->tree = [];
+                return;
+            }
+
+            // child (JANGAN pakai search di sini)
+            $childrenQuery = Member::where('parent_user_id', $memberId)
+                ->where('user_id', '!=', $memberId);
+
+            if ($this->search) {
+                $childrenQuery->where(function ($q) {
+                    $q->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('user_id', 'like', "%{$this->search}%");
+                });
+            }
+
+            $children = $childrenQuery->get();
+
+            $node = $this->formatNode($parent, 1);
+            $node['children'] = $children
+                ->map(fn ($c) => $this->formatNode($c, 2))
+                ->toArray();
+
+                dump($node);
+            $this->tree = [$node];
+
+        } else {
+
+            // root level
+            $rootsQuery = Member::whereColumn('parent_user_id', 'user_id');
+
+            if ($this->search) {
+                $rootsQuery->where(function ($q) {
+                    $q->where('name', 'like', "%{$this->search}%")
+                    ->orWhere('user_id', 'like', "%{$this->search}%");
+                });
+            }
+
+            $this->tree = $rootsQuery
+                ->get()
+                ->map(fn ($m) => $this->formatNode($m, 1))
+                ->toArray();
+        }
     }
+
+
 
     private function formatNode($m, $level = 1)
     {
-        // [BARU] Cek apakah node ini ada di daftar expandedNodes
-        $isExpanded = in_array($m->id, $this->expandedNodes);
+        $isExpanded = in_array($m->user_id, $this->expandedNodes);
 
         $children = [];
         $fetched = false;
 
-        // [BARU] Jika expanded, load children-nya SEKARANG juga (agar tree tetap terbuka setelah refresh)
         if ($isExpanded) {
             $childModels = Member::where('parent_user_id', $m->user_id)
+                ->where('user_id', '!=', $m->user_id)
                 ->with('user')
                 ->get();
 
             $children = $childModels->map(
-                fn($child) => $this->formatNode($child, $level + 1)
+                fn ($child) => $this->formatNode($child, $level + 1)
             )->toArray();
 
             $fetched = true;
         }
 
         return [
-            'id' => $m->id,
+            'id' => $m->user_id, // ⬅️ KONSISTEN
             'user_id' => $m->user_id,
             'member_code' => $m->member_code,
             'phone_number' => $m->phone_number,
@@ -118,28 +160,27 @@ class Index extends Component
                 'name' => $m->user->name ?? 'Tanpa Nama',
                 'profile_picture' => $m->profile_picture ?? null,
             ],
-            'children' => $children,     // Isi children jika expanded
-            'expanded' => $isExpanded,   // Set true jika expanded
+            'children' => $children,
+            'expanded' => $isExpanded,
             'loading' => false,
-            'fetched' => $fetched,       // Tandai sudah di-fetch
+            'fetched' => $fetched,
             'level' => $level,
         ];
     }
 
+
     public function toggleNode($memberId)
     {
-        // [BARU] Logika state management
         if (in_array($memberId, $this->expandedNodes)) {
-            // Jika sudah ada, hapus (Collapse)
-            $this->expandedNodes = array_diff($this->expandedNodes, [$memberId]);
+            $this->expandedNodes = array_values(
+                array_diff($this->expandedNodes, [$memberId])
+            );
         } else {
-            // Jika belum ada, tambah (Expand)
             $this->expandedNodes[] = $memberId;
         }
-
-        // Refresh tree untuk menerapkan perubahan tampilan
         $this->loadRoot();
     }
+
 
     private function updateNode(&$nodes, $id, $callback)
     {
@@ -165,7 +206,7 @@ class Index extends Component
         $this->resetInput();
 
         if ($id) {
-            $member = Member::findOrFail($id);
+            $member = Member::where('user_id', $id)->first();
 
             $this->name = $member->user->name;
             $this->email = $member->user->email;
@@ -209,7 +250,7 @@ class Index extends Component
 
     public function openCardModal($memberId)
     {
-        $member = Member::with(['province', 'domicile'])->findOrFail($memberId);
+        $member = Member::with(['province', 'domicile'])->where('user_id', $memberId)->first();
 
         // Isi semua variabel
         $this->id             = $member->id;
@@ -286,46 +327,46 @@ class Index extends Component
             $filename = $this->old_profile_picture;
 
             if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                // hapus file lama jika ada
-                if ($this->old_profile_picture && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->old_profile_picture)) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($this->old_profile_picture);
+                // 1. Hapus file lama jika ada
+                if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
+                    Storage::disk('public')->delete($this->old_profile_picture);
                 }
 
-                // --- BAGIAN INI YANG DIUBAH UNTUK KOMPRESI ---
-                // Menggunakan Intervention Image v3 (Pastikan sudah terinstall via composer)
-                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+                // 2. Siapkan Image Manager
+                $manager = new ImageManager(new Driver());
 
-                // Baca file gambar dari temp upload
+                // 3. Baca file dari temporary upload Livewire
                 $image = $manager->read($this->profile_picture->getRealPath());
 
-                // Resize: Ubah ukuran agar tidak terlalu besar (maksimal lebar 800px, tinggi menyesuaikan)
+                // 4. RESIZE: Ubah ukuran agar tidak terlalu besar (misal max lebar 800px)
+                // scaleDown() menjaga aspek rasio dan tidak memperbesar gambar kecil
                 $image->scaleDown(width: 800);
 
-                // Compress: Ubah format ke WebP dengan kualitas 75%
-                $encoded = $image->toWebp(quality: 75);
-
-                // Buat nama file unik dengan ekstensi .webp
+                // 5. COMPRESS: Ubah kualitas (misal 75%) dan format (disarankan WebP atau JPEG)
+                // Format WebP jauh lebih ringan dibanding PNG/JPG biasa
+                $encoded = $image->toWebp(quality: 75); 
+                
+                // 6. Buat nama file unik dan path penyimpanan
+                // Kita ganti ekstensi jadi .webp karena hasil convertnya webp
                 $name = pathinfo($this->profile_picture->hashName(), PATHINFO_FILENAME) . '.webp';
                 $path = 'members/' . $name;
 
-                // Simpan hasil kompresi ke storage public menggunakan 'put'
-                \Illuminate\Support\Facades\Storage::disk('public')->put($path, (string) $encoded);
+                // 7. Simpan hasil encode ke storage public
+                Storage::disk('public')->put($path, (string) $encoded);
 
-                // Set filename ke path yang baru
                 $filename = $path;
-                // --- BATAS PERUBAHAN KOMPRESI ---
             }
 
             $province = Province::find($this->province_id);
-            $domicile = Domicile::find($this->domicile_id);
-            $member_code = $domicile->code . '-' . (strlen($domicile->code) === 3 ? '0' : '') . str_pad(Member::count() + 1, 4, '0', STR_PAD_LEFT);
+            $member_code = $province->code . '-' . (strlen($province->code) === 3 ? '0' : '') . str_pad(Member::count() + 1, 4, '0', STR_PAD_LEFT);
 
             $parentUserId = null;
             if ($this->parent_user_id) {
                 $parentUserId = $this->parent_user_id;
             } else {
-                $parentUserId = auth()->user()->id; // Asumsi auth() tersedia
+                $parentUserId = $user->id;
             }
+
 
             $member = Member::create([
                 'member_code' => $member_code,
@@ -367,7 +408,7 @@ class Index extends Component
             ]);
         }
     }
-    
+
     public function update(string $memberId)
     {
         $member = Member::findOrFail($memberId);
@@ -379,52 +420,52 @@ class Index extends Component
 
             $this->id = $member->user->id;
 
-            // Handle profile picture upload
+            // 1. Setup Default Filename (Pakai yang lama dulu)
             $filename = $this->old_profile_picture;
 
+            // 2. Cek apakah ada file baru yang diupload
             if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                // 1. Hapus file lama jika ada
-                if ($this->old_profile_picture && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->old_profile_picture)) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($this->old_profile_picture);
+                
+                // A. Hapus file lama jika ada di storage (Agar hemat space)
+                if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
+                    Storage::disk('public')->delete($this->old_profile_picture);
                 }
 
-                // --- MULAI LOGIKA KOMPRESI IMAGE ---
-                // Init Manager (Intervention Image v3)
-                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-
-                // Baca file
+                // B. PROSES KOMPRESI GAMBAR (Intervention Image v3)
+                $manager = new ImageManager(new Driver());
+                
+                // Baca file dari temp livewire
                 $image = $manager->read($this->profile_picture->getRealPath());
 
-                // Resize: Max lebar 800px (aspek rasio tetap)
+                // Resize: Max lebar 800px (tinggi menyesuaikan)
                 $image->scaleDown(width: 800);
 
                 // Compress & Convert ke WebP (Quality 75%)
                 $encoded = $image->toWebp(quality: 75);
 
-                // Generate nama file baru dengan ekstensi .webp
+                // Buat nama file unik + ekstensi .webp
                 $name = pathinfo($this->profile_picture->hashName(), PATHINFO_FILENAME) . '.webp';
                 $path = 'members/' . $name;
 
-                // Simpan file hasil kompresi secara manual menggunakan 'put'
-                \Illuminate\Support\Facades\Storage::disk('public')->put($path, (string) $encoded);
+                // Simpan file hasil kompresi ke storage public
+                Storage::disk('public')->put($path, (string) $encoded);
 
-                // Update variabel filename
+                // Update variabel filename dengan path baru
                 $filename = $path;
-                // --- SELESAI LOGIKA KOMPRESI ---
             }
 
-            // Update user
+            // 3. Update Data User (Login Info)
             $member->user->update([
                 'name' => $this->name,
                 'email' => $this->email,
             ]);
 
-            // Update password jika ada perubahan
+            // Update password hanya jika diisi
             if (!empty($this->password)) {
-                $member->user->update(['password' => $this->password]);
+                $member->user->update(['password' => $this->password]); // Password otomatis di-hash oleh model user (biasanya)
             }
 
-            // Update member
+            // 4. Update Data Member (Detail Info + Gambar Baru)
             $member->update([
                 'nik' => $this->nik,
                 'phone_number' => $this->phone_number,
@@ -437,19 +478,20 @@ class Index extends Component
                 'account_number' => $this->account_number,
                 'account_name' => $this->account_name,
                 'npwp' => $this->npwp,
-                'profile_picture' => $filename,
+                'profile_picture' => $filename, // Path gambar yang sudah dikompres
             ]);
 
             DB::commit();
 
-            // Di akhir update:
+            // 5. Reset Form & Tutup Modal
             $this->afterSave(false);
 
-            // Saat loadRoot dipanggil, dia akan merender ulang tree
-            // dengan posisi expand/collapse yang sama persis seperti sebelum tombol edit ditekan
+            // 6. Refresh Tree View
+            // Karena kita menggunakan logika loadRoot yang baru, 
+            // posisi expand/collapse akan tetap terjaga.
             $this->loadRoot();
             
-            $this->dispatch('success', 'Member berhasil diperbarui.');
+            $this->dispatch('success', 'Data member berhasil diperbarui.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -522,7 +564,7 @@ class Index extends Component
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 10MB
+            'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 1MB
         ];
     }
 
@@ -569,10 +611,11 @@ class Index extends Component
 
     public function render()
     {
-        $totalMembers = Member::where('parent_user_id', auth()->user()->id)->count();
-        return view('livewire.members.member.index', [
+        $totalMembers = Member::where('parent_user_id', 102)->count();
+        return view('livewire.admin.members.details', [
             'members' => $this->tree,
             'totalMembers' => $totalMembers,
         ]);
     }
+
 }

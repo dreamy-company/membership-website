@@ -57,8 +57,8 @@
 
      <!-- Modal -->
     @if($isOpen)
-        <x-modal.form-modal :formTitle="$domicile_id ? 'Edit Domicile' : 'Add Domicile'" action="store()" >
-           <div class="grid gap-4 grid-cols-2 py-4 md:py-6">
+        <x-modal.form-modal :formTitle="$domicile_id ? 'Edit Domicile' : 'Add Domicile'" action="store()" height='h-auto'>
+           <div class="grid gap-4 grid-cols-2 py-4 px-2 md:py-6">
                     <div class="col-span-2">
                         <x-modal.input name="code" label="Code" type="text" placeholder="Contoh: DPS" />
                     </div>
