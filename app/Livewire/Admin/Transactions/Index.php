@@ -184,9 +184,9 @@ class Index extends Component
         $this->validate([
             'file' => 'required|file|mimes:xlsx,csv',
         ]);
-
+        
         try {
-
+            
             Excel::import(new TransactionsImport, $this->file->getRealPath());
 
             ActivityLog::create([
