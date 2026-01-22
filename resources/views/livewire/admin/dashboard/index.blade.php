@@ -15,13 +15,9 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-4 gap-4">
+    <div class="grid lg:grid-cols-4 md:grid-cols-2 xs:grid-cols-1 gap-4">
         <x-dashboard.card title="Total Transactions" :total="$transactionsCount" route="admin.transactions" />
         <x-dashboard.card title="Total Members" :total="$membersCount" route="admin.members" />
-        {{-- <x-dashboard.card
-            title="Total Users"
-            :total="$usersCount "
-            route="admin.users" /> --}}
         <x-dashboard.card title="Total UMKM" :total="$businessesCount" route="admin.businesses" />
         <x-dashboard.card title="Total Provinces" :total="$provincesCount" route="admin.provinces" />
     </div>
