@@ -61,6 +61,12 @@ class Index extends Component
     public $payment_receipt;
     public $old_payment_receipt;
 
+    public $searchCode = '';
+    public $searchName = '';
+    public $searchGender = '';
+    public $searchAddress = '';
+    public $searchBank = '';
+
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
 
@@ -76,13 +82,56 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function updated($property)
+    {
+        // Cek jika properti yang berubah adalah salah satu filter
+        if (in_array($property, ['searchCode', 'searchName', 'searchGender', 'searchAddress', 'searchBank'])) {
+            $this->resetPage();
+        }
+    }
+
+    // Fitur Reset semua filter
+    public function resetFilters()
+    {
+        $this->reset(['searchCode', 'searchName', 'searchGender', 'searchAddress', 'searchBank']);
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $members = Member::search($this->search)
+        $members = Member::with('user')
+            // 2.2.1 Filter Member Code
+            ->when($this->searchCode, function ($q) {
+                $q->where('member_code', 'like', '%' . $this->searchCode . '%');
+            })
+            // 2.2.2 Filter Nama (Relasi ke User)
+            ->when($this->searchName, function ($q) {
+                $q->whereHas('user', function ($u) {
+                    $u->where('name', 'like', '%' . $this->searchName . '%');
+                });
+            })
+            // 2.2.3 Filter Gender (Exact Match)
+            ->when($this->searchGender, function ($q) {
+                $q->where('gender', $this->searchGender);
+            })
+            // 2.2.4 Filter Address
+            ->when($this->searchAddress, function ($q) {
+                $q->where('address', 'like', '%' . $this->searchAddress . '%');
+            })
+            // 2.2.5 Filter Bank (Mencakup Nama Bank, No Rek, atau Atas Nama)
+            ->when($this->searchBank, function ($q) {
+                $q->where(function($sub) {
+                    $sub->where('bank_name', 'like', '%' . $this->searchBank . '%')
+                        ->orWhere('account_number', 'like', '%' . $this->searchBank . '%')
+                        ->orWhere('account_name', 'like', '%' . $this->searchBank . '%');
+                });
+            })
             ->latest()
-            ->paginate($this->perPage);
+            ->paginate(10);
 
-        return view('livewire.admin.members.index', compact('members'));
+          return view('livewire.admin.members.index', [
+            'members' => $members
+        ]);
     }
 
     public function openModal($id = null)
