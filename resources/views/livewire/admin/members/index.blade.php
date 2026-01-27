@@ -97,7 +97,7 @@
                     </div>
                 </div>
                 <div class="border-b p-4 shadow-sm rounded-md mb-4 bg-white">
-                    <h3 class="font-semibold mb-4">Basic Information</h3>
+                    <h3 class="font-semibold mb-4 text-black">Basic Information</h3>
 
                     <div class="grid grid-cols-1 gap-2 mb-4">
                         <div>
@@ -148,16 +148,15 @@
                     </div>
 
                     <div>
-                        <x-modal.select name="parent_user_id" label="Parent User">
-                            <option value="">-- Select Parent User --</option>
-                            @foreach ($members as $member)
-                                <option value="{{ $member->user->id }}">{{ $member->member_code }} - {{ $member->user->name }}</option>
-                            @endforeach
-                        </x-modal.select>
+                        <x-modal.searchable-select 
+                            name="parent_user_id" 
+                            label="Parent User" 
+                            :options="$members->map(fn($m) => ['value' => $m->user->id, 'label' => $m->member_code . ' - ' . $m->user->name])" 
+                        />
                     </div>
                 </div>
                 <div class="border-b p-4 shadow-sm rounded-md mb-4 bg-white">
-                    <h3 class="font-semibold mb-4">Bank Information</h3>
+                    <h3 class="font-semibold mb-4 text-black">Bank Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div>
                             <x-modal.input name="bank_name" label="Bank Name" type="text"
@@ -178,7 +177,7 @@
                     </div>
                 </div>
                 <div class="p-4 shadow-sm rounded-md bg-white">
-                    <h3 class="font-semibold mb-4">Profile Picture</h3>
+                    <h3 class="font-semibold mb-4 text-black">Profile Picture</h3>
                     <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-gray-400 transition"
                         x-data @dragover.prevent="dragging=true" @dragleave.prevent="dragging=false"
                         @drop.prevent="$refs.fileInput.files = $event.dataTransfer.files; $dispatch('input', $event.dataTransfer.files)">
@@ -227,7 +226,7 @@
 
                 {{-- PROFILE CARD --}}
                 <div
-                    class="max-w-2xl mx-auto bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg overflow-hidden max-h-[700px] overflow-y-auto">
+                    class="max-w-2xl mx-auto bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg overflow-hidden max-h-[700px]">
 
                     {{-- HEADER BACKGROUND --}}
                     <div class="h-32 bg-gradient-to-r from-blue-500 to-blue-600"></div>
