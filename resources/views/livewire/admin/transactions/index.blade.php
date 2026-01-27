@@ -52,8 +52,8 @@
                             <x-table.td>{{ number_format($item->balance) }}</x-table.td>
                             <x-table.td>{{ number_format($item->bonus) }}</x-table.td>
                             <x-table.td>
-                                <x-widget.button color="neutral" name="Edit" action="openModal({{ $item->id }})" />
-                                <x-widget.button color="danger" name="Delete" action="confirmDelete({{ $item->id }})" />
+                                <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
+                                <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
                             </x-table.td>
                         </x-table.tr>
                     @empty
