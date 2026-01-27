@@ -126,10 +126,9 @@
                             <x-table.td>{{ $item->bank_name }}</x-table.td>
                             <x-table.td>{{ number_format($item->bonus->balance ?? 0)}}</x-table.td>
                             <x-table.td>
-                                <x-widget.button color="secondary" name="Detail" action="openCardModal({{ $item->id }})" />
-                                <x-widget.button color="neutral" name="Edit" action="openModal({{ $item->id }})" />
-                                <x-widget.button color="danger" name="Delete" action="confirmDelete({{ $item->id }})" />
-                                <x-widget.button color="primary" name="Withdrawal" action="openWithdrawal({{ $item->id }})" />
+                                <x-widget.button-icon type="detail" color='detail' action="openCardModal({{ $item->id }})" />
+                                <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
+                                <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
                             </x-table.td>
                         </x-table.tr>
                     @empty
