@@ -8,6 +8,7 @@ use App\Models\Member;
 use Livewire\Component;
 use App\Models\BonusLog;
 use App\Models\Transaction;
+use App\Models\Withdrawal;
 use Livewire\WithPagination;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -58,7 +59,8 @@ class Index extends Component
         $mySpendingTotal = Transaction::where('member_id', $myMemberId)->sum('amount');
         
         // Total Saldo Saat Ini (Menggunakan Virtual Attribute 'balance' di Model Member)
-        $currentBalance = auth()->user()->member->balance; 
+        $currentBalance = $bonusLogs->sum('amount'); 
+        $withdrawnAmount = Withdrawal::where('member_id', $myMemberId)->sum('amount');
 
         // Total Downline Langsung
         $totalMembers = Member::where('parent_user_id', auth()->user()->id)->count();
@@ -67,6 +69,7 @@ class Index extends Component
             'transactions' => $bonusLogs, // Variable dikirim sebagai $transactions agar view tidak perlu ubah banyak
             'transactionTotal' => $mySpendingTotal,
             'bonusTotal' => $currentBalance,
+            'withdrawnTotal' => $withdrawnAmount,
             'totalMembers' => $totalMembers
         ]);
     }
