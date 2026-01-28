@@ -71,13 +71,13 @@
                 <x-table.thead>
                     <x-table.tr>
                         <x-table.th>No</x-table.th>
-                        <x-table.th>UMKM</x-table.th>
                         <x-table.th>Member</x-table.th>
+                        <x-table.th>UMKM</x-table.th>
                         <x-table.th>Transaction Code</x-table.th>
                         <x-table.th>Transaction Date</x-table.th>
-                        <x-table.th>Amount</x-table.th>
-                        <x-table.th>Hpp</x-table.th>
-                        <x-table.th>Balance</x-table.th>
+                        <x-table.th>Time</x-table.th>
+                        <x-table.th>Level</x-table.th>
+                        <x-table.th>Percent</x-table.th>
                         <x-table.th>Bonus</x-table.th>
                     </x-table.tr>
                 </x-table.thead>
@@ -86,14 +86,14 @@
                     @forelse ($transactions as $item)
                         <x-table.tr>
                             <x-table.td>{{ $transactions->firstItem() + $loop->index }}</x-table.td>
-                            <x-table.td>{{ $item->business->name }}</x-table.td>
-                            <x-table.td>{{ $item->member->user->name }}</x-table.td>
-                            <x-table.td>{{ $item->transaction_code }}</x-table.td>
-                            <x-table.td>{{ $item->transaction_date }}</x-table.td>
+                            <x-table.td>{{ $item->sourceMember->user->name }}</x-table.td>
+                            <x-table.td>{{ $item->transaction->business->name }}</x-table.td>
+                            <x-table.td>{{ $item->transaction->transaction_code }}</x-table.td>
+                            <x-table.td>{{ $item->transaction->transaction_date }}</x-table.td>
+                            <x-table.td>{{ date('H:i:s', strtotime($item->transaction->created_at)) }}</x-table.td>
+                            <x-table.td>{{ $item->level }}</x-table.td>
+                            <x-table.td>{{ number_format($item->percentage) }}</x-table.td>
                             <x-table.td>{{ number_format($item->amount) }}</x-table.td>
-                            <x-table.td>{{ number_format($item->hpp) }}</x-table.td>
-                            <x-table.td>{{ number_format($item->balance) }}</x-table.td>
-                            <x-table.td>{{ number_format($item->bonus) }}</x-table.td>
                         </x-table.tr>
                     @empty
                         <x-table.tr>
