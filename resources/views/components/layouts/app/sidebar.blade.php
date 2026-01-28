@@ -23,7 +23,7 @@
                         <flux:navlist.item icon="map-pin" :href="route('admin.domicilies')" :current="request()->routeIs('admin.domicilies')" wire:navigate>{{ __('Domicilies') }}</flux:navlist.item>
                         <flux:navlist.item icon="user" :href="route('admin.members')" :current="request()->routeIs('admin.members')" wire:navigate>{{ __('Members') }}</flux:navlist.item>
                         <flux:navlist.item icon="user-group" :href="route('admin.businesses.users')" :current="request()->routeIs('admin.businesses.users')" wire:navigate>{{ __('Businesses Users') }}</flux:navlist.item>
-                        <flux:navlist.item icon="star" :href="route('admin.bonuses')" :current="request()->routeIs('admin.bonuses')" wire:navigate>{{ __('Bonuses') }}</flux:navlist.item>
+                        <flux:navlist.item icon="star" :href="route('admin.bonus-settings')" :current="request()->routeIs('admin.bonus-settings')" wire:navigate>{{ __('Bonus Settings') }}</flux:navlist.item>
                         <flux:navlist.item icon="banknotes" :href="route('admin.transactions')" :current="request()->routeIs('admin.transactions')" wire:navigate>{{ __('Transactions') }}</flux:navlist.item>
                         <flux:navlist.item icon="document-arrow-down" :href="route('admin.withdrawals')" :current="request()->routeIs('admin.withdrawals')" wire:navigate>{{ __('Withdrawals') }}</flux:navlist.item>
                     @elseif(auth()->user()->role == 'member')
