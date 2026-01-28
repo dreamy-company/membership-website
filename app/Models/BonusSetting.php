@@ -6,5 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class BonusSetting extends Model
 {
-    //
+    protected $guarded = ['id'];
+
+    // ini function search yang ada di livewire
+    public function scopeSearch($query, $term)
+    {
+        if ($term) {
+            $query->where('name', 'like', "%{$term}%")
+                ->orWhere('level', 'like', "%{$term}%");
+        }
+    }
 }
