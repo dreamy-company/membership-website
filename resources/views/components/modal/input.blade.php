@@ -4,7 +4,6 @@
     'type' => 'text', 
     'placeholder' => '', 
     'disabled' => false,
-    // 'value' tidak diperlukan jika menggunakan wire:model, Livewire akan mengaturnya otomatis
 ])
 
 <div class="mb-4">
@@ -23,7 +22,14 @@
             placeholder-gray-400
             focus:ring-blue-500 focus:border-blue-500 
             disabled:bg-gray-100 disabled:cursor-not-allowed
-            [&::-webkit-calendar-picker-indicator]:opacity-100 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:block
+            
+            {{-- FIX ICON CALENDAR --}}
+            [color-scheme:light] 
+            
+            {{-- Pastikan icon muncul & pointer --}}
+            [&::-webkit-calendar-picker-indicator]:opacity-100 
+            [&::-webkit-calendar-picker-indicator]:cursor-pointer 
+            [&::-webkit-calendar-picker-indicator]:block
         "
     />
 

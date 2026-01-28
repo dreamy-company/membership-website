@@ -73,36 +73,54 @@
         </div>
     </div>
 
-     <!-- Modal -->
-    @if($isOpen)
-        <x-modal.form-modal :formTitle="$transaction_id ? 'Edit Transaction' : 'Add Transaction'"  action="store()" height="h-auto">
-           <div class="grid gap-4 grid-cols-1 py-4 md:py-6">
+     @if($isOpen)
+        <x-modal.form-modal :formTitle="$transaction_id ? 'Edit Transaction' : 'Add Transaction'" action="store()" height="h-auto">
+            <div class="grid gap-4 grid-cols-1 py-4 md:py-6">
+                
+                {{-- 1. Persiapkan Data Options untuk Searchable Select --}}
+                @php
+                    $businessOptions = $businesses->map(fn($b) => [
+                        'value' => $b->id, 
+                        'label' => $b->name
+                    ]);
+
+                    $memberOptions = $members->map(fn($m) => [
+                        'value' => $m->id, 
+                        'label' => $m->user->name . ' (' . ($m->member_code ?? '-') . ')' 
+                    ]);
+                @endphp
+
                 <div class="grid grid-cols-2 gap-2">
+                    {{-- Input UMKM (Searchable) --}}
                     <div class="mb-2">
-                        <x-modal.select name="business_id" label="UMKM">
-                            @foreach($businesses as $business)
-                                <option value="{{ $business->id }}">
-                                    {{ $business->name }}
-                                </option>
-                            @endforeach
-                        </x-modal.select>
+                        <x-modal.searchable-select 
+                            wire:model="business_id" 
+                            name="business_id" 
+                            label="UMKM" 
+                            :options="$businessOptions"
+                            placeholder="Cari UMKM..." 
+                        />
                     </div>
+
+                    {{-- Input Member (Searchable) --}}
                     <div class="mb-2">
-                        <x-modal.select name="member_id" label="Member">
-                            @foreach($members as $member)
-                                <option value="{{ $member->id }}">
-                                    {{ $member->user->name }}
-                                </option>
-                            @endforeach
-                        </x-modal.select>
+                        <x-modal.searchable-select 
+                            wire:model="member_id" 
+                            name="member_id" 
+                            label="Member" 
+                            :options="$memberOptions"
+                            placeholder="Cari Member..." 
+                        />
                     </div>
                 </div>
-                <div class="grid grid-cols-2">
+
+                {{-- Input Lainnya Tetap Sama --}}
+                <div class="grid grid-cols-2 gap-2">
                     <div class="col-span-2">
                         <x-modal.input name="transaction_code" label="Transaction Code" placeholder="Enter transaction code" />
                     </div>
                     <div class="col-span-2">
-                        <x-modal.input name="transaction_date" label="Transaction Date" type="date" placeholder="Select transaction date" />
+                        <x-modal.input name="transaction_date" label="Transaction Date" type="date" />
                     </div>
                 </div>
 
@@ -123,6 +141,7 @@
                         <x-modal.input name="bonus" label="Bonus" type="number" placeholder="Enter bonus" />
                     </div>
                 </div>
+
             </div>
         </x-modal.form-modal>
     @endif
@@ -131,7 +150,7 @@
     @if($isOpenImport)
         <x-modal.form-modal :formTitle="'Import Transactions'" action="storeData()" height="h-auto">
            <div class="grid gap-4 grid-cols-1 px-2 py-4 md:py-6">
-                    <div class="grid grid-cols-1 gap-2">
+                    <div class="grid grid-cols-1 gap-2 text-black">
                         <div class="mb-0">
                             <label class="block mb-2.5 text-sm font-medium text-heading" for="file_input">Upload file</label>
                             <input name="file" id="file" wire:model="file" class="cursor-pointer bg-slate-50 border border-stone-500 text-heading text-sm rounded-md focus:ring-stone focus:border-stone block w-full shadow-xs placeholder:text-body p-2" type="file">
