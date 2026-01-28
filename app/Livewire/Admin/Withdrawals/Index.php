@@ -27,6 +27,8 @@ class Index extends Component
     public $oldImage;
     public $image;
 
+    public $available_balance = 0;
+
     public $old_payment_receipt;
 
 
@@ -53,6 +55,22 @@ class Index extends Component
                       ->paginate($this->perPage);
 
         return view('livewire.admin.withdrawals.index', compact('withdrawals'));
+    }
+
+    public function updatedMemberId($value)
+    {
+        // Reset ke 0 dulu
+        $this->available_balance = 0; 
+
+        if ($value) {
+            $member = \App\Models\Member::find($value);
+            
+            if ($member) {
+                // Kita panggil Virtual Attribute tadi
+                // Laravel otomatis menjalankan logic: (Sum BonusLog) - (Sum Withdrawal)
+                $this->available_balance = $member->balance;
+            }
+        }
     }
 
    public function openModal($id = null)
@@ -85,6 +103,7 @@ class Index extends Component
         $this->payment_receipt = null;
         $this->old_payment_receipt = null;
         $this->member_id = null;
+        $this->available_balance = 0;
         $this->withdrawal_id = null;
     }
 
