@@ -41,6 +41,7 @@ class Index extends Component
     public $bank_name;
     public $account_number;
     public $account_name;
+    public $status; // untuk status member
     public $profile_picture; // untuk upload file
     public $old_profile_picture; // untuk preview saat edit
 
@@ -186,6 +187,7 @@ class Index extends Component
         $this->address = '';
         $this->birth_date = '';
         $this->npwp = '';
+        $this->status = '';
         $this->province_id = '';
         $this->domicile_id = '';
         $this->bank_name = '';
@@ -200,69 +202,96 @@ class Index extends Component
     {
         $this->validate();
 
-        // ==========================
-        // HANDLE USER
-        // ==========================
-        $user = User::updateOrCreate(
-            ['id' => $this->user_id], // kalau ada → update, kalau engga → create
-            [
+        // Gunakan Transaction agar Data User & Member Konsisten
+        DB::transaction(function () {
+            
+            // ==========================
+            // 1. HANDLE USER (Login Info)
+            // ==========================
+            
+            // Siapkan data user dasar
+            $userData = [
                 'name'  => $this->name,
                 'email' => $this->email,
-                'password' => $this->password
-                    ? bcrypt($this->password)
-                    : User::find($this->user_id)?->password,
-            ]
-        );
+            ];
 
-        // ==========================
-        // HANDLE PROFILE PICTURE
-        // ==========================
-        $filename = $this->old_profile_picture;
-
-        if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-
-            if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
-                Storage::disk('public')->delete($this->old_profile_picture);
+            // Logic Password: Hanya update jika input tidak kosong
+            // Jika create baru & kosong, password akan kosong (atau handle validasi required di rules)
+            if (!empty($this->password)) {
+                $userData['password'] = bcrypt($this->password);
             }
 
-            $filename = $this->profile_picture->store('members', 'public');
-        }
+            $user = User::updateOrCreate(
+                ['id' => $this->user_id], 
+                $userData
+            );
 
-        // ==========================
-        // GENERATE MEMBER CODE (only for create)
-        // ==========================
-        $province = Province::find($this->province_id);
-        $domicile = Domicile::find($this->domicile_id);
+            // ==========================
+            // 2. HANDLE PROFILE PICTURE
+            // ==========================
+            $filename = $this->old_profile_picture;
 
-        $member_code = $this->member_id
-            ? Member::find($this->member_id)->member_code // keep old if update
-            : $domicile->code . '-' . str_pad(Member::max('id') + 1, 4, '0', STR_PAD_LEFT);
+            if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
+                
+                // Hapus file lama jika ada dan bukan default
+                if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
+                    Storage::disk('public')->delete($this->old_profile_picture);
+                }
 
+                $filename = $this->profile_picture->store('members', 'public');
+            }
 
-        // ==========================
-        // HANDLE MEMBER
-        // ==========================
-        Member::updateOrCreate(
-            ['id' => $this->member_id],  // key
-            [
-                'member_code'      => $member_code,
-                'nik'              => $this->nik,
-                'user_id'          => $user->id,
-                'parent_user_id' => $user->id ?: null,
-                'phone_number'     => $this->phone_number,
-                'gender'           => $this->gender,
-                'address'          => $this->address,
-                'birth_date'       => $this->birth_date,
-                'province_id'      => $this->province_id,
-                'domicile_id'      => $this->domicile_id,
-                'bank_name'        => $this->bank_name,
-                'account_number'   => $this->account_number,
-                'account_name'     => $this->account_name,
-                'npwp'             => $this->npwp,
-                'profile_picture'  => $filename,
-            ]
-        );
+            // ==========================
+            // 3. GENERATE MEMBER CODE
+            // ==========================
+            // Code hanya digenerate jika Member Baru
+            if ($this->member_id) {
+                // Jika Update, ambil code lama (jangan berubah)
+                $member_code = Member::find($this->member_id)->member_code;
+            } else {
+                // Jika Create, generate baru
+                $domicile = Domicile::find($this->domicile_id);
+                $prefix = $domicile ? $domicile->code : 'MBR'; // Fallback jika domisili kosong
+                
+                // Handle jika tabel kosong (max id null) -> jadi 0 + 1
+                $nextId = (Member::max('id') ?? 0) + 1;
+                
+                $member_code = $prefix . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+            }
 
+            // ==========================
+            // 4. HANDLE MEMBER (Detail Info)
+            // ==========================
+            Member::updateOrCreate(
+                ['id' => $this->member_id],
+                [
+                    'user_id'          => $user->id,
+                    'member_code'      => $member_code,
+                    
+                    // [FIX] Masukkan Status yang baru kita buat inputnya
+                    'status'           => $this->status ?? 'active', 
+
+                    // [FIX] Parent ID diambil dari inputan form ($this->parent...), BUKAN $user->id
+                    'parent_user_id'   => $this->parent_user_id ?: null, 
+
+                    'nik'              => $this->nik,
+                    'gender'           => $this->gender,
+                    'phone_number'     => $this->phone_number,
+                    'address'          => $this->address,
+                    'birth_date'       => $this->birth_date,
+                    'province_id'      => $this->province_id,
+                    'domicile_id'      => $this->domicile_id,
+                    'bank_name'        => $this->bank_name,
+                    'account_number'   => $this->account_number,
+                    'account_name'     => $this->account_name,
+                    'npwp'             => $this->npwp,
+                    'status'           => $this->status,
+                    'profile_picture'  => $filename,
+                ]
+            );
+        });
+
+        // Reset Input & Tutup Modal
         $this->afterSave(!$this->member_id);
     }
 

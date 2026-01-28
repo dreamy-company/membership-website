@@ -108,7 +108,7 @@
                         <x-table.th>Gender</x-table.th>
                         <x-table.th>Address</x-table.th>
                         <x-table.th>Bank Name</x-table.th>
-                        <x-table.th>Bonus</x-table.th>
+                        <x-table.th>Status</x-table.th>
                         <x-table.th>Actions</x-table.th>
                     </x-table.tr>
                 </x-table.thead>
@@ -124,7 +124,7 @@
                             <x-table.td>{{ $item->gender }}</x-table.td>
                             <x-table.td>{{ $item->address }}</x-table.td>
                             <x-table.td>{{ $item->bank_name }}</x-table.td>
-                            <x-table.td>{{ number_format($item->bonus->balance ?? 0)}}</x-table.td>
+                            <x-table.td>{{ $item->status }}</x-table.td>
                             <x-table.td>
                                 <x-widget.button-icon type="detail" color='detail' action="openCardModal({{ $item->id }})" />
                                 <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
@@ -152,29 +152,38 @@
         <x-modal.form-modal :formTitle="$member_id ? 'Edit Member' : 'Add Member'" action="store()">
             <div class="py-4 md:py-6">
 
+                {{-- 1. USER ACCOUNT --}}
                 <div class="grid grid-cols-1 gap-2 mb-4 border-b p-4 shadow-sm rounded-md bg-white">
+                    <h3 class="font-semibold mb-4 text-black">Account Information</h3>
                     <div>
                         <x-modal.input name="name" label="Name" type="text" placeholder="John Doe" required />
                     </div>
                     <div>
-                        <x-modal.input name="email" label="Email" type="email"
-                            placeholder="Contoh: user@example.com" />
+                        <x-modal.input name="email" label="Email" type="email" placeholder="Contoh: user@example.com" />
                     </div>
                     <div>
                         <x-modal.input name="password" label="Password" type="password" placeholder="********" />
                     </div>
                     <div>
-                        <x-modal.input name="password_confirmation" label="Confirm Password" type="password"
-                            placeholder="********" />
+                        <x-modal.input name="password_confirmation" label="Confirm Password" type="password" placeholder="********" />
                     </div>
                 </div>
+
+                {{-- 2. BASIC INFORMATION --}}
                 <div class="border-b p-4 shadow-sm rounded-md mb-4 bg-white">
                     <h3 class="font-semibold mb-4 text-black">Basic Information</h3>
 
+                    {{-- [BARU] Input Status --}}
+                    <div class="grid grid-cols-1 gap-2 mb-4">
+                        <x-modal.select name="status" label="Status Member" wire:model="status">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </x-modal.select>
+                    </div>
+
                     <div class="grid grid-cols-1 gap-2 mb-4">
                         <div>
-                            <x-modal.input name="nik" label="NIK" type="text"
-                                placeholder="Contoh: 1234567890" />
+                            <x-modal.input name="nik" label="NIK" type="text" placeholder="Contoh: 1234567890" />
                         </div>
                     </div>
 
@@ -186,19 +195,16 @@
                             </x-modal.select>
                         </div>
                         <div>
-                            <x-modal.input name="phone_number" label="Phone" type="number"
-                                placeholder="Contoh: 081234567890" />
+                            <x-modal.input name="phone_number" label="Phone" type="number" placeholder="Contoh: 081234567890" />
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
                         <div>
-                            <x-modal.input name="address" label="Address" type="text"
-                                placeholder="Contoh: Jalan Merdeka No. 123" />
+                            <x-modal.input name="address" label="Address" type="text" placeholder="Contoh: Jalan Merdeka No. 123" />
                         </div>
                         <div>
-                            <x-modal.input name="birth_date" label="Birth Date" type="date"
-                                placeholder="Contoh: 1990-01-01" />
+                            <x-modal.input name="birth_date" label="Birth Date" type="date" placeholder="Contoh: 1990-01-01" />
                         </div>
                     </div>
 
@@ -223,69 +229,70 @@
                         <x-modal.searchable-select 
                             name="parent_user_id" 
                             label="Parent User" 
+                            wire:model="parent_user_id"
                             :options="$members->map(fn($m) => ['value' => $m->user->id, 'label' => $m->member_code . ' - ' . $m->user->name])" 
                         />
                     </div>
                 </div>
+
+                {{-- 3. BANK INFORMATION --}}
                 <div class="border-b p-4 shadow-sm rounded-md mb-4 bg-white">
                     <h3 class="font-semibold mb-4 text-black">Bank Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div>
-                            <x-modal.input name="bank_name" label="Bank Name" type="text"
-                                placeholder="Contoh: BCA" />
+                            <x-modal.input name="bank_name" label="Bank Name" type="text" placeholder="Contoh: BCA" />
                         </div>
                         <div>
-                            <x-modal.input name="account_number" label="Account Number" type="text"
-                                placeholder="Contoh: 1234567890" />
+                            <x-modal.input name="account_number" label="Account Number" type="text" placeholder="Contoh: 1234567890" />
                         </div>
                         <div>
-                            <x-modal.input name="account_name" label="Account Name" type="text"
-                                placeholder="Contoh: John Doe" />
+                            <x-modal.input name="account_name" label="Account Name" type="text" placeholder="Contoh: John Doe" />
                         </div>
                         <div>
-                            <x-modal.input name="npwp" label="NPWP" type="text"
-                                placeholder="Contoh: 1234567890" />
+                            <x-modal.input name="npwp" label="NPWP" type="text" placeholder="Contoh: 1234567890" />
                         </div>
                     </div>
                 </div>
+
+                {{-- 4. PROFILE PICTURE (TANPA PREVIEW) --}}
                 <div class="p-4 shadow-sm rounded-md bg-white">
-                    <h3 class="font-semibold mb-4 text-black">Profile Picture</h3>
-                    <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-gray-400 transition"
-                        x-data @dragover.prevent="dragging=true" @dragleave.prevent="dragging=false"
-                        @drop.prevent="$refs.fileInput.files = $event.dataTransfer.files; $dispatch('input', $event.dataTransfer.files)">
-                        <input type="file" wire:model="profile_picture" class="hidden" x-ref="fileInput" />
-                        {{-- Preview --}}
-                        <div class="mb-2 w-full flex justify-center">
-                            @if ($profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile)
-                                <img src="{{ $profile_picture->temporaryUrl() }}" alt="Preview"
-                                    class="max-h-40 rounded-md border border-gray-300">
-                            @elseif(!empty($old_profile_picture))
-                                <img src="{{ asset('storage/' . $old_profile_picture) }}" alt="Old Image"
-                                    class="max-h-40 rounded-md border border-gray-300">
-                            @else
-                                <div
-                                    class="w-full h-40 rounded-md border border-gray-300 bg-gray-100 flex items-center justify-center">
-                                    <span class="text-gray-400">No Profile Picture</span>
-                                </div>
-                            @endif
-                        </div>
-
-                        <span class="text-gray-500 text-sm">
-                            Drag & drop a file here or click to select
-                        </span>
-                        <button type="button" class="mt-2 px-3 py-1 bg-gray-200 rounded"
-                            @click="$refs.fileInput.click()">
-                            Select File
-                        </button>
-
-                        <div wire:loading wire:target="profile_picture" class="text-gray-500 text-sm mt-2">
-                            Loading preview...
-                        </div>
+                    <h3 class="font-semibold mb-2 text-black">Profile Picture</h3>
+                    
+                    <div class="mb-2">
+                        <input 
+                            type="file" 
+                            wire:model="profile_picture" 
+                            accept="image/*"
+                            class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-blue-500
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-l-lg file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-neutral-900 file:text-white
+                                hover:file:bg-neutral-700"
+                        />
                     </div>
+
+                    {{-- Loading State --}}
+                    <div wire:loading wire:target="profile_picture">
+                        <span class="text-xs text-blue-600 font-medium animate-pulse">
+                            Mengupload gambar...
+                        </span>
+                    </div>
+                    
+                    @error('profile_picture')
+                        <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
                 </div>
-                @foreach ($errors->all() as $error)
-                    <div class="text-red-500 text-sm">{{ $error }}</div>
-                @endforeach
+
+                {{-- Global Errors --}}
+                @if($errors->any())
+                    <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                        @foreach ($errors->all() as $error)
+                            <div class="text-red-500 text-sm list-disc ml-4">{{ $error }}</div>
+                        @endforeach
+                    </div>
+                @endif
+
             </div>
         </x-modal.form-modal>
     @endif
