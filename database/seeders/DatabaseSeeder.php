@@ -77,7 +77,7 @@ class DatabaseSeeder extends Seeder
         */
         $userIds = [];
 
-        for ($i = 1; $i <= 100; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             $userIds[] = DB::table('users')->insertGetId([
                 'name' => $faker->name(),
                 'email' => $faker->unique()->safeEmail(),
@@ -123,7 +123,7 @@ class DatabaseSeeder extends Seeder
         */
         $businessIds = [];
 
-        for ($i = 1; $i <= 10; $i++) {
+        for ($i = 1; $i <= 5; $i++) {
             $businessIds[] = DB::table('businesses')->insertGetId([
                 'name' => $faker->company(),
                 'address' => $faker->address(),
@@ -137,20 +137,6 @@ class DatabaseSeeder extends Seeder
             DB::table('businesses_users')->insert([
                 'user_id' => $uid,
                 'business_id' => $faker->randomElement($businessIds),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | BONUSES
-        |--------------------------------------------------------------------------
-        */
-        foreach ($memberIds as $mid) {
-            DB::table('bonuses')->insert([
-                'member_id' => $mid,
-                'balance' => rand(0, 500000),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
