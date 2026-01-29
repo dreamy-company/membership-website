@@ -6,10 +6,6 @@
                 <x-dashboard.breadcrumbs title="Withdrawals" />
                 <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">{{ $title }}</h1>
             </div>
-            <div class="mb-4">
-                <h1 class="text-xl font-semibold text-blue-600 sm:text-2xl dark:text-white">Bonus Balance: Rp.
-                    {{ number_format($bonusTotal->amount ?? 0) }}</h1>
-            </div>
             <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
                 <div class="flex items-center mb-4 sm:mb-0">
                     <flux:input icon="magnifying-glass" wire:model.live.debounce.250ms="search"
@@ -30,6 +26,7 @@
                     <x-table.th>Member</x-table.th>
                     <x-table.th>Withdrawal Amount</x-table.th>
                     <x-table.th>Payment Receipt</x-table.th>
+                    <x-table.th>Date</x-table.th>
                 </x-table.tr>
             </x-table.thead>
 
@@ -38,7 +35,8 @@
                     <x-table.tr>
                         <x-table.td>{{ $withdrawals->firstItem() + $loop->index }}</x-table.td>
                         <x-table.td>{{ $item->member->user->name }}</x-table.td>
-                        <x-table.td>{{ number_format($item->withdrawal_amount) }}</x-table.td>
+                        <x-table.td>{{ number_format($item->amount) }}</x-table.td>
+                        <x-table.td>{{ $item->created_at->format('d M Y') }}</x-table.td>
                         <x-table.td>
                             @if ($item->payment_receipt)
                                 <x-widget.button color="neutral" name="Detail"
@@ -66,18 +64,15 @@
 
     @if ($isOpen)
         <x-modal.card-modal :formTitle="'Payment Receipt'">
-            <div class="py-4 md:py-6">
-                {{-- Payment Receipt --}}
-                <div class="flex justify-center mt-4 mb-4">
-                    <img src="{{ asset('storage/' . $payment_receipt) }}" alt="Payment Receipt"
-                        class="max-w-full h-auto rounded-md shadow-lg border">
-
+            {{-- Payment Receipt --}}
+            <div class="flex justify-center mt-4 mb-4">
+                {{-- Container gambar dikasih Max Height & Scroll --}}
+                <div class="max-h-[60vh] overflow-y-auto rounded-md border shadow-sm">
+                    <img src="{{ asset('storage/' . $payment_receipt) }}" 
+                        alt="Payment Receipt"
+                        class="w-full h-auto block">
                 </div>
-
-                {{-- CLOSE BUTTON --}}
-                <div class="flex justify-center mt-6">
-                    <x-widget.button color="danger" name="Close" action="closeModal()" />
-                </div>
+            </div>
         </x-modal.card-modal>
     @endif
 
