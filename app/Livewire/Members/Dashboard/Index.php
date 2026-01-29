@@ -2,26 +2,29 @@
 
 namespace App\Livewire\Members\Dashboard;
 
-
-use App\Models\Bonus;
-use App\Models\Member;
 use Livewire\Component;
+use Livewire\WithPagination;
+use Illuminate\Database\Eloquent\Builder;
+
+// Models
 use App\Models\BonusLog;
 use App\Models\Transaction;
 use App\Models\Withdrawal;
-use Livewire\WithPagination;
-use Illuminate\Database\Eloquent\Builder;
 
 class Index extends Component
 {
     use WithPagination;
 
+    // Properties
     public $search = '';
+    public $perPage = 10;
+    
+    // UI Properties
     public $isOpen = false;
     public $confirmingDelete;
-    public $perPage = 10;
     public $title = "Member Dashboard";
 
+    // Settings
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
 
@@ -32,16 +35,22 @@ class Index extends Component
 
     public function render()
     {
-        // Ambil ID Member dari user yang login
-        $myMemberId = auth()->user()->member->id; 
+        $user = auth()->user();
+        
+        // Pastikan user punya data member
+        if (!$user->member) {
+            abort(403, 'Akun anda belum terdaftar sebagai Member.');
+        }
 
-        // 1. QUERY UTAMA (BONUS HISTORY)
-        // Kita pakai BonusLog, bukan Transaction.
-        // Kita 'eager load' relasi sourceMember (downline) dan transaction (untuk info toko/nota)
+        $myMember = $user->member;
+        $myMemberId = $myMember->id;
+
+        // ==========================================
+        // 1. DATA TABEL (BONUS HISTORY)
+        // ==========================================
         $bonusLogs = BonusLog::with(['sourceMember.user', 'transaction.business'])
-            ->where('member_id', $myMemberId) // Hanya bonus milik saya
+            ->where('member_id', $myMemberId)
             ->where(function (Builder $query) {
-                // Logika Search: Cari Nama Downline ATAU Kode Transaksi
                 if ($this->search) {
                     $query->whereHas('sourceMember.user', function ($q) {
                         $q->where('name', 'like', '%' . $this->search . '%');
@@ -54,23 +63,41 @@ class Index extends Component
             ->latest()
             ->paginate($this->perPage);
 
-        // 2. STATISTIK
-        // Total belanja pribadi saya (Pengeluaran)
+        // ==========================================
+        // 2. STATISTIK KEUANGAN
+        // ==========================================
+        
+        // A. Total Belanja Pribadi
         $mySpendingTotal = Transaction::where('member_id', $myMemberId)->sum('amount');
         
-        // Total Saldo Saat Ini (Menggunakan Virtual Attribute 'balance' di Model Member)
-        $currentBalance = $bonusLogs->sum('amount'); 
-        $withdrawnAmount = Withdrawal::where('member_id', $myMemberId)->sum('amount');
+        // B. Total Semua Bonus Masuk (Lifetime Income)
+        // PENTING: Jangan sum dari $bonusLogs karena itu data paginasi (cuma 10 data)
+        $totalBonusIncome = BonusLog::where('member_id', $myMemberId)->sum('amount'); 
 
-        // Total Downline Langsung
-        $totalMembers = Member::where('parent_user_id', auth()->user()->id)->count();
+        // C. Total Uang Ditarik (Approved Withdrawals)
+        $totalWithdrawn = Withdrawal::where('member_id', $myMemberId)->sum('amount');
+
+        // ==========================================
+        // 3. STATISTIK JARINGAN (NETWORK)
+        // ==========================================
+        
+        // Memanggil fungsi getNetworkStats() yang ada di Model Member
+        // Pastikan Model Member.php sudah diupdate sesuai diskusi sebelumnya
+        $networkStats = $myMember->getNetworkStats(5); // Ambil data 5 level
+        $totalMembers = array_sum($networkStats);      // Total Downline
 
         return view('dashboard', [
-            'transactions' => $bonusLogs, // Variable dikirim sebagai $transactions agar view tidak perlu ubah banyak
-            'transactionTotal' => $mySpendingTotal,
-            'bonusTotal' => $currentBalance,
-            'withdrawnTotal' => $withdrawnAmount,
-            'totalMembers' => $totalMembers
+            // Data Tabel
+            'transactions'      => $bonusLogs,
+            
+            // Data Keuangan
+            'transactionTotal'  => $mySpendingTotal,
+            'bonusTotal'        => $totalBonusIncome,
+            'withdrawnTotal'    => $totalWithdrawn,
+            
+            // Data Jaringan
+            'totalMembers'      => $totalMembers,
+            'networkStats'      => $networkStats
         ]);
     }
 }
