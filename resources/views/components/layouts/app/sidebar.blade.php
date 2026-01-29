@@ -28,7 +28,7 @@
                         <flux:navlist.item icon="document-arrow-down" :href="route('admin.withdrawals')" :current="request()->routeIs('admin.withdrawals')" wire:navigate>{{ __('Withdrawals') }}</flux:navlist.item>
                     @elseif(auth()->user()->role == 'member')
                         <flux:navlist.item icon="home" :href="route('dashboard.index')" :current="request()->routeIs('dashboard.index')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                        <flux:navlist.item icon="star" :href="route('dashboard.withdrawals')" :current="request()->routeIs('dashboard.withdrawals')" wire:navigate>{{ __('Bonus Balance') }}</flux:navlist.item> 
+                        <flux:navlist.item icon="star" :href="route('dashboard.withdrawals')" :current="request()->routeIs('dashboard.withdrawals')" wire:navigate>{{ __('Witdrawals') }}</flux:navlist.item> 
                         <flux:navlist.item icon="banknotes" :href="route('dashboard.transactions')" :current="request()->routeIs('dashboard.transactions')" wire:navigate>{{ __('Transactions') }}</flux:navlist.item> 
                         <flux:navlist.item icon="users" :href="route('dashboard.members')" :current="request()->routeIs('dashboard.members')" wire:navigate>{{ __('Member') }}</flux:navlist.item>  
                     @elseif(auth()->user()->role == 'business')
