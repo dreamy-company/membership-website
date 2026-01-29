@@ -4,9 +4,10 @@ namespace App\Livewire\Members\Transactions;
 
 
 use Livewire\Component;
-use Livewire\WithPagination;
+use App\Models\BonusLog;
 
 use App\Models\Transaction;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
@@ -25,13 +26,29 @@ class Index extends Component
 
     }
 
-    public function render()
+   public function render()
     {
-       $transactions = Transaction::search($this->search)->where('member_id', auth()->user()->id)
-                      ->latest()
-                      ->paginate($this->perPage);
+        $myMemberId = auth()->user()->member->id;
 
-        $transactionTotal = Transaction::where('member_id', auth()->user()->id)->sum('amount');
+        // QUERY BONUS LOG
+        $transactions = BonusLog::with(['sourceMember.user', 'transaction.business'])
+            ->where('member_id', $myMemberId) // Hanya bonus yang masuk ke dompet SAYA
+            ->where(function ($query) {
+                // Fitur Search: Bisa cari nama Downline atau Kode Transaksi
+                if ($this->search) {
+                    $query->whereHas('sourceMember.user', function ($q) {
+                        $q->where('name', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('transaction', function ($q) {
+                        $q->where('transaction_code', 'like', '%' . $this->search . '%');
+                    });
+                }
+            })
+            ->latest()
+            ->paginate($this->perPage);
+
+        // Hitung Total Bonus yang sudah didapat (Semua halaman)
+        $transactionTotal = BonusLog::where('member_id', $myMemberId)->sum('amount');
 
         return view('livewire.members.transactions.index', compact('transactions', 'transactionTotal'));
     }
