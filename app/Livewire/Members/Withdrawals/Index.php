@@ -44,11 +44,13 @@ class Index extends Component
 
     public function render()
     {
-        $withdrawals = Withdrawal::search($this->search)->where('member_id', auth()->user()->id)
+        $user_id = auth()->user();
+
+        $withdrawals = Withdrawal::search($this->search)->where('member_id', $user_id->member->id)
             ->latest()
             ->paginate($this->perPage);
 
-        $bonusTotal = Bonus::where('member_id', auth()->user()->id)->first();
+        $bonusTotal = Bonus::where('member_id', $user_id->member->id)->first();
 
         return view('livewire.members.withdrawals.index', compact('withdrawals', 'bonusTotal'));
     }

@@ -2,74 +2,68 @@
 
 namespace App\Services;
 
+use App\Models\Bonus;
 use App\Models\Member;
 use App\Models\BonusLog;
-use App\Models\Bonus;
 use App\Models\Transaction;
+use App\Models\BonusSetting;
 use Illuminate\Support\Facades\DB;
 
 class BonusService
 {
-    // Konfigurasi Persentase Bonus per Level
-    // Level 1 = Upline Langsung, Level 2 = Kakeknya, dst.
-    protected $schemes = [
-        1 => 0.10, // 10% dari Omzet
-        2 => 0.05, // 5%
-        3 => 0.02, // 2%
-        4 => 0.01, // 1%
-        5 => 0.01, // 1%
-    ];
-
     public function distributeBonus($transactionId)
     {
+        // 1. Ambil Data Transaksi
         $transaction = Transaction::find($transactionId);
-        if (!$transaction) return;
+        
+        // 2. Siapa yang belanja? (Si Child/Downline)
+        $shopper = Member::find($transaction->member_id); 
+        $omzet   = $transaction->amount;
 
-        $sourceMember = Member::find($transaction->member_id);
-        if (!$sourceMember) return;
+        // 3. Ambil Settingan Persen (Level 1: 10%, Level 2: 5%, dst)
+       $schemes = BonusSetting::pluck('percentage', 'level')->toArray();
+        // 4. Mulai Mencari Upline (Parent)
+        // Start dari Bapaknya si Shopper
+        $currentUplineId = $shopper->parent_user_id; 
+        $currentLevel    = 1; // Jarak generasi (1 = Bapak kandung, 2 = Kakek)
 
-        // Omzet dasar perhitungan (Amount transaksi)
-        $omzet = $transaction->amount; 
-
-        // Mulai mencari upline dari parent
-        $currentParentUserId = $sourceMember->parent_user_id;
-        $currentLevel = 1;
-
-        // Loop memanjat ke atas
-        while ($currentParentUserId && isset($this->schemes[$currentLevel])) {
+        // Loop ke atas (Memanjat pohon upline)
+        while ($currentUplineId && isset($schemes[$currentLevel])) {
             
-            $upline = Member::where('user_id', $currentParentUserId)->first();
-            if (!$upline) break;
+            // Ambil data Upline
+            $upline = Member::where('user_id', $currentUplineId)->first();
 
-            $percentage = $this->schemes[$currentLevel];
-            $bonusAmount = $omzet * $percentage;
+            // Cek Rule 1.4 & 1.5 (Upline harus Aktif)
+            if (!$upline || $upline->status !== 'active') {
+                // Jika Upline mati/non-aktif, bonus LEVEL INI hangus/skip
+                if ($upline) {
+                    $currentUplineId = $upline->parent_user_id; // Lanjut ke atasnya lagi
+                    $currentLevel++; // Level tetap nambah (agar kakek tetap dapat jatah Level 2, bukan Level 1)
+                } else {
+                    break; // Upline sudah habis (pucuk)
+                }
+                continue;
+            }
 
-            // Masukkan ke DB
-            // Kita tidak perlu DB::transaction lagi di sini karena 
-            // TransactionsImport sudah membungkus semuanya dalam DB::transaction
+            // Hitung Bonus
+            $percentage  = $schemes[$currentLevel]; 
+            $bonusAmount = $omzet * ($percentage / 100);
+
+            // CATAT BONUS (Uang masuk ke Upline)
+            BonusLog::create([
+                'member_id'      => $upline->id,   // <--- PENERIMA (Parent)
+                'from_member_id' => $shopper->id,  // <--- SUMBER (Child yang belanja)
+                'transaction_id' => $transaction->id,
+                'level'          => $currentLevel, // "Bonus Generasi ke-X"
+                'percentage'     => $percentage,
+                'amount'         => $bonusAmount,
+            ]);
+
+            // Persiapan Loop Berikutnya (Naik ke Bapaknya Upline / Kakek)
+            $currentUplineId = $upline->parent_user_id;
             
-            // A. Catat Log
-            // BonusLog::create([
-            //     'member_id'      => $upline->id,
-            //     'from_member_id' => $sourceMember->id,
-            //     'transaction_id' => $transaction->id,
-            //     'level'          => $currentLevel,
-            //     'percentage'     => $percentage * 100,
-            //     'amount'         => $bonusAmount,
-            // ]);
-
-            // B. Update Saldo Upline
-            $wallet = Bonus::firstOrCreate(
-                ['member_id' => $upline->id],
-                ['balance' => 0]
-            );
-            $wallet->increment('balance', $bonusAmount);
-
-            // C. Naik ke level berikutnya
-            $currentParentUserId = $upline->parent_user_id;
-            
-            // Prevent infinite loop (jika parent adalah diri sendiri)
-            if ($currentParentUserId == $upline->user_id) break;
+            // Safety break (cegah infinite loop jika database error parent=diri sendiri)
+            if ($currentUplineId == $upline->user_id) break;
 
             $currentLevel++;
         }

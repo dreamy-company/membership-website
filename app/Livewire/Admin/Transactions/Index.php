@@ -186,7 +186,6 @@ class Index extends Component
         ]);
         
         try {
-            
             Excel::import(new TransactionsImport, $this->file->getRealPath());
 
             ActivityLog::create([
