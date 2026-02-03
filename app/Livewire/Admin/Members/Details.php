@@ -225,6 +225,7 @@ class Details extends Component
             $this->province_id = $member->province_id;
             $this->domicile_id = $member->domicile_id;
             $this->bank_name = $member->bank_name;
+            $this->status = $member->status;
             $this->account_number = $member->account_number;
             $this->account_name = $member->account_name;
             $this->old_profile_picture = $member->profile_picture;
