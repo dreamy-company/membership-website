@@ -29,8 +29,19 @@
             {{-- Buttons --}}
             <div class="flex items-center justify-center gap-1 mt-2 border-t pt-2 w-full">
                 <button wire:click.stop="openMemberModal({{ $node['user_id'] }})" class="p-1 rounded bg-green-50 text-green-600 hover:bg-green-100 transition" title="Add"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg></button>
-                {{-- <button wire:click.stop="openModal({{ $node['id'] }})" class="p-1 rounded bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition" title="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg></button>
-                <button wire:click.stop="openCardModal({{ $node['id'] }})" class="p-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 transition" title="Detail"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button> --}}
+                {{-- Tombol Edit --}}
+                <button wire:click.stop="openModal({{ $node['id'] }})" 
+                        class="p-1 rounded bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition {{ auth()->user()->role !== 'admin' ? 'hidden' : '' }}" 
+                        title="Edit">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                </button>
+
+                {{-- Tombol Detail --}}
+                <button wire:click.stop="openCardModal({{ $node['id'] }})" 
+                        class="p-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 transition {{ auth()->user()->role !== 'admin' ? 'hidden' : '' }}" 
+                        title="Detail">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                </button>
             </div>
 
             {{-- Loading --}}
