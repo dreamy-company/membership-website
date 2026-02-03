@@ -362,6 +362,7 @@ class Index extends Component
             'birth_date'        => 'required|date',
             'npwp'              => 'nullable|string|unique:members,npwp,' . $this->member_id,
             'province_id'       => 'required|exists:provinces,id',
+            'status'            => 'required',
             'domicile_id'       => 'required|exists:domiciles,id',
             'bank_name'         => 'required|string',
             'account_number'    => 'required|string',
