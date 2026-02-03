@@ -61,6 +61,7 @@ class Details extends Component
     public $domicilies;
     public $tree = [];
     public $title = "Member";
+    public $allMembers;
 
     public function mount()
     {
@@ -612,9 +613,13 @@ class Details extends Component
     public function render()
     {
         $totalMembers = Member::where('parent_user_id', 102)->count();
+        $allMembers = Member::with('user')->latest()->paginate(10); 
+        $parentOptions = Member::with('user')->get();
         return view('livewire.admin.members.details', [
             'members' => $this->tree,
-            'totalMembers' => $totalMembers,
+            'allMembers'    => $allMembers,
+            'totalMembers'  => $totalMembers,
+            'parentOptions' => $parentOptions,
         ]);
     }
 
