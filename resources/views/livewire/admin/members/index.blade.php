@@ -224,25 +224,14 @@
                             </x-modal.select>
                         </div>
                     </div>
-                    @dump($members)
 
                     <div>
-                        <div>
-                            <x-modal.searchable-select 
-                                name="parent_user_id" 
-                                label="Parent User" 
-                                wire:model="parent_user_id"
-                                {{-- 
-                                PERBAIKAN:
-                                1. Gunakan $parentOptions (hasil get, bukan paginate)
-                                2. Tambahkan '?? collect([])' sebagai pengaman agar tidak error 'map on null'
-                                --}}
-                                :options="($parentOptions ?? collect([]))->map(fn($m) => [
-                                    'value' => $m->user->id, 
-                                    'label' => $m->member_code . ' - ' . $m->user->name
-                                ])->values()->toArray()" 
-                            />
-                        </div>
+                        <x-modal.searchable-select 
+                            name="parent_user_id" 
+                            label="Parent User" 
+                            wire:model="parent_user_id"
+                            :options="$members->map(fn($m) => ['value' => $m->user->id, 'label' => $m->member_code . ' - ' . $m->user->name])" 
+                        />
                     </div>
                 </div>
 
