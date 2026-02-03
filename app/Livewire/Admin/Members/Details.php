@@ -47,6 +47,7 @@ class Details extends Component
     public $account_name;
     public $profile_picture; // untuk upload file
     public $old_profile_picture; // untuk preview saat edit
+    public $status;
 
     public $isOpen = false;
     public $isCardOpen = false;
@@ -384,6 +385,7 @@ class Details extends Component
                 'account_number' => $this->account_number,
                 'account_name' => $this->account_name,
                 'npwp' => $this->npwp,
+                'status' => $this->status,
                 'profile_picture' => $filename,
             ]);
 
@@ -479,6 +481,7 @@ class Details extends Component
                 'account_number' => $this->account_number,
                 'account_name' => $this->account_name,
                 'npwp' => $this->npwp,
+                'status' => $this->status,
                 'profile_picture' => $filename, // Path gambar yang sudah dikompres
             ]);
 
@@ -543,6 +546,7 @@ class Details extends Component
             'domicile_id'    => 'required|exists:domiciles,id',
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
+            'status'         => 'required',
             'account_name'   => 'required|string',
             'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 10MB
         ];
@@ -565,6 +569,7 @@ class Details extends Component
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
+            'status'         => 'required',
             'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 1MB
         ];
     }
@@ -586,6 +591,7 @@ class Details extends Component
             'bank_name'      => $this->bank_name,
             'account_number' => $this->account_number,
             'account_name'   => $this->account_name,
+            'status'         => $this->status,
         ];
     }
 

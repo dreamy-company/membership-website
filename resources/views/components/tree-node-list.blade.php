@@ -26,9 +26,9 @@
         {{-- Actions --}}
         <div class="flex items-center gap-2">
             {{-- <x-widget.button color="neutral" name="Add"  /> --}}
-            <x-widget.button-icon type="add" action="openMemberModal({{ $node['user_id'] }})" title="Tambah Baru" />
-            {{-- <x-widget.button color="warning" name="Edit" action="openModal({{ $node['id'] }})" />
-            <x-widget.button color="neutral" name="Detail" action="openCardModal({{ $node['id'] }})" /> --}}
+            <x-widget.button-icon type="add" action="openMemberModal({{ $node['user_id'] }})" title="Tambah Baru" is_admin="true"  />
+            <x-widget.button-icon type="edit" name="Edit" action="openModal({{ $node['id'] }})" :visible="auth()->user()->role === 'admin'" />
+            <x-widget.button-icon type="detail" name="Detail" action="openCardModal({{ $node['id'] }})" :visible="auth()->user()->role === 'admin'" />
             
             <div class="w-5 cursor-pointer" wire:click.stop="toggleNode({{ $node['id'] }})">
                 @if ($node['loading'])
