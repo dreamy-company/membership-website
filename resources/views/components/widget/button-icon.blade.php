@@ -2,7 +2,8 @@
     'action', 
     'type',        // 'add', 'edit', 'delete'
     'color' => null, // Opsional: jika kosong akan otomatis sesuai type
-    'title' => null  // Tooltip saat hover
+    'title' => null,  // Tooltip saat hover
+    'visible' => true // <--- Default True (Tampil)
 ])
 
 @php
@@ -53,16 +54,18 @@
     $colorClass = $colors[$color] ?? $colors['primary'];
 @endphp
 
-<button
-    type="button" 
-    wire:click="{{ $action }}"
-    title="{{ $ariaLabel }}"
-    aria-label="{{ $ariaLabel }}"
-    class="{{ $colorClass }} 
-           p-2 inline-flex items-center justify-center
-           border border-transparent shadow-sm rounded-lg 
-           focus:outline-none focus:ring-2 focus:ring-offset-1
-           transition-all duration-150 ease-in-out"
->
-    {!! $selectedIcon !!}
-</button>
+@if ($visible)
+    <button
+        type="button" 
+        wire:click="{{ $action }}"
+        title="{{ $ariaLabel }}"
+        aria-label="{{ $ariaLabel }}"
+        class="{{ $colorClass }}  {{ auth()->user()->role !== 'admin' ? 'hidden' : '' }}
+            p-2 inline-flex items-center justify-center
+            border border-transparent shadow-sm rounded-lg 
+            focus:outline-none focus:ring-2 focus:ring-offset-1
+            transition-all duration-150 ease-in-out"
+    >
+        {!! $selectedIcon !!}
+    </button>
+@endif
