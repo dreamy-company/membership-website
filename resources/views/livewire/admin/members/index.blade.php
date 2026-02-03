@@ -176,8 +176,8 @@
                     {{-- [BARU] Input Status --}}
                     <div class="grid grid-cols-1 gap-2 mb-4">
                         <x-modal.select name="status" label="Status Member" wire:model="status">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
+                            <option value="active" {{ $status == 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="inactive" {{ $status == 'inactive' ? 'selected' : '' }}>Inactive</option>
                         </x-modal.select>
                     </div>
 
