@@ -126,9 +126,11 @@
                             <x-table.td>{{ $item->bank_name }}</x-table.td>
                             <x-table.td>{{ $item->status }}</x-table.td>
                             <x-table.td>
-                                <x-widget.button-icon type="detail" color='detail' action="openCardModal({{ $item->id }})" />
-                                <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
-                                <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                <div class="flex gap-2">
+                                    <x-widget.button-icon type="detail" color='detail' action="openCardModal({{ $item->id }})" />
+                                    <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
+                                    {{-- <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" /> --}}
+                                </div>
                             </x-table.td>
                         </x-table.tr>
                     @empty
@@ -217,7 +219,7 @@
                     <h3 class="font-semibold mb-4 text-black">Basic Information</h3>
 
                     {{-- [BARU] Input Status --}}
-                    <div class="grid grid-cols-1 gap-2 mb-4">
+                    <div class="grid grid-cols-1 gap-2 mb-4 {{ $member_id ? '' : 'hidden' }}">
                         <x-modal.select name="status" label="Status Member" wire:model="status">
                             <option value="active" {{ $status == 'active' ? 'selected' : '' }}>Active</option>
                             <option value="inactive" {{ $status == 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -311,13 +313,13 @@
                             <x-modal.input name="bank_name" label="Bank Name" type="text" placeholder="Contoh: BCA" />
                         </div>
                         <div>
-                            <x-modal.input name="account_number" label="Account Number" type="text" placeholder="Contoh: 1234567890" />
+                            <x-modal.input name="account_number" label="Account Number" type="number" placeholder="Contoh: 1234567890" />
                         </div>
                         <div>
                             <x-modal.input name="account_name" label="Account Name" type="text" placeholder="Contoh: John Doe" />
                         </div>
                         <div>
-                            <x-modal.input name="npwp" label="NPWP" type="text" placeholder="Contoh: 1234567890" />
+                            <x-modal.input name="npwp" label="NPWP" type="number" placeholder="Contoh: 1234567890" />
                         </div>
                     </div>
                 </div>
