@@ -43,50 +43,70 @@
         </div>
     </div>
 
-    <div class="p-6 bg-gray-50 min-h-[700px]">
+    {{-- Container Utama --}}
+    {{-- md:p-0: Desktop tidak ada padding tambahan --}}
+    {{-- p-2: Mobile dikasih padding dikit aja biar gak mepet, jangan p-6 (terlalu lebar) --}}
+    {{-- min-h-...: Tinggi minimal menyesuaikan --}}
+    <div class="p-2 md:p-0 bg-gray-50 min-h-[500px]">
 
         {{-- OPSI 1: LIST VIEW --}}
         @if ($viewType === 'list')
-            <div class="space-y-4 h-[700px] overflow-auto w-full bg-white p-4 rounded-lg shadow-sm border">
+            {{-- h-[75vh]: Di HP tingginya 75% layar (biar gak scroll halaman utama) --}}
+            {{-- md:h-[700px]: Di Desktop tetap fix 700px --}}
+            <div class="space-y-4 h-[75vh] md:h-[700px] overflow-y-auto overflow-x-hidden w-full bg-white rounded-lg shadow-sm border p-2 md:p-4">
                 @forelse ($members as $member)
                     <x-tree-node-list :node="$member" />
                 @empty
-                    <p class="text-center py-4 text-gray-500">Tidak ada member.</p>
+                    <div class="flex flex-col items-center justify-center h-full text-gray-500">
+                        <svg class="w-12 h-12 mb-2 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <p>Tidak ada member.</p>
+                    </div>
                 @endforelse
             </div>
         @endif
 
         {{-- OPSI 2: CHART VIEW --}}
         @if ($viewType === 'chart')
-            <div class="genealogy-scroll border rounded-lg bg-white h-[700px]">
-                <div class="genealogy-tree">
+            {{-- overflow-auto: Wajib scroll X dan Y karena chart pasti lebar --}}
+            <div class="genealogy-scroll border rounded-lg bg-white h-[75vh] md:h-[700px] overflow-auto shadow-sm relative">
+                {{-- min-w-max: Memaksa container melebar sesuai isi chart, agar garis chart tidak patah/berantakan di HP --}}
+                <div class="genealogy-tree min-w-max p-4 md:p-8">
                     <ul>
                         @forelse ($members as $member)
                             <x-tree-node-chart :node="$member" />
                         @empty
                             <li class="w-full text-center">
-                                <p class="py-4 text-gray-500">Tidak ada member.</p>
+                                <p class="py-10 text-gray-500">Tidak ada member.</p>
                             </li>
                         @endforelse
                     </ul>
                 </div>
             </div>
+            {{-- Hint untuk user mobile --}}
+            <div class="md:hidden text-center text-xs text-gray-400 mt-1">
+                <span class="inline-flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    Geser untuk melihat struktur
+                </span>
+            </div>
         @endif
 
-        {{-- OPSI 3: TREE VIEW (BARU) --}}
+        {{-- OPSI 3: TREE VIEW --}}
         @if ($viewType === 'tree')
-            <div class="h-[700px] overflow-auto w-full bg-white p-6 rounded-lg shadow-sm border">
-                <ul class="tree-structure">
+            <div class="h-[75vh] md:h-[700px] overflow-auto w-full bg-white rounded-lg shadow-sm border p-2 md:p-4">
+                {{-- min-w-fit: Agar kalau tree-nya dalam (deep), tidak terpotong di kanan --}}
+                <ul class="tree-structure min-w-fit pb-4 pr-4">
                     @forelse ($members as $member)
                         <x-tree-node-tree :node="$member" />
                     @empty
-                        <li class="text-gray-500 italic">Tidak ada member.</li>
+                        <li class="text-gray-500 italic p-4 text-center">Tidak ada member.</li>
                     @endforelse
                 </ul>
             </div>
         @endif
 
     </div>
+
     @if ($isOpen)
         <x-modal.form-modal :formTitle="$member_id ? 'Edit Member' : 'Add Member'" action="store()">
             <div class="py-4 md:py-6">
