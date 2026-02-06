@@ -113,7 +113,7 @@
                     <h3 class="font-semibold mb-4 text-black">Basic Information</h3>
 
                     {{-- [BARU] Input Status --}}
-                    <div class="grid grid-cols-1 gap-2 mb-4">
+                    <div class="grid grid-cols-1 gap-2 mb-4 {{ $member_id ? '' : 'hidden' }}">
                         <x-modal.select name="status" label="Status Member" wire:model="status">
                             <option value="active" {{ $status == 'active' ? 'selected' : '' }}>Active</option>
                             <option value="inactive" {{ $status == 'inactive' ? 'selected' : '' }}>Inactive</option>
@@ -122,7 +122,7 @@
 
                     <div class="grid grid-cols-1 gap-2 mb-4">
                         <div>
-                            <x-modal.input name="nik" label="NIK" type="text" placeholder="Contoh: 1234567890" />
+                            <x-modal.input name="nik" label="NIK" type="number" placeholder="Contoh: 1234567890" />
                         </div>
                     </div>
 
@@ -163,7 +163,42 @@
                             </x-modal.select>
                         </div>
                     </div>
-                     <div class="flex items-center gap-2 border p-3 rounded-lg bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700">
+
+                    <div class="grid grid-cols-1 gap-4 mb-4">
+                        {{-- CHECKBOX UI --}}
+                        <div class="flex items-center gap-2 border p-3 rounded-lg bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700">
+                            <input 
+                                type="checkbox" 
+                                id="is_root" 
+                                wire:model.live="is_root" 
+                                class="w-4 h-4 text-black bg-gray-100 border-gray-300 rounded focus:ring-black dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                            >
+                            <label for="is_root" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                                Jadikan Top Leader (Tanpa Upline/Parent)
+                            </label>
+                        </div>
+
+                        {{-- DROPDOWN (Hanya muncul jika TIDAK dicentang) --}}
+                        @if(!$is_root)
+                            <div class="transition-all duration-300 ease-in-out">
+                                <x-modal.searchable-select 
+                                name="parent_user_id" 
+                                label="Parent User" 
+                                wire:model="parent_user_id"
+                            :options="($parentOptions ?? collect([]))->map(fn($m) => [
+                                    'value' => $m->user->id, 
+                                    'label' => $m->member_code . ' - ' . $m->user->name
+                            ])->values()->toArray()" 
+                                />
+                            </div>
+                        @else
+                            {{-- Pesan Feedback (Optional) --}}
+                            <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
+                                <span class="font-medium">Info:</span> Member ini akan menjadi akar jaringan (Level 1).
+                            </div>
+                        @endif
+                    </div>
+                     {{-- <div class="flex items-center gap-2 border p-3 rounded-lg bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700">
                         <input 
                             type="checkbox" 
                             id="is_root" 
@@ -179,13 +214,12 @@
                             name="parent_user_id" 
                             label="Parent User" 
                             wire:model="parent_user_id"
-                            {{-- GANTI $allMembers JADI $parentOptions --}}
                             :options="($parentOptions ?? collect([]))->map(fn($m) => [
                                 'value' => $m->user->id, 
                                 'label' => $m->member_code . ' - ' . $m->user->name
                             ])->values()->toArray()" 
                         />
-                    </div>
+                    </div> --}}
                 </div>
 
                 {{-- 3. BANK INFORMATION --}}
@@ -202,7 +236,7 @@
                             <x-modal.input name="account_name" label="Account Name" type="text" placeholder="Contoh: John Doe" />
                         </div>
                         <div>
-                            <x-modal.input name="npwp" label="NPWP" type="text" placeholder="Contoh: 1234567890" />
+                            <x-modal.input name="npwp" label="NPWP" type="number" placeholder="Contoh: 1234567890" />
                         </div>
                     </div>
                 </div>

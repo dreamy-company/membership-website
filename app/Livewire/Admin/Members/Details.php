@@ -572,7 +572,7 @@ class Details extends Component
             'domicile_id'    => 'required|exists:domiciles,id',
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
-            'status'         => 'required',
+            'status'         => 'nullable',
             'account_name'   => 'required|string',
             'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 2mb
         ];
@@ -595,7 +595,7 @@ class Details extends Component
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'status'         => 'required',
+            'status'         => 'nullable',
             'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 2MB
         ];
     }

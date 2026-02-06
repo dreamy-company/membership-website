@@ -2,7 +2,7 @@
 
 <div class="ml-4 border-l pl-4 py-2">
     {{-- Row utama --}}
-    <div class="flex items-center justify-between gap-3 p-2 rounded border border-gray-200 w-full md:w-2/3 min-w-[400px] hover:bg-gray-100 bg-white">
+    <div class="flex items-center justify-between gap-3 p-2 rounded border border-gray-200 w-full md:w-2/4 min-w-[400px] hover:bg-gray-100 bg-white">
         <div class="flex gap-4">
             {{-- Profile --}}
             @if ($node['user']['profile_picture'])
