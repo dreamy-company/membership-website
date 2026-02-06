@@ -40,7 +40,7 @@
                             <x-table.td>{{ $province->code }}</x-table.td>
                             <x-table.td>{{ $province->name }}</x-table.td>
                             <x-table.td>
-                                <x-widget.button-icon type="edit" action="edit({{ $province->id }})" />
+                                <x-widget.button-icon type="edit" action="openModal({{ $province->id }})" />
                                 <x-widget.button-icon type="delete" action="confirmDelete({{ $province->id }})" />
                             </x-table.td>
                         </x-table.tr>
