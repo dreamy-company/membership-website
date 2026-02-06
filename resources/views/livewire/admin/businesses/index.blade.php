@@ -42,8 +42,10 @@
                             <x-table.td>{{ $item->address }}</x-table.td>
                             <x-table.td>{{ $item->phone }}</x-table.td>
                             <x-table.td>
-                                <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
-                                <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                <div class="flex gap-2">
+                                    <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
+                                    <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                </div>
                             </x-table.td>
                         </x-table.tr>
                     @empty
@@ -74,7 +76,7 @@
                     <x-modal.input label="Address" type="text" name="address" placeholder="Contoh: Jalan Sudirman No. 123" />
                 </div>
                 <div class="col-span-2">
-                    <x-modal.input label="Phone" type="number" name="phone" placeholder="Contoh: 08123456789" />
+                    <x-modal.input label="Phone" type="{{ $business_id ? 'tel' : 'number' }}" name="phone" placeholder="Contoh: 08123456789" />
                 </div>
             </div>
         </x-modal.form-modal>
