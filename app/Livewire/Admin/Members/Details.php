@@ -549,7 +549,7 @@ class Details extends Component
             'account_number' => 'required|string',
             'status'         => 'required',
             'account_name'   => 'required|string',
-            'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 10MB
+            'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 2mb
         ];
     }
 
@@ -571,7 +571,7 @@ class Details extends Component
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
             'status'         => 'required',
-            'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 1MB
+            'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 2MB
         ];
     }
 
