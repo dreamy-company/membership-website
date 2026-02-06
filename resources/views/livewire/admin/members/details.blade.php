@@ -163,6 +163,17 @@
                             </x-modal.select>
                         </div>
                     </div>
+                     <div class="flex items-center gap-2 border p-3 rounded-lg bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700">
+                        <input 
+                            type="checkbox" 
+                            id="is_root" 
+                            wire:model.live="is_root" 
+                            class="w-4 h-4 text-black bg-gray-100 border-gray-300 rounded focus:ring-black dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        >
+                        <label for="is_root" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                            Jadikan Top Leader (Tanpa Upline/Parent)
+                        </label>
+                    </div>
                     <div>
                         <x-modal.searchable-select 
                             name="parent_user_id" 
