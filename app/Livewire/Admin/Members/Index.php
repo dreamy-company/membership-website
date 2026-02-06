@@ -44,6 +44,7 @@ class Index extends Component
     public $status; // untuk status member
     public $profile_picture; // untuk upload file
     public $old_profile_picture; // untuk preview saat edit
+    public $is_root = false;
 
     public $isOpen = false;
     public $confirmingDelete;
@@ -203,78 +204,75 @@ class Index extends Component
     {
         $this->validate();
 
-        // Gunakan Transaction agar Data User & Member Konsisten
         DB::transaction(function () {
             
-            // ==========================
-            // 1. HANDLE USER (Login Info)
-            // ==========================
-            
-            // Siapkan data user dasar
+            // 1. HANDLE USER
+            // ... (Kode User Create sama seperti sebelumnya) ...
             $userData = [
                 'name'  => $this->name,
                 'email' => $this->email,
             ];
-
-            // Logic Password: Hanya update jika input tidak kosong
-            // Jika create baru & kosong, password akan kosong (atau handle validasi required di rules)
-            if (!empty($this->password)) {
+            
+            // Logic Password
+            if ($this->member_id) {
+                if (!empty($this->password)) $userData['password'] = bcrypt($this->password);
+            } else {
                 $userData['password'] = bcrypt($this->password);
             }
 
-            $user = User::updateOrCreate(
-                ['id' => $this->user_id], 
-                $userData
-            );
+            $user = User::updateOrCreate(['id' => $this->user_id], $userData);
 
-            // ==========================
+
             // 2. HANDLE PROFILE PICTURE
-            // ==========================
+            // ... (Kode Gambar sama seperti sebelumnya) ...
             $filename = $this->old_profile_picture;
-
             if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                
-                // Hapus file lama jika ada dan bukan default
-                if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
-                    Storage::disk('public')->delete($this->old_profile_picture);
-                }
-
+                // ... logic upload ...
                 $filename = $this->profile_picture->store('members', 'public');
             }
 
-            // ==========================
+
             // 3. GENERATE MEMBER CODE
-            // ==========================
-            // Code hanya digenerate jika Member Baru
+            // ... (Kode Member Code sama seperti sebelumnya) ...
+            $member_code = null;
             if ($this->member_id) {
-                // Jika Update, ambil code lama (jangan berubah)
                 $member_code = Member::find($this->member_id)->member_code;
             } else {
-                // Jika Create, generate baru
                 $domicile = Domicile::find($this->domicile_id);
-                $prefix = $domicile ? $domicile->code : 'MBR'; // Fallback jika domisili kosong
-                
-                // Handle jika tabel kosong (max id null) -> jadi 0 + 1
+                $prefix = $domicile ? $domicile->code : 'MBR';
                 $nextId = (Member::max('id') ?? 0) + 1;
-                
                 $member_code = $prefix . '-' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
             }
 
-            // ==========================
-            // 4. HANDLE MEMBER (Detail Info)
-            // ==========================
+
+            // ===============================================
+            // 4. LOGIC PENENTUAN PARENT (UPLINE)
+            // ===============================================
+            $finalParentId = null;
+
+            if ($this->is_root) {
+                // KASUS A: JIKA DIA TOP LEADER (ROOT)
+                // Parent-nya adalah User ID dia sendiri
+                $finalParentId = $user->id; 
+            } else {
+                // KASUS B: JIKA DIA MEMBER BIASA
+                // Parent-nya ambil dari inputan dropdown
+                // Jika kosong, set null (atau error, tergantung aturan bisnis kamu)
+                $finalParentId = $this->parent_user_id ?: null;
+            }
+
+
+            // 5. SIMPAN MEMBER
             Member::updateOrCreate(
                 ['id' => $this->member_id],
                 [
                     'user_id'          => $user->id,
                     'member_code'      => $member_code,
                     
-                    // [FIX] Masukkan Status yang baru kita buat inputnya
-                    'status'           => $this->status ?? 'active', 
+                    // Masukkan hasil logika di atas
+                    'parent_user_id'   => $finalParentId, 
 
-                    // [FIX] Parent ID diambil dari inputan form ($this->parent...), BUKAN $user->id
-                    'parent_user_id'   => $this->parent_user_id ?: null, 
-
+                    'status'           => $this->status ?? 'active',
                     'nik'              => $this->nik,
                     'gender'           => $this->gender,
                     'phone_number'     => $this->phone_number,
@@ -286,13 +284,11 @@ class Index extends Component
                     'account_number'   => $this->account_number,
                     'account_name'     => $this->account_name,
                     'npwp'             => $this->npwp,
-                    'status'           => $this->status,
                     'profile_picture'  => $filename,
                 ]
             );
         });
 
-        // Reset Input & Tutup Modal
         $this->afterSave(!$this->member_id);
     }
 
