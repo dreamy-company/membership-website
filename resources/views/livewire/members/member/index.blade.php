@@ -204,6 +204,8 @@
                         </div>
                     </div>
                 </div>
+
+                {{-- 4. PROFILE PICTURE (TANPA PREVIEW) --}}
                 <div class="p-4 shadow-sm rounded-md bg-white">
                     <h3 class="font-semibold mb-2 text-black">Profile Picture</h3>
                     <div class="mb-2 text-sm text-gray-500">
@@ -219,6 +221,16 @@
                                 hover:file:bg-neutral-700" />
                     </div>
 
+                    {{-- Loading State --}}
+                    <div wire:loading wire:target="profile_picture">
+                        <span class="text-xs text-blue-600 font-medium animate-pulse">
+                            Mengupload gambar...
+                        </span>
+                    </div>
+
+                    @error('profile_picture')
+                        <span class="text-red-500 text-sm">{{ $message }}</span>
+                    @enderror
                 </div>
         </x-modal.form-modal>
     @endif
