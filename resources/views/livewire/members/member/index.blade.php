@@ -206,22 +206,20 @@
                 </div>
                 <div class="p-4 shadow-sm rounded-md bg-white">
                     <h3 class="font-semibold mb-2 text-black">Profile Picture</h3>
-                    
+                    <div class="mb-2 text-sm text-gray-500">
+                        Ukuran maksimal file: 2 MB.
+                    </div>
                     <div class="mb-2">
-                        <input 
-                            type="file" 
-                            wire:model="profile_picture" 
-                            accept="image/*"
+                        <input type="file" wire:model="profile_picture" accept="image/*"
                             class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-blue-500
                                 file:mr-4 file:py-2 file:px-4
                                 file:rounded-l-lg file:border-0
                                 file:text-sm file:font-semibold
                                 file:bg-neutral-900 file:text-white
-                                hover:file:bg-neutral-700"
-                        />
+                                hover:file:bg-neutral-700" />
                     </div>
 
-            </div>
+                </div>
         </x-modal.form-modal>
     @endif
 

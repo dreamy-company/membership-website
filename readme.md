@@ -43,7 +43,7 @@ sudo mysql
 Jalankan query SQL (Ganti `db_name`, `user`, dan `password`):
 
 ```sql
-CREATE DATABASE app_db;
+CREATE DATABASE nama_db;
 CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'password_rahasia';
 GRANT ALL PRIVILEGES ON app_db.* TO 'app_user'@'localhost';
 FLUSH PRIVILEGES;
@@ -85,12 +85,10 @@ Kita akan membuat link ke folder public Laravel agar bisa diakses, tapi dengan n
 
 ## 4. Setup Aplikasi Laravel
 
-Ganti `domain.com` dengan domain asli Anda.
 
 ```bash
 # 1. Clone Repo
-cd /var/www
-sudo git clone [https://github.com/username/repo.git](https://github.com/username/repo.git) domain.com
+sudo git clone (Link Repository)
 cd domain.com
 
 # 2. Install Dependencies
@@ -123,7 +121,7 @@ sudo chmod -R 775 storage bootstrap/cache
 Buat file config baru:
 
 ```bash
-sudo nano /etc/nginx/sites-available/domain.com
+sudo nano /etc/nginx/sites-available/nama-domain.com
 
 ```
 
@@ -132,8 +130,8 @@ Paste konfigurasi berikut:
 ```nginx
 server {
     listen 80;
-    server_name domain.com [www.domain.com](https://www.domain.com);
-    root /var/www/[domain.com/public](https://domain.com/public);
+    server_name domain.com www.domain.com;
+    root /[nama-folder-hasil-clone]/public;
 
     add_header X-Frame-Options "SAMEORIGIN";
     add_header X-Content-Type-Options "nosniff";
