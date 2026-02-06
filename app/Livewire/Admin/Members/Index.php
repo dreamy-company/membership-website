@@ -364,7 +364,8 @@ class Index extends Component
             'bank_name'         => 'required|string',
             'account_number'    => 'required|string',
             'account_name'      => 'required|string',
-            'parent_user_id'  => 'nullable|exists:users,id'
+            'parent_user_id'  => 'nullable|exists:users,id',
+            'profile_picture'   => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
         ];
     }
 
