@@ -163,9 +163,52 @@
                     </div>
                     <div>
                         <x-modal.input name="password" label="Password" type="password" placeholder="********" />
+                        
+                        {{-- Container Info --}}
+                        <div class="mt-1.5 flex items-start gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                            {{-- Icon Info (SVG) --}}
+                            <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+
+                            {{-- Teks Dinamis --}}
+                            <div class="leading-relaxed">
+                                @if($member_id)
+                                    {{-- PESAN SAAT EDIT --}}
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">Edit Mode:</span> 
+                                    Biarkan kosong jika tidak ingin mengubah password. 
+                                    <span class="block text-gray-400 mt-0.5">(Min. 8 karakter jika diisi)</span>
+                                @else
+                                    {{-- PESAN SAAT CREATE --}}
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">Wajib Diisi:</span> 
+                                    Minimal 8 karakter kombinasi huruf & angka.
+                                @endif
+                            </div>
+                        </div>
                     </div>
                     <div>
                         <x-modal.input name="password_confirmation" label="Confirm Password" type="password" placeholder="********" />
+                        {{-- Container Info --}}
+                        <div class="mt-1.5 flex items-start gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+                            {{-- Icon Info (SVG) --}}
+                            <svg class="w-4 h-4 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+
+                            {{-- Teks Dinamis --}}
+                            <div class="leading-relaxed">
+                                @if($member_id)
+                                    {{-- PESAN SAAT EDIT --}}
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">Edit Mode:</span> 
+                                    Biarkan kosong jika tidak ingin mengubah password. 
+                                    <span class="block text-gray-400 mt-0.5">(Min. 8 karakter jika diisi)</span>
+                                @else
+                                    {{-- PESAN SAAT CREATE --}}
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">Wajib Diisi:</span> 
+                                    Minimal 8 karakter kombinasi huruf & angka.
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -225,14 +268,39 @@
                         </div>
                     </div>
 
-                    <div>
-                        <x-modal.searchable-select 
+                   <div class="grid grid-cols-1 gap-4 mb-4">
+    
+                    {{-- CHECKBOX UI --}}
+                    <div class="flex items-center gap-2 border p-3 rounded-lg bg-gray-50 dark:bg-neutral-800 border-gray-200 dark:border-neutral-700">
+                        <input 
+                            type="checkbox" 
+                            id="is_root" 
+                            wire:model.live="is_root" 
+                            class="w-4 h-4 text-black bg-gray-100 border-gray-300 rounded focus:ring-black dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        >
+                        <label for="is_root" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                            Jadikan Top Leader (Tanpa Upline/Parent)
+                        </label>
+                    </div>
+
+                    {{-- DROPDOWN (Hanya muncul jika TIDAK dicentang) --}}
+                    @if(!$is_root)
+                        <div class="transition-all duration-300 ease-in-out">
+                            <x-modal.searchable-select 
                             name="parent_user_id" 
                             label="Parent User" 
                             wire:model="parent_user_id"
                             :options="$members->map(fn($m) => ['value' => $m->user->id, 'label' => $m->member_code . ' - ' . $m->user->name])" 
-                        />
-                    </div>
+                            />
+                        </div>
+                    @else
+                        {{-- Pesan Feedback (Optional) --}}
+                        <div class="p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
+                            <span class="font-medium">Info:</span> Member ini akan menjadi akar jaringan (Level 1).
+                        </div>
+                    @endif
+
+                </div>
                 </div>
 
                 {{-- 3. BANK INFORMATION --}}
