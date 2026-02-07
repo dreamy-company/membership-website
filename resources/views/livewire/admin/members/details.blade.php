@@ -118,13 +118,15 @@
                         <x-modal.input name="name" label="Name" type="text" placeholder="John Doe" required />
                     </div>
                     <div>
-                        <x-modal.input name="email" label="Email" type="email" placeholder="Contoh: user@example.com" />
+                        <x-modal.input name="email" label="Email" type="email"
+                            placeholder="Contoh: user@example.com" />
                     </div>
                     <div>
                         <x-modal.input name="password" label="Password" type="password" placeholder="********" />
                     </div>
                     <div>
-                        <x-modal.input name="password_confirmation" label="Confirm Password" type="password" placeholder="********" />
+                        <x-modal.input name="password_confirmation" label="Confirm Password" type="password"
+                            placeholder="********" />
                     </div>
                 </div>
 
@@ -154,16 +156,19 @@
                             </x-modal.select>
                         </div>
                         <div>
-                            <x-modal.input name="phone_number" label="Phone" type="number" placeholder="Contoh: 081234567890" />
+                            <x-modal.input name="phone_number" label="Phone" type="number"
+                                placeholder="Contoh: 081234567890" />
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
                         <div>
-                            <x-modal.input name="address" label="Address" type="text" placeholder="Contoh: Jalan Merdeka No. 123" />
+                            <x-modal.input name="address" label="Address" type="text"
+                                placeholder="Contoh: Jalan Merdeka No. 123" />
                         </div>
                         <div>
-                            <x-modal.input name="birth_date" label="Birth Date" type="date" placeholder="Contoh: 1990-01-01" />
+                            <x-modal.input name="birth_date" label="Birth Date" type="date"
+                                placeholder="Contoh: 1990-01-01" />
                         </div>
                     </div>
 
@@ -247,13 +252,16 @@
                     <h3 class="font-semibold mb-4 text-black">Bank Information</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                         <div>
-                            <x-modal.input name="bank_name" label="Bank Name" type="text" placeholder="Contoh: BCA" />
+                            <x-modal.input name="bank_name" label="Bank Name" type="text"
+                                placeholder="Contoh: BCA" />
                         </div>
                         <div>
-                            <x-modal.input name="account_number" label="Account Number" type="text" placeholder="Contoh: 1234567890" />
+                            <x-modal.input name="account_number" label="Account Number" type="text"
+                                placeholder="Contoh: 1234567890" />
                         </div>
                         <div>
-                            <x-modal.input name="account_name" label="Account Name" type="text" placeholder="Contoh: John Doe" />
+                            <x-modal.input name="account_name" label="Account Name" type="text"
+                                placeholder="Contoh: John Doe" />
                         </div>
                         <div>
                             <x-modal.input name="npwp" label="NPWP" type="number" placeholder="Contoh: 1234567890" />
@@ -264,19 +272,17 @@
                 {{-- 4. PROFILE PICTURE (TANPA PREVIEW) --}}
                 <div class="p-4 shadow-sm rounded-md bg-white">
                     <h3 class="font-semibold mb-2 text-black">Profile Picture</h3>
-                    
+                    <div class="mb-2 text-sm text-gray-500">
+                        Ukuran maksimal file: 2 MB.
+                    </div>
                     <div class="mb-2">
-                        <input 
-                            type="file" 
-                            wire:model="profile_picture" 
-                            accept="image/*"
+                        <input type="file" wire:model="profile_picture" accept="image/*"
                             class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-blue-500
                                 file:mr-4 file:py-2 file:px-4
                                 file:rounded-l-lg file:border-0
                                 file:text-sm file:font-semibold
                                 file:bg-neutral-900 file:text-white
-                                hover:file:bg-neutral-700"
-                        />
+                                hover:file:bg-neutral-700" />
                     </div>
 
                     {{-- Loading State --}}
@@ -285,14 +291,14 @@
                             Mengupload gambar...
                         </span>
                     </div>
-                    
+
                     @error('profile_picture')
                         <span class="text-red-500 text-sm">{{ $message }}</span>
                     @enderror
                 </div>
 
                 {{-- Global Errors --}}
-                @if($errors->any())
+                @if ($errors->any())
                     <div class="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
                         @foreach ($errors->all() as $error)
                             <div class="text-red-500 text-sm list-disc ml-4">{{ $error }}</div>
