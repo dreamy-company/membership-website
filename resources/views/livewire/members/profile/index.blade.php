@@ -35,6 +35,9 @@
         </div>
         <div class="p-4 shadow-sm rounded-md bg-white">
             <h3 class="font-semibold mb-4 text-black">Profile Picture</h3>
+            <div class="mb-2 text-sm text-gray-500">
+                Ukuran maksimal file: 2 MB.
+            </div>
             <div class="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-4 cursor-pointer hover:border-gray-400 transition"
                 onclick="document.getElementById('profile_picture_input').click()">
                 {{-- Preview --}}
