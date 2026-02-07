@@ -34,6 +34,8 @@
                         <x-table.th>Amount</x-table.th>
                         <x-table.th>Hpp</x-table.th>
                         <x-table.th>Balance</x-table.th>
+                        <x-table.th>Level</x-table.th>
+                        <x-table.th>Bonus Percent</x-table.th>
                         <x-table.th>Bonus</x-table.th>
                         <x-table.th>Actions</x-table.th>
                     </x-table.tr>
@@ -50,10 +52,14 @@
                             <x-table.td>{{ number_format($item->amount) }}</x-table.td>
                             <x-table.td>{{ number_format($item->hpp) }}</x-table.td>
                             <x-table.td>{{ number_format($item->balance) }}</x-table.td>
+                            <x-table.td>{{ $item->LevelMember }}</x-table.td>
+                            <x-table.td>{{ number_format($item->BonusPercent) }}</x-table.td>
                             <x-table.td>{{ number_format($item->bonus) }}</x-table.td>
                             <x-table.td>
-                                <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
-                                <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                <div class="flex gap-2">
+                                    <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
+                                    <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                </div>
                             </x-table.td>
                         </x-table.tr>
                     @empty

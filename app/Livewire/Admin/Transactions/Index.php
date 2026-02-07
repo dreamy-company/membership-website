@@ -10,6 +10,9 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
+use App\Services\BonusService;
+use App\Models\BonusLevelSetup;
+use Illuminate\Support\Facades\DB;
 use App\Imports\TransactionsImport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -106,12 +109,51 @@ class Index extends Component
     {
         $this->validate($this->rules());
 
-        $transaction = Transaction::updateOrCreate(
-            ['id' => $this->transaction_id],
-            $this->formData()
-        );
+        DB::transaction(function () {
+            
+            // 1. AMBIL DATA MEMBER (SHOPPER)
+            // Kita butuh ini untuk mengisi user_id & transaction_id
+            $shopper = Member::find($this->member_id);
 
-        $this->afterSave($transaction->wasRecentlyCreated);
+            // 2. Ambil Settingan 'Leader'
+            $leaderSetup = BonusLevelSetup::where('kodeBonus', 'Leader')->first();
+            $leaderPercent = $leaderSetup ? $leaderSetup->persenBonus : 0;
+
+            // 3. Ambil Inputan Bonus Dasar
+            $baseBonusInput = $this->bonus; 
+
+            // 4. Hitung Bonus Leader
+            $calculatedLeaderBonus = $baseBonusInput * ($leaderPercent / 100);
+
+            // 5. SIMPAN TRANSAKSI ASLI (Row Leader)
+            $transaction = Transaction::updateOrCreate(
+                ['id' => $this->transaction_id],
+                array_merge($this->formData(), [
+                    
+                    // --- PERBAIKAN DISINI ---
+                    // Isi User ID sesuai Member yang belanja
+                    'user_id'          => $shopper->user_id, 
+                    
+                    // Isi Transaction ID dengan Member ID dia sendiri (sebagai sumber)
+                    'transaction_id'   => $shopper->user_id,      
+
+                    // Data Bonus Leader
+                    'bonus'            => $calculatedLeaderBonus,
+                    'LevelMember'      => 'Leader',
+                    'BonusPercent'     => $leaderPercent,
+                    'transaction_code' => $this->transaction_code, 
+                ])
+            );
+
+            // 6. Panggil Service untuk Level 1 & Upline
+            if ($transaction->wasRecentlyCreated && $baseBonusInput > 0) {
+                $bonusService = new BonusService();
+                // Kirim ID transaksi & Nilai Bonus Dasar
+                $bonusService->distributeBonus($transaction->id, $baseBonusInput);
+            }
+
+            $this->afterSave($transaction->wasRecentlyCreated);
+        });
     }
 
     public function confirmDelete($id)
