@@ -30,6 +30,12 @@ class Transaction extends Model
         return $this->belongsTo(Business::class, 'business_id');
     }
 
+    public function sourceMember()
+    {
+        // transaction_id berisi ID Member yang melakukan belanja (sumber omzet)
+        return $this->belongsTo(Member::class, 'transaction_id');
+    }
+
     public function member()
     {
         return $this->belongsTo(Member::class);

@@ -2,70 +2,108 @@
 
 namespace App\Services;
 
-use App\Models\Bonus;
 use App\Models\Member;
-use App\Models\BonusLog;
 use App\Models\Transaction;
-use App\Models\BonusSetting;
-use Illuminate\Support\Facades\DB;
+use App\Models\BonusLevelSetup;
 
 class BonusService
 {
-    public function distributeBonus($transactionId)
+    // Terima parameter ke-2: $baseBonusAmount (Nilai asli 100.000)
+    public function distributeBonus($originalTransactionId, $baseBonusAmount)
     {
-        // 1. Ambil Data Transaksi
-        $transaction = Transaction::find($transactionId);
+        $originalTrx = Transaction::find($originalTransactionId);
         
-        // 2. Siapa yang belanja? (Si Child/Downline)
-        $shopper = Member::find($transaction->member_id); 
-        $omzet   = $transaction->amount;
+        // Identifikasi Shopper
+        $shopper = Member::find($originalTrx->member_id); 
 
-        // 3. Ambil Settingan Persen (Level 1: 10%, Level 2: 5%, dst)
-       $schemes = BonusSetting::pluck('percentage', 'level')->toArray();
-        // 4. Mulai Mencari Upline (Parent)
-        // Start dari Bapaknya si Shopper
+        // Ambil Settingan Bonus
+        $bonusSetups = BonusLevelSetup::pluck('persenBonus', 'kodeBonus')->toArray();
+
+        // ============================================================
+        // TAHAP A: BONUS LEVEL 1 (Untuk Diri Sendiri/Shopper)
+        // Note: Leader sudah dihandle di Row Asli, jadi skip.
+        // ============================================================
+        
+        if (isset($bonusSetups['Level 1'])) {
+            $this->createBonusTransaction(
+                $originalTrx, 
+                $shopper, 
+                'Level 1', 
+                $bonusSetups['Level 1'], 
+                $baseBonusAmount
+            );
+        }
+
+        // ============================================================
+        // TAHAP B: BONUS UNTUK UPLINE (LEVEL 2 KE ATAS)
+        // ============================================================
+        
         $currentUplineId = $shopper->parent_user_id; 
-        $currentLevel    = 1; // Jarak generasi (1 = Bapak kandung, 2 = Kakek)
+        $currentLevel    = 2; // Start Level 2
 
-        // Loop ke atas (Memanjat pohon upline)
-        while ($currentUplineId && isset($schemes[$currentLevel])) {
+        while ($currentUplineId) {
             
-            // Ambil data Upline
+            $levelKey = "Level " . $currentLevel;
+
+            if (!isset($bonusSetups[$levelKey])) break; 
+            if ($currentUplineId == $shopper->user_id) break;
+
             $upline = Member::where('user_id', $currentUplineId)->first();
 
-            // Cek Rule 1.4 & 1.5 (Upline harus Aktif)
-            if (!$upline || $upline->status !== 'active') {
-                // Jika Upline mati/non-aktif, bonus LEVEL INI hangus/skip
+            if ($upline && $upline->status === 'active') {
+                
+                $this->createBonusTransaction(
+                    $originalTrx, 
+                    $upline, 
+                    $levelKey, 
+                    $bonusSetups[$levelKey], 
+                    $baseBonusAmount
+                );
+
+                if ($upline->parent_user_id == $upline->user_id) break;
+                
+                $currentUplineId = $upline->parent_user_id;
+                $currentLevel++;
+
+            } else {
+                // Pass-up logic
                 if ($upline) {
-                    $currentUplineId = $upline->parent_user_id; // Lanjut ke atasnya lagi
-                    $currentLevel++; // Level tetap nambah (agar kakek tetap dapat jatah Level 2, bukan Level 1)
+                    $currentUplineId = $upline->parent_user_id;
+                    $currentLevel++; 
                 } else {
-                    break; // Upline sudah habis (pucuk)
+                    break;
                 }
-                continue;
             }
-
-            // Hitung Bonus
-            $percentage  = $schemes[$currentLevel]; 
-            $bonusAmount = $omzet * ($percentage / 100);
-
-            // CATAT BONUS (Uang masuk ke Upline)
-            BonusLog::create([
-                'member_id'      => $upline->id,   // <--- PENERIMA (Parent)
-                'from_member_id' => $shopper->id,  // <--- SUMBER (Child yang belanja)
-                'transaction_id' => $transaction->id,
-                'level'          => $currentLevel, // "Bonus Generasi ke-X"
-                'percentage'     => $percentage,
-                'amount'         => $bonusAmount,
-            ]);
-
-            // Persiapan Loop Berikutnya (Naik ke Bapaknya Upline / Kakek)
-            $currentUplineId = $upline->parent_user_id;
-            
-            // Safety break (cegah infinite loop jika database error parent=diri sendiri)
-            if ($currentUplineId == $upline->user_id) break;
-
-            $currentLevel++;
         }
+    }
+
+    private function createBonusTransaction($originalTrx, $receiverMember, $levelName, $percent, $baseBonus)
+    {
+        $calculatedBonus = $baseBonus * ($percent / 100);
+
+        Transaction::create([
+            'business_id'      => $originalTrx->business_id,
+            'member_id'        => $receiverMember->id,
+            'user_id'          => $receiverMember->user_id,
+            'transaction_id'   => $originalTrx->user_id, // Sumber (Shopper)
+            
+            // UPDATE: Transaction Code SAMA PERSIS dengan Invoice Asli
+            'transaction_code' => $originalTrx->transaction_code, 
+            
+            'transaction_date' => now(),
+            'transaction_time' => now(),
+            
+            // Copy Data Sumber
+            'amount'           => $originalTrx->amount,
+            'hpp'              => $originalTrx->hpp,
+            'balance'          => $originalTrx->balance, 
+
+            // Info Bonus
+            'LevelMember'      => $levelName, 
+            'BonusPercent'     => $percent,
+            
+            // Hasil Kalkulasi (Persen * Base)
+            'bonus'            => $calculatedBonus, 
+        ]);
     }
 }

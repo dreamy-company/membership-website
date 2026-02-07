@@ -37,12 +37,12 @@
                             <x-table.td>{{ $settings->firstItem() + $loop->index }}</x-table.td>
                             
                             <x-table.td>
-                                <span class="font-medium text-gray-900">Level {{ $item->level }}</span>
+                                <span class="font-medium text-gray-900">{{ $item->kodeBonus }}</span>
                             </x-table.td>
                             
                             <x-table.td>
                                 <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded border border-blue-400">
-                                    {{ $item->percentage }}%
+                                    {{ $item->persenBonus }}%
                                 </span>
                             </x-table.td>
 
@@ -86,9 +86,9 @@
                 {{-- Input Level --}}
                 <div>
                     <x-modal.input 
-                        name="level" 
+                        name="kodeBonus" 
                         label="Level Generasi" 
-                        type="number" 
+                        type="text" 
                         placeholder="Contoh: 1, 2, 3..." 
                         :disabled="$setting_id ? true : false" 
                     />
@@ -98,9 +98,9 @@
                 {{-- Input Persentase --}}
                 <div>
                     <x-modal.input 
-                        name="percentage" 
+                        name="persenBonus" 
                         label="Persentase Bonus (%)" 
-                        type="number" 
+                        type="text" 
                         step="0.01" 
                         placeholder="Contoh: 10" 
                     />

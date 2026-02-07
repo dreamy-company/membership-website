@@ -42,8 +42,10 @@
                             <x-table.td>{{ $item->name }}</x-table.td>
                             <x-table.td>{{ $item->province->name }}</x-table.td>
                             <x-table.td>
-                                 <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
-                                <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                <div class="flex gap-2">
+                                    <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
+                                    <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                </div>
                             </x-table.td>
                         </x-table.tr>
                     @endforeach

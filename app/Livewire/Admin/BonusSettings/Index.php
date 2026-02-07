@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin\BonusSettings;
 
+use App\Models\BonusLevelSetup;
 use App\Models\BonusSetting;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -15,9 +16,8 @@ class Index extends Component
     
     // 2. Sesuaikan Property dengan Kolom Database Baru
     public $setting_id;
-    public $name;
-    public $level;
-    public $percentage;
+    public $kodeBonus;
+    public $persenBonus;
     public $is_active = true;
 
     public $isOpen = false;
@@ -36,15 +36,15 @@ class Index extends Component
     public function render()
     {
         // 3. Query disesuaikan (Cari berdasarkan Level, bukan member)
-        $query = BonusSetting::query();
+        $query = BonusLevelSetup::query();
 
         if ($this->search) {
-            $query->where('level', 'like', '%' . $this->search . '%')
-                  ->orWhere('percentage', 'like', '%' . $this->search . '%');
+            $query->where('kodeBonus', 'like', '%' . $this->search . '%')
+                  ->orWhere('persenBonus', 'like', '%' . $this->search . '%');
         }
 
         // Urutkan berdasarkan Level (1, 2, 3...) biar rapi
-        $settings = $query->orderBy('level', 'asc')
+        $settings = $query->orderBy('created_at', 'asc')
                           ->paginate($this->perPage);
 
         return view('livewire.admin.bonus-settings.index', compact('settings'));
@@ -55,10 +55,10 @@ class Index extends Component
         $this->resetInput();
         
         if ($id) {
-            $setting = BonusSetting::findOrFail($id);
+            $setting = BonusLevelSetup::findOrFail($id);
             $this->setting_id = $setting->id;
-            $this->level = $setting->level;
-            $this->percentage = $setting->percentage;
+            $this->kodeBonus = $setting->kodeBonus;
+            $this->persenBonus = $setting->persenBonus;
             $this->is_active = $setting->is_active;
         }
         
@@ -74,8 +74,8 @@ class Index extends Component
     private function resetInput()
     {
         $this->setting_id = null;
-        $this->level = '';
-        $this->percentage = '';
+        $this->kodeBonus = '';
+        $this->persenBonus = '';
         $this->is_active = true;
     }
 
@@ -83,7 +83,7 @@ class Index extends Component
     {
         $this->validate($this->rules());
 
-        $bonus = BonusSetting::updateOrCreate(
+        $bonus = BonusLevelSetup::updateOrCreate(
             ['id' => $this->setting_id],
             $this->formData()
         );
@@ -94,7 +94,7 @@ class Index extends Component
     // Fitur Toggle Status Aktif/Non-Aktif (Opsional tapi berguna)
     public function toggleStatus($id)
     {
-        $setting = BonusSetting::find($id);
+        $setting = BonusLevelSetup::find($id);
         if($setting) {
             $setting->update(['is_active' => !$setting->is_active]);
             $this->dispatch('success', ['type' => 'success', 'message' => 'Status berhasil diubah!']);
@@ -109,7 +109,7 @@ class Index extends Component
 
     public function delete()
     {
-        $setting = BonusSetting::find($this->confirmingDelete);
+        $setting = BonusLevelSetup::find($this->confirmingDelete);
         
         if ($setting) {
             $setting->delete();
@@ -126,17 +126,16 @@ class Index extends Component
     {
         // Validasi Level harus unique, kecuali sedang edit data sendiri
         return [
-            'level'      => 'required|integer|min:1|unique:bonus_settings,level,' . $this->setting_id,
-            'percentage' => 'required|numeric|min:0|max:100',
+            'kodeBonus'   => 'required|min:1|unique:bonus_level_setups,kodeBonus,' . $this->setting_id,
+            'persenBonus' => 'required|numeric|min:0|max:100',
         ];
     }
 
     protected function formData()
     {
         return [
-            'level'      => $this->level,
-            'percentage' => $this->percentage,
-            'is_active'  => $this->is_active ?? true,
+            'kodeBonus'   => $this->kodeBonus,
+            'persenBonus' => $this->persenBonus
         ];
     }
 
