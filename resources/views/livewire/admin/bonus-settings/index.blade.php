@@ -19,7 +19,7 @@
     </div>
 
     {{-- Table --}}
-    <div class="table w-full mt-6 px-4 pb-4">
+    <div class="w-full mt-6 px-4 pb-4">
         <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-md border border-default">
             <x-table.table>
                 <x-table.thead>
