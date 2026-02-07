@@ -46,18 +46,24 @@ class Index extends Component
         $myMemberId = $myMember->id;
 
         // ==========================================
-        // 1. DATA TABEL (BONUS HISTORY)
+        // 1. DATA TABEL (LIST HISTORY TRANSAKSI)
         // ==========================================
-        $bonusLogs = BonusLog::with(['sourceMember.user', 'transaction.business'])
+        // Kita ambil dari tabel Transaction dimana member_id = Saya
+        // Ini akan menampilkan:
+        // - Row 'Leader' (Saat saya belanja sendiri)
+        // - Row 'Level 1' (Bonus belanja sendiri)
+        // - Row 'Level 2', 'Level 3' (Bonus dari Downline)
+        
+        $transactions = Transaction::with(['sourceMember.user', 'business'])
             ->where('member_id', $myMemberId)
             ->where(function (Builder $query) {
                 if ($this->search) {
                     $query->whereHas('sourceMember.user', function ($q) {
+                        // Cari berdasarkan nama orang yang belanja (Sumber Bonus)
                         $q->where('name', 'like', '%' . $this->search . '%');
                     })
-                    ->orWhereHas('transaction', function ($q) {
-                        $q->where('transaction_code', 'like', '%' . $this->search . '%');
-                    });
+                    ->orWhere('transaction_code', 'like', '%' . $this->search . '%')
+                    ->orWhere('LevelMember', 'like', '%' . $this->search . '%'); // Bisa cari 'Level 1', 'Leader'
                 }
             })
             ->latest()
@@ -67,33 +73,40 @@ class Index extends Component
         // 2. STATISTIK KEUANGAN
         // ==========================================
         
-        // A. Total Belanja Pribadi
-        $mySpendingTotal = Transaction::where('member_id', $myMemberId)->sum('amount');
+        // A. Total Belanja Pribadi (My Spending)
+        // Logika: Jumlahkan 'amount' TAPI hanya yang 'Leader'.
+        // Kenapa? Karena saat belanja, kita dapat row 'Leader' dan 'Level 1'.
+        // Kalau tidak difilter, total belanja akan terhitung 2x lipat.
+        $mySpendingTotal = Transaction::where('member_id', $myMemberId)
+                            ->where('LevelMember', 'Leader') 
+                            ->sum('amount');
         
-        // B. Total Semua Bonus Masuk (Lifetime Income)
-        // PENTING: Jangan sum dari $bonusLogs karena itu data paginasi (cuma 10 data)
-        $totalBonusIncome = BonusLog::where('member_id', $myMemberId)->sum('amount'); 
+        // B. Total Semua Bonus Masuk (Income)
+        // Jumlahkan kolom 'bonus'. Ini adalah uang real yang masuk ke dompet.
+        $totalBonusIncome = Transaction::where('member_id', $myMemberId)->sum('bonus'); 
 
-        // C. Total Uang Ditarik (Approved Withdrawals)
-        $totalWithdrawn = Withdrawal::where('member_id', $myMemberId)->sum('amount');
+        // C. Total Uang Ditarik (Withdrawal)
+        // [REQUEST] Kosongkan dulu
+        $totalWithdrawn = 0; 
 
         // ==========================================
         // 3. STATISTIK JARINGAN (NETWORK)
         // ==========================================
-        
-        // Memanggil fungsi getNetworkStats() yang ada di Model Member
-        // Pastikan Model Member.php sudah diupdate sesuai diskusi sebelumnya
-        $networkStats = $myMember->getNetworkStats(5); // Ambil data 5 level
-        $totalMembers = array_sum($networkStats);      // Total Downline
+        // (Logic Tree/Downline tetap sama)
+        $networkStats = $myMember->getNetworkStats(5); 
+        $totalMembers = array_sum($networkStats);      
 
         return view('dashboard', [
             // Data Tabel
-            'transactions'      => $bonusLogs,
+            'transactions'      => $transactions,
             
             // Data Keuangan
             'transactionTotal'  => $mySpendingTotal,
             'bonusTotal'        => $totalBonusIncome,
             'withdrawnTotal'    => $totalWithdrawn,
+            
+            // Hitung Saldo Saat Ini (Bonus Masuk - 0)
+            'currentBalance'    => $totalBonusIncome - $totalWithdrawn, 
             
             // Data Jaringan
             'totalMembers'      => $totalMembers,
