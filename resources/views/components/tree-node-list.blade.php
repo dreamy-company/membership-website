@@ -34,7 +34,7 @@
         {{-- Gunakan flex-wrap agar icon turun jika layar sangat sempit --}}
         <div class="flex items-center justify-end gap-2 flex-wrap sm:flex-nowrap mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-gray-100">
             
-            <x-widget.button-icon type="add" action="openMemberModal({{ $node['user_id'] }})" title="Tambah" :visible="auth()->user()->role === 'admin'" />
+            <x-widget.button-icon type="add" action="openMemberModal({{ $node['user_id'] }})" title="Tambah"/>
             <x-widget.button-icon type="edit" action="openModal({{ $node['id'] }})" title="Edit" :visible="auth()->user()->role === 'admin'" />
             <x-widget.button-icon type="detail" action="openCardModal({{ $node['id'] }})" title="Detail" :visible="auth()->user()->role === 'admin'" />
             
