@@ -64,7 +64,8 @@
             p-2 inline-flex items-center justify-center
             border border-transparent shadow-sm rounded-lg 
             focus:outline-none focus:ring-2 focus:ring-offset-1
-            transition-all duration-150 ease-in-out"
+            transition-all duration-150 ease-in-out
+            cursor-pointer"
     >
         {!! $selectedIcon !!}
     </button>

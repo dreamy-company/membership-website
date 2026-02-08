@@ -21,7 +21,7 @@
     {{-- @dd($provinces) --}}
 
     {{-- table --}}
-    <div class="table w-full mt-6 px-4 pb-4">
+    <div class="w-full mt-6 px-4 pb-4">
         <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-md border border-default">
             <x-table.table>
                 <x-table.thead>
@@ -42,8 +42,10 @@
                             <x-table.td>{{ $item->name }}</x-table.td>
                             <x-table.td>{{ $item->province->name }}</x-table.td>
                             <x-table.td>
-                                 <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
-                                <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                <div class="flex gap-2">
+                                    <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
+                                    <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                </div>
                             </x-table.td>
                         </x-table.tr>
                     @endforeach

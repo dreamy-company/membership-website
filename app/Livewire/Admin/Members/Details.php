@@ -63,6 +63,7 @@ class Details extends Component
     public $tree = [];
     public $title = "Member";
     public $allMembers;
+    public $is_root = false;
 
     public function mount()
     {
@@ -320,93 +321,117 @@ class Details extends Component
         try {
             DB::beginTransaction();
 
+            // 1. CREATE USER
             $user = User::create([
-                'name' => $this->name,
-                'email' => $this->email,
-                'password' => $this->password,
+                'name'     => $this->name,
+                'email'    => $this->email,
+                // Jika password kosong, buat default. Jika ada, enkripsi.
+                'password' => bcrypt($this->password ?: 'password123'), 
             ]);
 
-            // Handle profile picture upload
-            $filename = $this->old_profile_picture;
+            // 2. HANDLE IMAGE UPLOAD (COMPRESS & RESIZE)
+            $filename = null; // Default null jika tidak ada gambar
 
             if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                // 1. Hapus file lama jika ada
+                
+                // Hapus file lama (Logic ini biasanya utk update, tp ok disimpan utk jaga2)
                 if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
                     Storage::disk('public')->delete($this->old_profile_picture);
                 }
 
-                // 2. Siapkan Image Manager
+                // Setup Image Manager
                 $manager = new ImageManager(new Driver());
 
-                // 3. Baca file dari temporary upload Livewire
+                // Baca file
                 $image = $manager->read($this->profile_picture->getRealPath());
 
-                // 4. RESIZE: Ubah ukuran agar tidak terlalu besar (misal max lebar 800px)
-                // scaleDown() menjaga aspek rasio dan tidak memperbesar gambar kecil
+                // RESIZE: Max lebar 800px (Aspect ratio terjaga)
                 $image->scaleDown(width: 800);
 
-                // 5. COMPRESS: Ubah kualitas (misal 75%) dan format (disarankan WebP atau JPEG)
-                // Format WebP jauh lebih ringan dibanding PNG/JPG biasa
+                // COMPRESS: Convert ke WebP kualitas 75%
                 $encoded = $image->toWebp(quality: 75); 
                 
-                // 6. Buat nama file unik dan path penyimpanan
-                // Kita ganti ekstensi jadi .webp karena hasil convertnya webp
+                // Generate nama file unik dengan ekstensi .webp
                 $name = pathinfo($this->profile_picture->hashName(), PATHINFO_FILENAME) . '.webp';
                 $path = 'members/' . $name;
 
-                // 7. Simpan hasil encode ke storage public
+                // Simpan ke storage
                 Storage::disk('public')->put($path, (string) $encoded);
 
                 $filename = $path;
             }
 
+            // 3. GENERATE MEMBER CODE
             $province = Province::find($this->province_id);
-            $member_code = $province->code . '-' . (strlen($province->code) === 3 ? '0' : '') . str_pad(Member::count() + 1, 4, '0', STR_PAD_LEFT);
+            // Tips: Gunakan max('id') agar lebih aman daripada count()
+            $nextId = (Member::max('id') ?? 0) + 1;
+            $member_code = $province->code . '-' . (strlen($province->code) === 3 ? '0' : '') . str_pad($nextId, 4, '0', STR_PAD_LEFT);
 
-            $parentUserId = null;
-            if ($this->parent_user_id) {
-                $parentUserId = $this->parent_user_id;
+
+            // 4. LOGIC PARENT / UPLINE (CORE PERUBAHAN DISINI)
+            // ================================================
+            $finalParentId = null;
+
+            if ($this->is_root) {
+                // Jika dicentang "Top Leader", maka Parent adalah Diri Sendiri
+                $finalParentId = $user->id; 
             } else {
-                $parentUserId = $user->id;
+                // Jika member biasa, ambil dari dropdown
+                // Jika dropdown kosong (lupa isi), fallback ke diri sendiri atau null (tergantung aturanmu)
+                // Di sini saya set logic: Kalau kosong pun, anggap diri sendiri (safety) atau null
+                $finalParentId = $this->parent_user_id ?: $user->id; 
             }
 
 
+            // 5. CREATE MEMBER
             $member = Member::create([
-                'member_code' => $member_code,
-                'nik' => $this->nik,
-                'user_id' => $user->id,
-                'parent_user_id' => $parentUserId,
-                'phone_number' => $this->phone_number,
-                'gender' => $this->gender,
-                'address' => $this->address,
-                'birth_date' => $this->birth_date,
-                'province_id' => $this->province_id,
-                'domicile_id' => $this->domicile_id,
-                'bank_name' => $this->bank_name,
+                'member_code'    => $member_code,
+                'nik'            => $this->nik,
+                'user_id'        => $user->id,
+                'parent_user_id' => $finalParentId, // <--- Pakai variabel hasil logic di atas
+                'phone_number'   => $this->phone_number,
+                'gender'         => $this->gender,
+                'address'        => $this->address,
+                'birth_date'     => $this->birth_date,
+                'province_id'    => $this->province_id,
+                'domicile_id'    => $this->domicile_id,
+                'bank_name'      => $this->bank_name,
                 'account_number' => $this->account_number,
-                'account_name' => $this->account_name,
-                'npwp' => $this->npwp,
-                'status' => $this->status,
-                'profile_picture' => $filename,
+                'account_name'   => $this->account_name,
+                'npwp'           => $this->npwp,
+                'status'         => $this->status ?? 'active',
+                'profile_picture'=> $filename,
             ]);
 
             DB::commit();
 
-            // [BARU] Setelah sukses tambah, kita harus memastikan Parent-nya Expanded
-            // Agar user langsung melihat data yang baru ditambahkan
-            $parentMember = Member::where('user_id', $parentUserId)->first();
-            if ($parentMember && !in_array($parentMember->id, $this->expandedNodes)) {
-                $this->expandedNodes[] = $parentMember->id;
+            // 6. TREE EXPANSION LOGIC
+            // ================================================
+            // Kita hanya perlu expand parent-nya JIKA dia bukan root
+            if (!$this->is_root) {
+                // Cari Member ID milik si Parent (karena expandedNodes menyimpan ID Member, bukan User ID)
+                $parentMember = Member::where('user_id', $finalParentId)->first();
+                
+                if ($parentMember && !in_array($parentMember->id, $this->expandedNodes)) {
+                    $this->expandedNodes[] = $parentMember->id;
+                }
             }
 
-            $this->afterSave(!$this->member_id);
+            // Reset Form & Tutup Modal
+            $this->afterSave(true); // true = create mode
 
-            // Reload tree akan membaca $expandedNodes yang baru
+            // Refresh Data Tree
             $this->loadRoot();
+
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'message' => 'Member berhasil ditambahkan!',
+            ]);
+
         } catch (\Exception $e) {
             DB::rollBack();
 
-            $this->dispatch('error', [
+            $this->dispatch('error', [ // Atau notify type error
                 'type' => 'error',
                 'message' => 'Gagal menambahkan member: ' . $e->getMessage(),
             ]);
@@ -547,7 +572,7 @@ class Details extends Component
             'domicile_id'    => 'required|exists:domiciles,id',
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
-            'status'         => 'required',
+            'status'         => 'nullable',
             'account_name'   => 'required|string',
             'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 2mb
         ];
@@ -570,7 +595,7 @@ class Details extends Component
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'status'         => 'required',
+            'status'         => 'nullable',
             'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 2MB
         ];
     }

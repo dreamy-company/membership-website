@@ -135,55 +135,68 @@
                         <x-table.tr>
                             <x-table.td>{{ $transactions->firstItem() + $loop->index }}</x-table.td>
                             
-                            {{-- Member Info --}}
+                            {{-- Member Asal (Sumber Bonus) --}}
                             <x-table.td>
-                                @if($item->level == 0)
-                                    <span class="font-medium text-gray-900 dark:text-white">Diri Sendiri</span>
-                                @else
-                                    <span class="font-medium text-gray-900 dark:text-white">
-                                        {{ optional($item->sourceMember->user)->name ?? 'Unknown' }}
-                                    </span>
+                                <span class="font-medium text-gray-900 dark:text-white">
+                                    {{-- Jika Level Leader/Level 1, berarti dari diri sendiri --}}
+                                    @if(in_array($item->LevelMember, ['Leader', 'Level 1']))
+                                        Diri Sendiri
+                                    @else
+                                        {{ $item->sourceMember->user->name ?? '-' }}
+                                    @endif
+                                </span>
+                                {{-- Opsional: Tampilkan Kode Member --}}
+                                @if(isset($item->sourceMember->member_code))
+                                    <div class="text-xs text-gray-500">{{ $item->sourceMember->member_code }}</div>
                                 @endif
                             </x-table.td>
 
-                            <x-table.td>{{ optional($item->transaction->business)->name ?? '-' }}</x-table.td>
+                            {{-- Nama Toko --}}
+                            <x-table.td>{{ $item->business->name ?? '-' }}</x-table.td>
                             
+                            {{-- Kode Transaksi --}}
                             <x-table.td>
                                 <span class="font-mono text-xs text-gray-500">
-                                    {{ $item->transaction->transaction_code }}
+                                    {{ $item->transaction_code ?? '-' }}
                                 </span>
                             </x-table.td>
 
+                            {{-- Tanggal (Cek dulu ada datanya atau tidak) --}}
                             <x-table.td>
-                                {{ \Carbon\Carbon::parse($item->transaction->transaction_date)->format('d M Y') }}
+                                {{ $item->created_at ? $item->created_at->format('d M Y') : '-' }}
                             </x-table.td>
 
+                            {{-- Jam --}}
                             <x-table.td>
-                                {{ $item->transaction->created_at->format('H:i') }}
+                                {{ $item->created_at ? $item->created_at->format('H:i') : '-' }}
                             </x-table.td>
                             
-                            {{-- Logic Level Badge --}}
+                            {{-- Level (Leader, Level 1, dst) --}}
                             <x-table.td>
-                                @if($item->level == 0)
-                                    <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                        Cashback
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                                        Gen {{ $item->level }}
-                                    </span>
-                                @endif
+                                @php
+                                    $lvl = $item->LevelMember ?? '-';
+                                    $color = match($lvl) {
+                                        'Leader' => 'bg-purple-50 text-purple-700 ring-purple-700/10',
+                                        'Level 1' => 'bg-green-50 text-green-700 ring-green-600/20',
+                                        '-' => 'bg-gray-50 text-gray-600 ring-gray-500/10',
+                                        default => 'bg-blue-50 text-blue-700 ring-blue-700/10',
+                                    };
+                                @endphp
+                                <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset {{ $color }}">
+                                    {{ $lvl }}
+                                </span>
                             </x-table.td>
 
-                            <x-table.td>{{ $item->percentage }}%</x-table.td>
+                            {{-- Persentase --}}
+                            <x-table.td>{{ $item->BonusPercent ?? 0 }}%</x-table.td>
                             
+                            {{-- Nilai Bonus --}}
                             <x-table.td class="text-right font-bold text-green-600">
-                                + {{ number_format($item->amount, 0, ',', '.') }}
+                                + {{ number_format($item->bonus ?? 0, 0, ',', '.') }}
                             </x-table.td>
                         </x-table.tr>
                     @empty
                         <x-table.tr>
-                            {{-- FIX: Colspan harus sesuai jumlah kolom (9 kolom) --}}
                             <x-table.td colspan="9" class="py-8 text-center text-gray-500">
                                 <div class="flex flex-col items-center justify-center gap-2">
                                     <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -194,6 +207,7 @@
                     @endforelse
                 </tbody>
             </x-table.table>
+        </div>
             
             @if ($transactions->hasPages())
                 <div class="border-t border-neutral-200 bg-gray-50 p-4 dark:border-neutral-700 dark:bg-neutral-800">

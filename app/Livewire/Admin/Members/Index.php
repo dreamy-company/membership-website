@@ -182,6 +182,10 @@ class Index extends Component
     {
         $this->member_code = '';
         $this->nik = '';
+        $this->name = '';
+        $this->email = '';
+        $this->password = '';
+        $this->password_confirmation = '';
         $this->user_id = '';
         $this->parent_user_id = '';
         $this->phone_number = '';
@@ -202,7 +206,7 @@ class Index extends Component
 
     public function store()
     {
-        $this->validate();
+        $this->validate($this->rules());
 
         DB::transaction(function () {
             
@@ -272,7 +276,7 @@ class Index extends Component
                     // Masukkan hasil logika di atas
                     'parent_user_id'   => $finalParentId, 
 
-                    'status'           => $this->status ?? 'active',
+                    'status'           => $this->status == '' ? 'active' : $this->status,
                     'nik'              => $this->nik,
                     'gender'           => $this->gender,
                     'phone_number'     => $this->phone_number,
@@ -359,7 +363,7 @@ class Index extends Component
             'birth_date'        => 'required|date',
             'npwp'              => 'nullable|string|unique:members,npwp,' . $this->member_id,
             'province_id'       => 'required|exists:provinces,id',
-            'status'            => 'required',
+            'status'            => 'nullable',
             'domicile_id'       => 'required|exists:domiciles,id',
             'bank_name'         => 'required|string',
             'account_number'    => 'required|string',

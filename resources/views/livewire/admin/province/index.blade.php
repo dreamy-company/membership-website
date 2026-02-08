@@ -21,7 +21,7 @@
     {{-- @dd($provinces) --}}
 
     {{-- table --}}
-    <div class="table w-full mt-6 px-4 pb-4">
+    <div class="w-full mt-6 px-4 pb-4">
         <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-md border border-default">
             <x-table.table>
                 <x-table.thead>
@@ -40,7 +40,7 @@
                             <x-table.td>{{ $province->code }}</x-table.td>
                             <x-table.td>{{ $province->name }}</x-table.td>
                             <x-table.td>
-                                <x-widget.button-icon type="edit" action="edit({{ $province->id }})" />
+                                <x-widget.button-icon type="edit" action="openModal({{ $province->id }})" />
                                 <x-widget.button-icon type="delete" action="confirmDelete({{ $province->id }})" />
                             </x-table.td>
                         </x-table.tr>

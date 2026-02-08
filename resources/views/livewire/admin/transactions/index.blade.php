@@ -1,7 +1,6 @@
 <div>
     {{-- header --}}
-    <div
-        class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
+    <div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
         <div class="w-full mb-1">
             <div class="mb-4">
                 <x-dashboard.breadcrumbs title="Transactions" />
@@ -21,7 +20,8 @@
     </div>
 
     {{-- table --}}
-    <div class="table w-full mt-6 px-4 pb-4">
+    <div class="w-full mt-6 px-4 pb-4">
+        {{-- [FIX] Tambahkan overflow-x-auto di sini agar cuma tabel yang bisa discroll --}}
         <div class="relative overflow-x-auto bg-neutral-primary-soft shadow-xs rounded-md border border-default">
             <x-table.table>
                 <x-table.thead>
@@ -34,6 +34,8 @@
                         <x-table.th>Amount</x-table.th>
                         <x-table.th>Hpp</x-table.th>
                         <x-table.th>Balance</x-table.th>
+                        <x-table.th>Level</x-table.th>
+                        <x-table.th>Bonus Percent</x-table.th>
                         <x-table.th>Bonus</x-table.th>
                         <x-table.th>Actions</x-table.th>
                     </x-table.tr>
@@ -43,29 +45,41 @@
                     @forelse ($transactions as $item)
                         <x-table.tr>
                             <x-table.td>{{ $transactions->firstItem() + $loop->index }}</x-table.td>
-                            <x-table.td>{{ $item->business->name }}</x-table.td>
-                            <x-table.td>{{ $item->member->user->name }}</x-table.td>
+                            
+                            {{-- Gunakan ?? '-' untuk mencegah error jika relasi kosong --}}
+                            <x-table.td>{{ $item->business->name ?? '-' }}</x-table.td>
+                            <x-table.td>{{ $item->member->user->name ?? '-' }}</x-table.td>
+                            
                             <x-table.td>{{ $item->transaction_code }}</x-table.td>
                             <x-table.td>{{ $item->transaction_date }}</x-table.td>
-                            <x-table.td>{{ number_format($item->amount) }}</x-table.td>
-                            <x-table.td>{{ number_format($item->hpp) }}</x-table.td>
-                            <x-table.td>{{ number_format($item->balance) }}</x-table.td>
-                            <x-table.td>{{ number_format($item->bonus) }}</x-table.td>
+                            
+                            <x-table.td>{{ number_format($item->amount ?? 0) }}</x-table.td>
+                            <x-table.td>{{ number_format($item->hpp ?? 0) }}</x-table.td>
+                            <x-table.td>{{ number_format($item->balance ?? 0) }}</x-table.td>
+                            
+                            <x-table.td>{{ $item->LevelMember ?? '-' }}</x-table.td>
+                            <x-table.td>{{ number_format($item->BonusPercent ?? 0) }}%</x-table.td>
+                            <x-table.td>{{ number_format($item->bonus ?? 0) }}</x-table.td>
+                            
                             <x-table.td>
-                                <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
-                                <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                <div class="flex gap-2">
+                                    <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
+                                    <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                </div>
                             </x-table.td>
                         </x-table.tr>
                     @empty
                         <x-table.tr>
-                            <x-table.td colspan="5" class="text-center py-4">
+                            {{-- Colspan disesuaikan dengan jumlah kolom (12 kolom) --}}
+                            <x-table.td colspan="12" class="text-center py-4">
                                 No Transactions found.
                             </x-table.td>
                         </x-table.tr>
                     @endforelse
                 </tbody>
             </x-table.table>
-           @if ($transactions->hasPages())
+            
+            @if ($transactions->hasPages())
                 <div class="p-4">
                     {{ $transactions->links() }}
                 </div>
@@ -73,11 +87,10 @@
         </div>
     </div>
 
-     @if($isOpen)
+    @if($isOpen)
         <x-modal.form-modal :formTitle="$transaction_id ? 'Edit Transaction' : 'Add Transaction'" action="store()" height="h-auto">
             <div class="grid gap-4 grid-cols-1 py-4 md:py-6">
                 
-                {{-- 1. Persiapkan Data Options untuk Searchable Select --}}
                 @php
                     $businessOptions = $businesses->map(fn($b) => [
                         'value' => $b->id, 
@@ -91,7 +104,6 @@
                 @endphp
 
                 <div class="grid grid-cols-2 gap-2">
-                    {{-- Input UMKM (Searchable) --}}
                     <div class="mb-2">
                         <x-modal.searchable-select 
                             wire:model="business_id" 
@@ -102,7 +114,6 @@
                         />
                     </div>
 
-                    {{-- Input Member (Searchable) --}}
                     <div class="mb-2">
                         <x-modal.searchable-select 
                             wire:model="member_id" 
@@ -114,7 +125,6 @@
                     </div>
                 </div>
 
-                {{-- Input Lainnya Tetap Sama --}}
                 <div class="grid grid-cols-2 gap-2">
                     <div class="col-span-2">
                         <x-modal.input name="transaction_code" label="Transaction Code" placeholder="Enter transaction code" />
@@ -146,7 +156,6 @@
         </x-modal.form-modal>
     @endif
 
-    <!-- Modal -->
     @if($isOpenImport)
         <x-modal.form-modal :formTitle="'Import Transactions'" action="storeData()" height="h-auto">
            <div class="grid gap-4 grid-cols-1 px-2 py-4 md:py-6">
@@ -158,7 +167,7 @@
                                 <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        <p>Download template excel <a class="text-blue-500 underline" href="{{  asset('storage/templates/import_transaction.xlsx')}}">download here!!</a></p>
+                        <p>Download template excel <a class="text-blue-500 underline" href="{{ asset('storage/templates/import_transaction.xlsx')}}">download here!!</a></p>
                     </div>
             </div>
         </x-modal.form-modal>
@@ -166,6 +175,4 @@
    
     <x-alerts.success/>
     <x-alerts.delete-confirmation/>
-
-
 </div>
