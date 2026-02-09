@@ -171,6 +171,7 @@ class Index extends Component
     {
         $this->isOpen = false;
         $this->openWithdrawalModal = false;
+        $this->isCardOpen = false;
     }
 
     public function closeCardModal()
