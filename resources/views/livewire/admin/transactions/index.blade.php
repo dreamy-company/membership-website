@@ -12,7 +12,7 @@
                 </div>
                 <div>
                     <x-widget.button color="neutral" name="Add Transaction" action="openModal()" />
-                    <x-widget.button color="neutral" name="Import Transactions" action="openImportModal()" />
+                    {{-- <x-widget.button color="neutral" name="Import Transactions" action="openImportModal()" /> --}}
                     <x-widget.button color="neutral" name="Activity Log" action="redirectToActivityLog()" />
                 </div>
             </div>
