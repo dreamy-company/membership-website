@@ -509,9 +509,9 @@ class Index extends Component
         }
     }
 
-    public function redirectToMemberDetails()
+    public function redirectToMemberDetails($id)
     {
-        return redirect()->route('admin.members.detail');
+        return redirect()->route('admin.members.transaction', ['id' => $id]);
     }
 
 }

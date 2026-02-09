@@ -163,7 +163,7 @@
                                 <div class="flex gap-2">
                                     <x-widget.button-icon type="detail" color='detail' action="openCardModal({{ $item->id }})" />
                                     <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
-                                    {{-- <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" /> --}}
+                                    <x-widget.button-icon type="view" color='delete' action="redirectToMemberDetails({{ $item->id }})" />
                                 </div>
                             </x-table.td>
                         </x-table.tr>
