@@ -13,7 +13,7 @@
 
                 <div class="flex items-center gap-3">
                     <x-widget.button color="neutral" name="Add Member" action="openModal()" />
-                    <x-widget.button color="neutral" name="Tree View" action="redirectToMemberDetails()" />
+                    <x-widget.button color="neutral" name="Tree View" action="redirectToDetails()" />
                 </div>
             </div>
 
