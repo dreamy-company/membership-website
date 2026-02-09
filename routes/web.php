@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 use App\Livewire\Admin\Transactions\ActivityLog;
 use App\Livewire\Admin\Members\Index as MemberIndex;
 use App\Livewire\Admin\Members\Details as MemberDetail;
+use App\Livewire\Admin\Members\Transaction as MemberTransaction;
 use App\Livewire\Admin\Bonuses\Index as BonusesIndex;
 use App\Livewire\Admin\Province\Index as ProvinceIndex;
 use App\Livewire\Admin\Businesses\Index as BusinessIndex;
@@ -72,6 +73,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/domicilies', DomicileIndex::class)->name('domicilies');
     Route::get('/members', MemberIndex::class)->name('members');
     Route::get('/members/detail', MemberDetail::class)->name('members.detail');
+    Route::get('/members/transaction/{id}', MemberTransaction::class)->name('members.transaction');
     Route::get('/businesses-users', BusinessesUsersIndex::class)->name('businesses.users');
     Route::get('/bonuses', BonusesIndex::class)->name('bonuses');
     Route::get('/transactions', TransactionIndex::class)->name('transactions');

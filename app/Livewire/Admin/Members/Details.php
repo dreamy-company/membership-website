@@ -250,6 +250,8 @@ class Details extends Component
     public function closeModal()
     {
         $this->isOpen = false;
+        $this->isCardOpen = false;
+
     }
 
     public function openCardModal($memberId)
