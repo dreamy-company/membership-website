@@ -514,4 +514,9 @@ class Index extends Component
         return redirect()->route('admin.members.transaction', ['id' => $id]);
     }
 
+    public function redirectToDetails()
+    {
+        return redirect()->route('admin.members.detail');
+    }
+
 }
