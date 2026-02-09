@@ -171,6 +171,7 @@ class Index extends Component
     {
         $this->isOpen = false;
         $this->openWithdrawalModal = false;
+        $this->isCardOpen = false;
     }
 
     public function closeCardModal()
@@ -508,9 +509,9 @@ class Index extends Component
         }
     }
 
-    public function redirectToMemberDetails()
+    public function redirectToMemberDetails($id)
     {
-        return redirect()->route('admin.members.detail');
+        return redirect()->route('admin.members.transaction', ['id' => $id]);
     }
 
 }
