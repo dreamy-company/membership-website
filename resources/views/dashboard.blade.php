@@ -111,7 +111,6 @@
     <div>
         <div class="mb-4 flex items-center justify-between">
             <h2 class="text-lg font-bold text-gray-900 dark:text-white">Riwayat Transaksi</h2>
-            {{-- Optional: Add View All button here --}}
         </div>
 
         <div class="relative overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
@@ -138,40 +137,33 @@
                             {{-- Member Asal (Sumber Bonus) --}}
                             <x-table.td>
                                 <span class="font-medium text-gray-900 dark:text-white">
-                                    {{-- Jika Level Leader/Level 1, berarti dari diri sendiri --}}
                                     @if(in_array($item->LevelMember, ['Leader', 'Level 1']))
                                         Diri Sendiri
                                     @else
                                         {{ $item->sourceMember->user->name ?? '-' }}
                                     @endif
                                 </span>
-                                {{-- Opsional: Tampilkan Kode Member --}}
                                 @if(isset($item->sourceMember->member_code))
                                     <div class="text-xs text-gray-500">{{ $item->sourceMember->member_code }}</div>
                                 @endif
                             </x-table.td>
 
-                            {{-- Nama Toko --}}
                             <x-table.td>{{ $item->business->name ?? '-' }}</x-table.td>
                             
-                            {{-- Kode Transaksi --}}
                             <x-table.td>
                                 <span class="font-mono text-xs text-gray-500">
                                     {{ $item->transaction_code ?? '-' }}
                                 </span>
                             </x-table.td>
 
-                            {{-- Tanggal (Cek dulu ada datanya atau tidak) --}}
                             <x-table.td>
                                 {{ $item->created_at ? $item->created_at->format('d M Y') : '-' }}
                             </x-table.td>
 
-                            {{-- Jam --}}
                             <x-table.td>
                                 {{ $item->created_at ? $item->created_at->format('H:i') : '-' }}
                             </x-table.td>
                             
-                            {{-- Level (Leader, Level 1, dst) --}}
                             <x-table.td>
                                 @php
                                     $lvl = $item->LevelMember ?? '-';
@@ -187,10 +179,8 @@
                                 </span>
                             </x-table.td>
 
-                            {{-- Persentase --}}
                             <x-table.td>{{ $item->BonusPercent ?? 0 }}%</x-table.td>
                             
-                            {{-- Nilai Bonus --}}
                             <x-table.td class="text-right font-bold text-green-600">
                                 + {{ number_format($item->bonus ?? 0, 0, ',', '.') }}
                             </x-table.td>
@@ -206,11 +196,23 @@
                         </x-table.tr>
                     @endforelse
                 </tbody>
+
+                {{-- FOOTER UNTUK TOTAL --}}
+                <tfoot class="bg-gray-50 dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700">
+                    <x-table.tr>
+                        <x-table.td colspan="8" class="text-right font-bold text-gray-900 dark:text-white py-4">
+                            Total Keseluruhan:
+                        </x-table.td>
+                        <x-table.td class="text-right font-bold text-green-600 text-lg">
+                            Rp {{ number_format($bonusTotal ?? 0, 0, ',', '.') }}
+                        </x-table.td>
+                    </x-table.tr>
+                </tfoot>
+
             </x-table.table>
-        </div>
             
             @if ($transactions->hasPages())
-                <div class="border-t border-neutral-200 bg-gray-50 p-4 dark:border-neutral-700 dark:bg-neutral-800">
+                <div class="border-t border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-900">
                     {{ $transactions->links() }}
                 </div>
             @endif

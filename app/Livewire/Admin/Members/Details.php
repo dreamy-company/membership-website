@@ -210,7 +210,6 @@ class Details extends Component
 
         if ($id) {
             $member = Member::where('user_id', $id)->first();
-
             $this->name = $member->user->name;
             $this->email = $member->user->email;
             $this->member_id = $member->id;
@@ -257,6 +256,7 @@ class Details extends Component
     public function openCardModal($memberId)
     {
         $member = Member::with(['province', 'domicile'])->where('user_id', $memberId)->first();
+        dd($member);
 
         // Isi semua variabel
         $this->id             = $member->id;
@@ -318,130 +318,137 @@ class Details extends Component
 
     public function store()
     {
+        // Validasi akan otomatis menyesuaikan (Create/Update) berkat rules() di atas
         $this->validate($this->rules());
 
         try {
             DB::beginTransaction();
 
-            // 1. CREATE USER
-            $user = User::create([
-                'name'     => $this->name,
-                'email'    => $this->email,
-                // Jika password kosong, buat default. Jika ada, enkripsi.
-                'password' => bcrypt($this->password ?: 'password123'), 
-            ]);
-
-            // 2. HANDLE IMAGE UPLOAD (COMPRESS & RESIZE)
-            $filename = null; // Default null jika tidak ada gambar
+            // ==========================================
+            // 1. HANDLE IMAGE UPLOAD (Dipakai Create & Update)
+            // ==========================================
+            $filename = $this->old_profile_picture; // Default pakai nama file lama
 
             if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
                 
-                // Hapus file lama (Logic ini biasanya utk update, tp ok disimpan utk jaga2)
+                // Hapus file lama jika ada
                 if ($this->old_profile_picture && Storage::disk('public')->exists($this->old_profile_picture)) {
                     Storage::disk('public')->delete($this->old_profile_picture);
                 }
 
-                // Setup Image Manager
+                // Kompresi Gambar
                 $manager = new ImageManager(new Driver());
-
-                // Baca file
                 $image = $manager->read($this->profile_picture->getRealPath());
-
-                // RESIZE: Max lebar 800px (Aspect ratio terjaga)
                 $image->scaleDown(width: 800);
-
-                // COMPRESS: Convert ke WebP kualitas 75%
                 $encoded = $image->toWebp(quality: 75); 
                 
-                // Generate nama file unik dengan ekstensi .webp
                 $name = pathinfo($this->profile_picture->hashName(), PATHINFO_FILENAME) . '.webp';
                 $path = 'members/' . $name;
-
-                // Simpan ke storage
                 Storage::disk('public')->put($path, (string) $encoded);
 
                 $filename = $path;
             }
 
-            // 3. GENERATE MEMBER CODE
-            $province = Province::find($this->province_id);
-            // Tips: Gunakan max('id') agar lebih aman daripada count()
-            $nextId = (Member::max('id') ?? 0) + 1;
-            $member_code = $province->code . '-' . (strlen($province->code) === 3 ? '0' : '') . str_pad($nextId, 4, '0', STR_PAD_LEFT);
-
-
-            // 4. LOGIC PARENT / UPLINE (CORE PERUBAHAN DISINI)
-            // ================================================
-            $finalParentId = null;
-
-            if ($this->is_root) {
-                // Jika dicentang "Top Leader", maka Parent adalah Diri Sendiri
-                $finalParentId = $user->id; 
-            } else {
-                // Jika member biasa, ambil dari dropdown
-                // Jika dropdown kosong (lupa isi), fallback ke diri sendiri atau null (tergantung aturanmu)
-                // Di sini saya set logic: Kalau kosong pun, anggap diri sendiri (safety) atau null
-                $finalParentId = $this->parent_user_id ?: $user->id; 
-            }
-
-
-            // 5. CREATE MEMBER
-            $member = Member::create([
-                'member_code'    => $member_code,
-                'nik'            => $this->nik,
-                'user_id'        => $user->id,
-                'parent_user_id' => $finalParentId, // <--- Pakai variabel hasil logic di atas
-                'phone_number'   => $this->phone_number,
-                'gender'         => $this->gender,
-                'address'        => $this->address,
-                'birth_date'     => $this->birth_date,
-                'province_id'    => $this->province_id,
-                'domicile_id'    => $this->domicile_id,
-                'bank_name'      => $this->bank_name,
-                'account_number' => $this->account_number,
-                'account_name'   => $this->account_name,
-                'npwp'           => $this->npwp,
-                'status'         => $this->status ?? 'active',
-                'profile_picture'=> $filename,
-            ]);
-
-            DB::commit();
-
-            // 6. TREE EXPANSION LOGIC
-            // ================================================
-            // Kita hanya perlu expand parent-nya JIKA dia bukan root
-            if (!$this->is_root) {
-                // Cari Member ID milik si Parent (karena expandedNodes menyimpan ID Member, bukan User ID)
-                $parentMember = Member::where('user_id', $finalParentId)->first();
+            // ==========================================
+            // 2. CEK MODE: UPDATE ATAU CREATE?
+            // ==========================================
+            if ($this->member_id) {
                 
-                if ($parentMember && !in_array($parentMember->id, $this->expandedNodes)) {
-                    $this->expandedNodes[] = $parentMember->id;
+                // --------- M O D E   U P D A T E ---------
+                $member = Member::findOrFail($this->member_id);
+
+                // Update Tabel User
+                $userData = [
+                    'name' => $this->name,
+                    'email' => $this->email,
+                ];
+                if (!empty($this->password)) {
+                    $userData['password'] = bcrypt($this->password);
+                }
+                $member->user->update($userData);
+
+                // Update Tabel Member
+                $member->update([
+                    'nik'            => $this->nik,
+                    'phone_number'   => $this->phone_number,
+                    'gender'         => $this->gender,
+                    'address'        => $this->address,
+                    'birth_date'     => $this->birth_date,
+                    'province_id'    => $this->province_id,
+                    'domicile_id'    => $this->domicile_id,
+                    'bank_name'      => $this->bank_name,
+                    'account_number' => $this->account_number,
+                    'account_name'   => $this->account_name,
+                    'npwp'           => $this->npwp,
+                    'status'         => $this->status ?? 'active',
+                    'profile_picture'=> $filename,
+                ]);
+
+            } else {
+                
+                // --------- M O D E   C R E A T E ---------
+                $user = User::create([
+                    'name'     => $this->name,
+                    'email'    => $this->email,
+                    'password' => bcrypt($this->password ?: 'password123'), 
+                ]);
+
+                // Generate Member Code
+                $province = Province::find($this->province_id);
+                $nextId = (Member::max('id') ?? 0) + 1;
+                $member_code = $province->code . '-' . (strlen($province->code) === 3 ? '0' : '') . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+
+                // Logic Parent Upline
+                $finalParentId = $this->is_root ? $user->id : ($this->parent_user_id ?: $user->id);
+
+                $member = Member::create([
+                    'member_code'    => $member_code,
+                    'nik'            => $this->nik,
+                    'user_id'        => $user->id,
+                    'parent_user_id' => $finalParentId, 
+                    'phone_number'   => $this->phone_number,
+                    'gender'         => $this->gender,
+                    'address'        => $this->address,
+                    'birth_date'     => $this->birth_date,
+                    'province_id'    => $this->province_id,
+                    'domicile_id'    => $this->domicile_id,
+                    'bank_name'      => $this->bank_name,
+                    'account_number' => $this->account_number,
+                    'account_name'   => $this->account_name,
+                    'npwp'           => $this->npwp,
+                    'status'         => $this->status ?? 'active',
+                    'profile_picture'=> $filename,
+                ]);
+
+                // Tree logic expansion (hanya untuk create)
+                if (!$this->is_root) {
+                    $parentMember = Member::where('user_id', $finalParentId)->first();
+                    if ($parentMember && !in_array($parentMember->id, $this->expandedNodes)) {
+                        $this->expandedNodes[] = $parentMember->id;
+                    }
                 }
             }
 
-            // Reset Form & Tutup Modal
-            $this->afterSave(true); // true = create mode
+            DB::commit();
 
-            // Refresh Data Tree
+            // 3. SELESAI
+            $isCreated = !$this->member_id;
+            $this->afterSave($isCreated);
             $this->loadRoot();
-
-            $this->dispatch('notify', [
-                'type' => 'success',
-                'message' => 'Member berhasil ditambahkan!',
-            ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            $this->dispatch('error', [ // Atau notify type error
+            $this->dispatch('error', [
                 'type' => 'error',
-                'message' => 'Gagal menambahkan member: ' . $e->getMessage(),
+                'message' => 'Gagal memproses data member: ' . $e->getMessage(),
             ]);
         }
     }
 
     public function update(string $memberId)
     {
+        dd($memberId);
         $member = Member::findOrFail($memberId);
 
         $this->validate($this->updateRules($member->user_id));
@@ -562,21 +569,24 @@ class Details extends Component
     {
         return [
             'name'           => 'required|string',
-            'email'          => 'required|email|unique:users,email,',
-            'password'       => 'required|string|min:8|confirmed',
+            // Tambahkan $this->user_id agar email miliknya sendiri diabaikan saat update
+            'email'          => 'required|email|unique:users,email,' . $this->user_id,
+            // Password wajib jika Create, tapi opsional (nullable) jika Update
+            'password'       => $this->user_id ? 'nullable|string|min:8|confirmed' : 'required|string|min:8|confirmed',
+            
             'nik'            => 'required|string|numeric|unique:members,nik,' . $this->member_id,
             'phone_number'   => 'required|string|numeric',
             'gender'         => 'required|in:male,female',
             'address'        => 'required|string',
             'birth_date'     => 'required|date',
-            'npwp'           => 'nullable|string|numeric|unique:members,npwp,' . $this->member_id,
+            'npwp'           => 'nullable|string|unique:members,npwp,' . $this->member_id,
             'province_id'    => 'required|exists:provinces,id',
             'domicile_id'    => 'required|exists:domiciles,id',
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'status'         => 'nullable',
             'account_name'   => 'required|string',
-            'profile_picture' => 'nullable|image|max:2048', // jpg, png, dll max 2mb
+            'profile_picture'=> 'nullable|image|max:2048',
         ];
     }
 
@@ -584,8 +594,10 @@ class Details extends Component
     {
         return [
             'name'           => 'required|string',
-            'email'          => 'required|email|unique:users,email,' . $userId . ',id',
-            'password'       => 'nullable|string|min:8|confirmed',
+            // Tambahkan $this->user_id agar email miliknya sendiri diabaikan saat update
+            'email'          => 'required|email|unique:users,email,' . $this->user_id,
+            // Password wajib jika Create, tapi opsional (nullable) jika Update
+            'password'       => $this->user_id ? 'nullable|string|min:8|confirmed' : 'required|string|min:8|confirmed',
             'nik'            => 'required|string|numeric|unique:members,nik,' . $this->member_id,
             'phone_number'   => 'required|string|numeric',
             'gender'         => 'required|in:male,female',

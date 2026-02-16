@@ -264,7 +264,7 @@
                                 placeholder="Contoh: John Doe" />
                         </div>
                         <div>
-                            <x-modal.input name="npwp" label="NPWP" type="number" placeholder="Contoh: 1234567890" />
+                            <x-modal.input name="npwp" label="NPWP" type="text" placeholder="Contoh: 1234567890" />
                         </div>
                     </div>
                 </div>
