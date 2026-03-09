@@ -13,10 +13,6 @@
                     <dt class="truncate text-sm font-medium text-blue-500">Total Bonus Diterima (Income)</dt>
                     <dd class="mt-1 text-2xl font-bold tracking-tight text-blue-700">Rp {{ number_format($totalIncome ?? 0, 0, ',', '.') }}</dd>
                 </div>
-                <div class="rounded-lg border border-gray-200 bg-white p-4">
-                    <dt class="truncate text-sm font-medium text-gray-500">Total Omzet Jaringan</dt>
-                    <dd class="mt-1 text-2xl font-bold tracking-tight text-gray-900">Rp {{ number_format($totalOmzet ?? 0, 0, ',', '.') }}</dd>
-                </div>
             </div>
 
             <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
@@ -39,7 +35,6 @@
                     <x-table.th>Tanggal</x-table.th>
                     <x-table.th>Level</x-table.th>
                     <x-table.th>Persen</x-table.th>
-                    <x-table.th class="text-right">Nilai Belanja</x-table.th>
                     <x-table.th class="text-right">Bonus Kamu</x-table.th>
                 </x-table.tr>
             </x-table.thead>
@@ -103,11 +98,6 @@
                         {{-- 6. PERSENTASE --}}
                         <x-table.td>
                             <span class="text-gray-600">{{ $item->BonusPercent }}%</span>
-                        </x-table.td>
-                        
-                        {{-- 7. NILAI BELANJA (AMOUNT) --}}
-                        <x-table.td class="text-right text-gray-500">
-                             {{ number_format($item->amount, 0, ',', '.') }}
                         </x-table.td>
 
                         {{-- 8. BONUS DITERIMA (INCOME) --}}

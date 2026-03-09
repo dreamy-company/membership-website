@@ -19,7 +19,7 @@ class Index extends Component
     use WithPagination, WithFileUploads;
     public $search = '';
     public $id;
-    // [BARU] Simpan ID node yang sedang terbuka
+    // Simpan ID node yang sedang terbuka
     public $expandedNodes = [];
     public $province;
     public $domicile;
@@ -89,13 +89,13 @@ class Index extends Component
 
     private function formatNode($m, $level = 1)
     {
-        // [BARU] Cek apakah node ini ada di daftar expandedNodes
+        // Cek apakah node ini ada di daftar expandedNodes
         $isExpanded = in_array($m->id, $this->expandedNodes);
 
         $children = [];
         $fetched = false;
 
-        // [BARU] Jika expanded, load children-nya SEKARANG juga (agar tree tetap terbuka setelah refresh)
+        // Jika expanded, load children-nya SEKARANG juga (agar tree tetap terbuka setelah refresh)
         if ($isExpanded) {
             $childModels = Member::where('parent_user_id', $m->user_id)
                 ->with('user')
@@ -128,7 +128,7 @@ class Index extends Component
 
     public function toggleNode($memberId)
     {
-        // [BARU] Logika state management
+        // Logika state management
         if (in_array($memberId, $this->expandedNodes)) {
             // Jika sudah ada, hapus (Collapse)
             $this->expandedNodes = array_diff($this->expandedNodes, [$memberId]);
@@ -279,41 +279,29 @@ class Index extends Component
             $user = User::create([
                 'name' => $this->name,
                 'email' => $this->email,
-                'password' => $this->password,
+                'password' => bcrypt($this->password), // Jangan lupa bcrypt
             ]);
 
             // Handle profile picture upload
             $filename = $this->old_profile_picture;
 
             if ($this->profile_picture instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                // hapus file lama jika ada
                 if ($this->old_profile_picture && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->old_profile_picture)) {
                     \Illuminate\Support\Facades\Storage::disk('public')->delete($this->old_profile_picture);
                 }
 
-                // --- BAGIAN INI YANG DIUBAH UNTUK KOMPRESI ---
-                // Menggunakan Intervention Image v3 (Pastikan sudah terinstall via composer)
+                // --- LOGIKA KOMPRESI IMAGE ---
                 $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-
-                // Baca file gambar dari temp upload
                 $image = $manager->read($this->profile_picture->getRealPath());
-
-                // Resize: Ubah ukuran agar tidak terlalu besar (maksimal lebar 800px, tinggi menyesuaikan)
                 $image->scaleDown(width: 800);
-
-                // Compress: Ubah format ke WebP dengan kualitas 75%
                 $encoded = $image->toWebp(quality: 75);
 
-                // Buat nama file unik dengan ekstensi .webp
                 $name = pathinfo($this->profile_picture->hashName(), PATHINFO_FILENAME) . '.webp';
                 $path = 'members/' . $name;
 
-                // Simpan hasil kompresi ke storage public menggunakan 'put'
                 \Illuminate\Support\Facades\Storage::disk('public')->put($path, (string) $encoded);
-
-                // Set filename ke path yang baru
                 $filename = $path;
-                // --- BATAS PERUBAHAN KOMPRESI ---
+                // --- SELESAI LOGIKA KOMPRESI ---
             }
 
             $province = Province::find($this->province_id);
@@ -324,7 +312,7 @@ class Index extends Component
             if ($this->parent_user_id) {
                 $parentUserId = $this->parent_user_id;
             } else {
-                $parentUserId = auth()->user()->id; // Asumsi auth() tersedia
+                $parentUserId = auth()->user()->id; 
             }
 
             $member = Member::create([
@@ -347,8 +335,7 @@ class Index extends Component
 
             DB::commit();
 
-            // [BARU] Setelah sukses tambah, kita harus memastikan Parent-nya Expanded
-            // Agar user langsung melihat data yang baru ditambahkan
+            // Setelah sukses tambah, kita harus memastikan Parent-nya Expanded
             $parentMember = Member::where('user_id', $parentUserId)->first();
             if ($parentMember && !in_array($parentMember->id, $this->expandedNodes)) {
                 $this->expandedNodes[] = $parentMember->id;
@@ -372,6 +359,7 @@ class Index extends Component
     {
         $member = Member::findOrFail($memberId);
 
+        // Panggil updateRules, karena field seperti NIK, email, dll disabled di UI
         $this->validate($this->updateRules($member->user_id));
 
         try {
@@ -389,64 +377,39 @@ class Index extends Component
                 }
 
                 // --- MULAI LOGIKA KOMPRESI IMAGE ---
-                // Init Manager (Intervention Image v3)
                 $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-
-                // Baca file
                 $image = $manager->read($this->profile_picture->getRealPath());
-
-                // Resize: Max lebar 800px (aspek rasio tetap)
                 $image->scaleDown(width: 800);
-
-                // Compress & Convert ke WebP (Quality 75%)
                 $encoded = $image->toWebp(quality: 75);
 
-                // Generate nama file baru dengan ekstensi .webp
                 $name = pathinfo($this->profile_picture->hashName(), PATHINFO_FILENAME) . '.webp';
                 $path = 'members/' . $name;
 
-                // Simpan file hasil kompresi secara manual menggunakan 'put'
                 \Illuminate\Support\Facades\Storage::disk('public')->put($path, (string) $encoded);
-
-                // Update variabel filename
                 $filename = $path;
                 // --- SELESAI LOGIKA KOMPRESI ---
             }
 
-            // Update user
-            $member->user->update([
-                'name' => $this->name,
-                'email' => $this->email,
-            ]);
+            // USER UPDATE DIHAPUS karena Name, Email, Password tidak boleh diubah oleh Top Level
 
-            // Update password jika ada perubahan
-            if (!empty($this->password)) {
-                $member->user->update(['password' => $this->password]);
-            }
-
-            // Update member
+            // Update member (HANYA field yang diizinkan / tidak didisable)
             $member->update([
-                'nik' => $this->nik,
                 'phone_number' => $this->phone_number,
                 'gender' => $this->gender,
                 'address' => $this->address,
                 'birth_date' => $this->birth_date,
-                'province_id' => $this->province_id,
-                'domicile_id' => $this->domicile_id,
                 'bank_name' => $this->bank_name,
                 'account_number' => $this->account_number,
                 'account_name' => $this->account_name,
                 'npwp' => $this->npwp,
                 'profile_picture' => $filename,
+                // 'nik', 'province_id', 'domicile_id' tidak ikut di-update
             ]);
 
             DB::commit();
 
-            // Di akhir update:
             $this->afterSave(false);
 
-            // Saat loadRoot dipanggil, dia akan merender ulang tree
-            // dengan posisi expand/collapse yang sama persis seperti sebelum tombol edit ditekan
             $this->loadRoot();
             
             $this->dispatch('success', 'Member berhasil diperbarui.');
@@ -480,7 +443,6 @@ class Index extends Component
             'message' => 'Member berhasil dihapus!',
         ]);
 
-        // Load root akan mempertahankan state parent yang terbuka
         $this->loadRoot();
     }
 
@@ -488,41 +450,36 @@ class Index extends Component
     {
         return [
             'name'           => 'required|string',
-            'email'          => 'required|email|unique:users,email,',
+            'email'          => 'required|email|unique:users,email',
             'password'       => 'required|string|min:8|confirmed',
-            'nik'            => 'required|string|numeric|unique:members,nik,' . $this->member_id,
+            'nik'            => 'required|string|numeric|unique:members,nik',
             'phone_number'   => 'required|string|numeric',
             'gender'         => 'required|in:male,female',
             'address'        => 'required|string',
             'birth_date'     => 'required|date',
-            'npwp'           => 'nullable|string|numeric|unique:members,npwp,' . $this->member_id,
+            'npwp'           => 'nullable|string|numeric|unique:members,npwp',
             'province_id'    => 'required|exists:provinces,id',
             'domicile_id'    => 'required|exists:domiciles,id',
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 10MB
+            'profile_picture'=> 'nullable|image|max:10240', 
         ];
     }
 
     protected function updateRules($userId)
     {
+        // Hanya memvalidasi data yang BISA DIEDIT (karena field lain di-disable)
         return [
-            'name'           => 'required|string',
-            'email'          => 'required|email|unique:users,email,' . $userId . ',id',
-            'password'       => 'nullable|string|min:8|confirmed',
-            'nik'            => 'required|string|numeric|unique:members,nik,' . $this->member_id,
             'phone_number'   => 'required|string|numeric',
             'gender'         => 'required|in:male,female',
             'address'        => 'required|string',
             'birth_date'     => 'required|date',
             'npwp'           => 'nullable|string|numeric|unique:members,npwp,' . $this->member_id,
-            'province_id'    => 'required|exists:provinces,id',
-            'domicile_id'    => 'required|exists:domiciles,id',
             'bank_name'      => 'required|string',
             'account_number' => 'required|string',
             'account_name'   => 'required|string',
-            'profile_picture' => 'nullable|image|max:10240', // jpg, png, dll max 10MB
+            'profile_picture'=> 'nullable|image|max:10240',
         ];
     }
 
@@ -561,7 +518,6 @@ class Index extends Component
         ]);
     }
 
-    // Tambahkan method untuk ganti view
     public function switchView($type)
     {
         $this->viewType = $type;
