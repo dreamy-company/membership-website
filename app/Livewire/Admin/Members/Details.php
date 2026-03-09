@@ -256,7 +256,6 @@ class Details extends Component
     public function openCardModal($memberId)
     {
         $member = Member::with(['province', 'domicile'])->where('user_id', $memberId)->first();
-        dd($member);
 
         // Isi semua variabel
         $this->id             = $member->id;
@@ -448,7 +447,6 @@ class Details extends Component
 
     public function update(string $memberId)
     {
-        dd($memberId);
         $member = Member::findOrFail($memberId);
 
         $this->validate($this->updateRules($member->user_id));
