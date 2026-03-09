@@ -109,7 +109,7 @@ class Details extends Component
                 ->map(fn ($c) => $this->formatNode($c, 2))
                 ->toArray();
 
-                dump($node);
+                // dump($node);
             $this->tree = [$node];
 
         } else {
