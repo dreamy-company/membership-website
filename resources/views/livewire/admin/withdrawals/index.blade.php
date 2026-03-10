@@ -42,8 +42,24 @@
                             <x-table.td>{{ number_format($item->amount) }}</x-table.td>
                             <x-table.td>{{ $item->date }}</x-table.td>
                             <x-table.td>
-                                <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
-                                <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                {{-- Wrapper flex agar tombol sejajar ke samping (horizontal) --}}
+                                <div class="flex items-center justify-center gap-2">
+                                    
+                                    {{-- Tombol Preview PDF --}}
+                                    @if($item->payment_receipt)
+                                        <a href="{{ asset('storage/' . $item->payment_receipt) }}" target="_blank" 
+                                        {{-- Tambahkan inline-flex dan shrink-0 agar bentuknya kotak sempurna dan tidak menciut --}}
+                                        class="inline-flex shrink-0 items-center justify-center p-2 text-blue-600 bg-white hover:bg-blue-50 rounded-lg transition-colors shadow-sm border border-blue-200" 
+                                        title="Preview PDF">
+                                            <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10V4a1 1 0 0 0-1-1H9.914a1 1 0 0 0-.707.293L5.293 7.207A1 1 0 0 0 5 7.914V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2M10 3v4a1 1 0 0 1-1 1H5m5 6h9m0 0-2-2m2 2-2 2"/>
+                                            </svg>
+                                        </a>
+                                    @endif
+
+                                    {{-- Tombol Delete (Atau tombol bawaan lainnya) --}}
+                                    <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
+                                </div>
                             </x-table.td>
                         </x-table.tr>
                     @empty
@@ -66,66 +82,42 @@
      <!-- Modal -->
     @if($isOpen)
         <x-modal.form-modal :formTitle="$withdrawal_id ? 'Edit Withdrawal' : 'Add Withdrawal'" action="store()">
-            <div class="py-4 px-2 md:py-6">
-                <div class="grid grid-cols-2 gap-4 mb-4"> {{-- gap-4 biar lebih lega --}}
-                    
-                    {{-- Di Modal Withdrawal --}}
-                    <div class="gap-2">
-                        <x-modal.searchable-select 
-                            wire:model.live="member_id"  {{-- .live di sini boleh dihapus, krn sudah dihandle script --}}
-                            name="member_id" 
-                            label="Member" 
-                            :options="$members->map(fn($m) => ['value' => $m->id, 'label' => $m->user->name])" 
-                            placeholder="Cari Member..."
-                            
-                            :liveUpdates="true"  {{-- <--- INI KUNCINYA --}}
-                        />
-                    </div>
+            <x-table.table>
+                <x-table.thead>
+                    <x-table.tr>
+                        <x-table.th>No</x-table.th>
+                        <x-table.th>Nama</x-table.th>
+                        <x-table.th>Bonus</x-table.th>
+                        <x-table.th>Pilih</x-table.th> {{-- Ganti Judul Kolom --}}
+                    </x-table.tr>
+                </x-table.thead>
 
-                    {{-- 2. SALDO TERSEDIA (READONLY) --}}
-                    <div class="gap-2">
-                        <label class="block mb-2 text-sm font-medium text-gray-900">
-                            Sisa Bonus Tersedia
-                        </label>
-                        <div class="relative">
-                            <div class="absolute inset-y-0 start-0 flex items-center ps-3.5 pointer-events-none">
-                                <span class="text-gray-500 text-sm font-bold">Rp</span>
-                            </div>
-                            <input 
-                                type="text" 
-                                value="{{ number_format($available_balance, 0, ',', '.') }}" 
-                                disabled
-                                class="bg-gray-100 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 cursor-not-allowed font-bold" 
-                                placeholder="0"
-                            >
-                        </div>
-                        <p class="mt-1 text-xs text-gray-500">
-                            Total Bonus (Ledger) - Total Withdrawal
-                        </p>
-                    </div>       
-                </div>
+                <tbody>
+                    @forelse ($memberBalance as $item)
+                        <x-table.tr>
+                            {{-- Gunakan Skenario 1 atau 2 dari jawaban sebelumnya (Ini contoh pakai pagination) --}}
+                            <x-table.td>{{ $loop->iteration }}</x-table.td>
+                            <x-table.td>{{ $item->user->name }}</x-table.td>
+                            <x-table.td>Rp {{ number_format($item->transactions_sum_bonus, 0, ',', '.') }}</x-table.td>
+                            <x-table.td>
+                                
+                                {{-- BERUBAH MENJADI CHECKBOX --}}
+                                <input type="checkbox" 
+                                    wire:model="selectedMembers" 
+                                    value="{{ $item->id }}" 
+                                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
 
-                {{-- Input Lainnya Tetap --}}
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="gap-2">
-                        <x-modal.input name="amount" label="Jumlah Penarikan" type="number" placeholder="Contoh: 50000" />
-                        {{-- Validasi visual jika narik lebih dari saldo --}}
-                        @if($amount > $available_balance)
-                            <span class="text-xs text-red-500 font-bold">Saldo tidak cukup!</span>
-                        @endif
-                    </div>        
-                    <div class="gap-2">
-                        <x-modal.input name="date" label="Tanggal Request" type="date" />
-                    </div>        
-                </div>
-
-                {{-- Upload Receipt Tetap --}}
-                <div class="grid grid-cols-1 gap-2 mb-4">
-                {{-- ... kode upload file kamu yg lama ... --}}
-
-                <x-modal.input-file model="payment_receipt" name="payment_receipt" label="Bukti Transfer" />
-                </div>
-            </div>
+                            </x-table.td>
+                        </x-table.tr>
+                    @empty
+                        <x-table.tr>
+                            <x-table.td colspan="4" class="text-center py-4 text-gray-500">
+                                Tidak ada member yang memiliki bonus.
+                            </x-table.td>
+                        </x-table.tr>
+                    @endforelse
+                </tbody>
+            </x-table.table>
         </x-modal.form-modal>
     @endif
    

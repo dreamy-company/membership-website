@@ -2,12 +2,17 @@
 
 namespace App\Livewire\Admin\Withdrawals;
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Member;
-use Livewire\Component;
+use App\Models\Transaction;
 use App\Models\Withdrawal;
-use Livewire\WithPagination;
-use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+use Livewire\WithPagination;
+
+use function Symfony\Component\Clock\now;
 
 class Index extends Component
 {
@@ -26,6 +31,8 @@ class Index extends Component
     public $title = "Withdrawal Management";
     public $oldImage;
     public $image;
+    public $memberBalance;
+    public $selectedMembers = [];
 
     public $available_balance = 0;
 
@@ -73,7 +80,7 @@ class Index extends Component
         }
     }
 
-   public function openModal($id = null)
+    public function openModal($id = null)
     {
         $this->resetInput();
 
@@ -83,8 +90,28 @@ class Index extends Component
             $this->member_id = $withdrawal->member_id;
             $this->amount = $withdrawal->amount;
             $this->date = $withdrawal->date;
-            $this->old_payment_receipt = $withdrawal->payment_receipt; // simpan path lama
+            $this->old_payment_receipt = $withdrawal->payment_receipt;
         }
+
+        // 1. Ambil data member beserta total bonus dan total penarikannya
+        $members = Member::with('user')
+            ->withSum('transactions', 'bonus')
+            ->withSum('withdrawals', 'amount') // Pastikan relasi ini ada di Model Member
+            ->get();
+
+        // 2. Hitung sisa saldo & buang member yang saldonya sudah 0
+        $this->memberBalance = $members->map(function ($member) {
+            $totalBonus = $member->transactions_sum_bonus ?? 0;
+            $totalDitarik = $member->withdrawals_sum_amount ?? 0;
+            
+            // Buat variabel baru untuk menampung saldo bersih
+            $member->sisa_saldo = $totalBonus - $totalDitarik;
+            
+            return $member;
+        })->filter(function ($member) {
+            // Hanya tampilkan member yang sisa saldonya masih lebih dari 0
+            return $member->sisa_saldo > 0;
+        })->values(); // Reset array index setelah difilter
 
         $this->isOpen = true;
     }
@@ -109,32 +136,90 @@ class Index extends Component
 
     public function store()
     {
-        $this->validate([
-            'amount' => 'required|numeric',
-            'member_id' => 'required|integer|exists:members,id',
-            'date' => 'required|date',
-            'payment_receipt' => $this->withdrawal_id
-                ? 'nullable|file|mimes:jpg,jpeg,png,pdf|max:1024'
-                : 'required|file|mimes:jpg,jpeg,png,pdf|max:1024',
-        ]);
-
-        $filename = $this->old_payment_receipt;
-
-        if ($this->payment_receipt instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-            $filename = $this->payment_receipt->store('withdrawals', 'public');
+        // 1. Validasi
+        if (empty($this->selectedMembers)) {
+            $this->dispatch('error', ['message' => 'Pilih minimal satu member untuk ditarik!']);
+            return;
         }
 
-        Withdrawal::updateOrCreate(
-            ['id' => $this->withdrawal_id],
-            [
-                'amount' => $this->amount,
-                'member_id' => $this->member_id,
-                'date' => $this->date,
-                'payment_receipt' => $filename,
-            ]
-        );
+        try {
+            DB::beginTransaction();
 
-        $this->afterSave(!$this->withdrawal_id);
+            $members = Member::with('user')->whereIn('id', $this->selectedMembers)->get();
+            
+            $validMembers = []; // Untuk menyimpan sementara member yang saldonya > 0
+            $withdrawalData = []; // Untuk data tabel di PDF
+
+            // FASE 1: Kalkulasi Saldo & Kumpulkan Data
+            foreach ($members as $member) {
+                $totalBonus = Transaction::where('member_id', $member->id)->sum('bonus');
+                $totalDitarik = Withdrawal::where('member_id', $member->id)->sum('amount');
+                
+                $sisaSaldo = $totalBonus - $totalDitarik;
+
+                if ($sisaSaldo > 0) {
+                    // Simpan data untuk diproses nanti
+                    $validMembers[] = [
+                        'member_id' => $member->id,
+                        'amount'    => $sisaSaldo,
+                    ];
+
+                    // Simpan data untuk PDF
+                    $withdrawalData[] = [
+                        'nama'           => $member->user->name,
+                        'bank_name'      => $member->bank_name,
+                        'account_number' => $member->account_number,
+                        'account_name'   => $member->account_name,
+                        'nominal'        => $sisaSaldo,
+                    ];
+                }
+            }
+
+            // Jika ternyata semuanya sudah ditarik (saldo 0)
+            if (count($validMembers) === 0) {
+                $this->dispatch('error', ['message' => 'Semua member yang dipilih saldonya sudah Rp 0.']);
+                return;
+            }
+
+            // FASE 2: Generate & Simpan PDF ke Storage
+            $fileName = 'Manifest_Penarikan_' . time() . '.pdf';
+            $filePath = 'withdrawals/' . $fileName; // Path: storage/app/public/withdrawals/...
+
+            $pdf = Pdf::loadView('pdf.withdrawal-manifest', [
+                'data' => $withdrawalData,
+                'tanggal' => now()->format('d F Y H:i')
+            ]);
+
+            // Simpan PDF ke dalam folder storage public
+            Storage::disk('public')->put($filePath, $pdf->output());
+
+            // FASE 3: Simpan ke Database
+            foreach ($validMembers as $item) {
+                Withdrawal::create([
+                    'member_id'       => $item['member_id'],
+                    'amount'          => $item['amount'],
+                    'date'            => now(),
+                    'payment_receipt' => $filePath, // <<--- SIMPAN PATH PDF DI SINI
+                ]);
+            }
+
+            DB::commit();
+
+            // Reset UI
+            $this->selectedMembers = [];
+            $this->isOpen = false;
+
+            $this->dispatch('success', ['message' => 'Penarikan berhasil diproses & PDF disimpan!']);
+
+            // FASE 4 (Opsional): Tetap mendownload PDF ke browser Admin sebagai arsip langsung
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->stream();
+            }, $fileName);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->dispatch('error', ['message' => 'Gagal memproses penarikan: ' . $e->getMessage()]);
+        }
     }
 
 
