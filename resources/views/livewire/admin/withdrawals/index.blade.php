@@ -81,38 +81,52 @@
 
      <!-- Modal -->
     @if($isOpen)
-        <x-modal.form-modal :formTitle="$withdrawal_id ? 'Edit Withdrawal' : 'Add Withdrawal'" action="store()">
+        <x-modal.form-modal :formTitle="$withdrawal_id ? 'Edit Withdrawal' : 'Add Withdrawal'" action="store()" width='max-w-[60%] w-full'>
             <x-table.table>
                 <x-table.thead>
                     <x-table.tr>
                         <x-table.th>No</x-table.th>
                         <x-table.th>Nama</x-table.th>
-                        <x-table.th>Bonus</x-table.th>
-                        <x-table.th>Pilih</x-table.th> {{-- Ganti Judul Kolom --}}
+                        <x-table.th>Total Bonus</x-table.th>
+                        <x-table.th>Sudah Ditarik</x-table.th>
+                        <x-table.th>Sisa Bonus</x-table.th>
+                        <x-table.th width="20%">Jumlah Penarikan</x-table.th>
+                        <x-table.th>Pilih</x-table.th>
                     </x-table.tr>
                 </x-table.thead>
 
                 <tbody>
                     @forelse ($memberBalance as $item)
                         <x-table.tr>
-                            {{-- Gunakan Skenario 1 atau 2 dari jawaban sebelumnya (Ini contoh pakai pagination) --}}
                             <x-table.td>{{ $loop->iteration }}</x-table.td>
                             <x-table.td>{{ $item->user->name }}</x-table.td>
-                            <x-table.td>Rp {{ number_format($item->transactions_sum_bonus, 0, ',', '.') }}</x-table.td>
+                            
+                            {{-- Data Statistik --}}
+                            <x-table.td>Rp {{ number_format($item->total_bonus, 0, ',', '.') }}</x-table.td>
+                            <x-table.td class="text-red-500">Rp {{ number_format($item->total_ditarik, 0, ',', '.') }}</x-table.td>
+                            <x-table.td class="font-bold text-blue-600">Rp {{ number_format($item->sisa_saldo, 0, ',', '.') }}</x-table.td>
+                            
+                            {{-- Input Custom Nominal (Disabled jika checkbox tidak dicentang) --}}
                             <x-table.td>
-                                
-                                {{-- BERUBAH MENJADI CHECKBOX --}}
-                                <input type="checkbox" 
-                                    wire:model="selectedMembers" 
-                                    value="{{ $item->id }}" 
-                                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
+                                <input type="number" 
+                                    wire:model="withdrawalAmounts.{{ $item->id }}" 
+                                    max="{{ $item->sisa_saldo }}"
+                                    class="w-full text-sm rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400"
+                                    disabled>
+                            </x-table.td>
 
+                            {{-- Checkbox --}}
+                            <x-table.td>
+                                <input type="checkbox" 
+                                    wire:model.live="selectedMembers" 
+                                    value="{{ $item->id }}" 
+                                    class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
                             </x-table.td>
                         </x-table.tr>
                     @empty
                         <x-table.tr>
-                            <x-table.td colspan="4" class="text-center py-4 text-gray-500">
-                                Tidak ada member yang memiliki bonus.
+                            <x-table.td colspan="7" class="text-center py-4 text-gray-500">
+                                Tidak ada member yang memiliki saldo.
                             </x-table.td>
                         </x-table.tr>
                     @endforelse

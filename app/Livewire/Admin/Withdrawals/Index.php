@@ -31,8 +31,9 @@ class Index extends Component
     public $title = "Withdrawal Management";
     public $oldImage;
     public $image;
-    public $memberBalance;
+    public $memberBalance = [];
     public $selectedMembers = [];
+    public $withdrawalAmounts = [];
 
     public $available_balance = 0;
 
@@ -96,22 +97,28 @@ class Index extends Component
         // 1. Ambil data member beserta total bonus dan total penarikannya
         $members = Member::with('user')
             ->withSum('transactions', 'bonus')
-            ->withSum('withdrawals', 'amount') // Pastikan relasi ini ada di Model Member
+            ->withSum('withdrawals', 'amount')
             ->get();
 
-        // 2. Hitung sisa saldo & buang member yang saldonya sudah 0
+        // Kosongkan array saat modal dibuka
+        $this->withdrawalAmounts = []; 
+
+        // 2. Hitung saldo dan siapkan default input
         $this->memberBalance = $members->map(function ($member) {
-            $totalBonus = $member->transactions_sum_bonus ?? 0;
-            $totalDitarik = $member->withdrawals_sum_amount ?? 0;
-            
-            // Buat variabel baru untuk menampung saldo bersih
-            $member->sisa_saldo = $totalBonus - $totalDitarik;
+            // Simpan sebagai properti agar mudah dipanggil di Blade
+            $member->total_bonus = $member->transactions_sum_bonus ?? 0;
+            $member->total_ditarik = $member->withdrawals_sum_amount ?? 0;
+            $member->sisa_saldo = $member->total_bonus - $member->total_ditarik;
             
             return $member;
         })->filter(function ($member) {
-            // Hanya tampilkan member yang sisa saldonya masih lebih dari 0
             return $member->sisa_saldo > 0;
-        })->values(); // Reset array index setelah difilter
+        })->values();
+
+        // 3. Set default 'Jumlah Penarikan' ke maksimal 'Sisa Saldo'
+        foreach ($this->memberBalance as $member) {
+            $this->withdrawalAmounts[$member->id] = $member->sisa_saldo;
+        }
 
         $this->isOpen = true;
     }
