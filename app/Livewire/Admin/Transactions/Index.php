@@ -2,18 +2,19 @@
 
 namespace App\Livewire\Admin\Transactions;
 
-use App\Models\Member;
-use Livewire\Component;
-use App\Models\Business;
-use App\Models\ActivityLog;
-use App\Models\Transaction;
-use Illuminate\Http\Request;
-use Livewire\WithPagination;
-use Livewire\WithFileUploads;
-use App\Services\BonusService;
-use App\Models\BonusLevelSetup;
-use Illuminate\Support\Facades\DB;
 use App\Imports\TransactionsImport;
+use App\Models\ActivityLog;
+use App\Models\BonusLevelSetup;
+use App\Models\Business;
+use App\Models\Member;
+use App\Models\Transaction;
+use App\Services\BonusService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
@@ -30,6 +31,7 @@ class Index extends Component
     public $hpp;
     public $balance;
     public $bonus;
+    public $record_id;
 
     public $members;
     public $businesses;
@@ -73,6 +75,7 @@ class Index extends Component
         if ($id) {
             $transaction = Transaction::findOrFail($id);
             $this->transaction_id = $transaction->id;
+            $this->record_id = $transaction->id;
             $this->business_id = $transaction->business_id;
             $this->member_id = $transaction->member_id;
             $this->transaction_code = $transaction->transaction_code;
@@ -95,6 +98,7 @@ class Index extends Component
     private function resetInput()
     {
         $this->business_id = '';
+        $this->record_id = null;
         $this->member_id = '';
         $this->transaction_code = '';
         $this->transaction_date = '';
@@ -105,57 +109,97 @@ class Index extends Component
         $this->transaction_id = null;
     }
 
+
     public function store()
     {
-        $this->validate($this->rules());
+        $isEditing = !empty($this->record_id);
+        $editingTransaction = $isEditing ? Transaction::find($this->record_id) : null;
 
-        DB::transaction(function () {
+        // ==========================================
+        // 1. RULES UNTUK CREATE & UPDATE
+        // ==========================================
+        $rules = [
+            'business_id'      => 'required|exists:businesses,id',
+            'member_id'        => 'required|exists:members,id',
+            'transaction_date' => 'required|date',
+            'amount'           => 'required|numeric',
+            'hpp'              => 'required|numeric',
+            'balance'          => 'required|numeric',
+            'bonus'            => 'required|numeric',
+        ];
+
+        // Optimasi penyusunan rule unique menjadi 1 blok ringkas
+        $rules['transaction_code'] = [
+            'required',
+            'string',
+            Rule::unique('transactions', 'transaction_code')
+                ->where('LevelMember', $isEditing ? $editingTransaction->LevelMember : 'Leader')
+                ->ignore($this->record_id)
+        ];
+
+        $this->validate($rules);
+
+        // ==========================================
+        // 2. PROSES PENYIMPANAN DATA
+        // ==========================================
+        DB::transaction(function () use ($isEditing, $editingTransaction) {
             
-            // 1. AMBIL DATA MEMBER (SHOPPER)
-            // Kita butuh ini untuk mengisi user_id & transaction_id
-            $shopper = Member::find($this->member_id);
-
-            // 2. Ambil Settingan 'Leader'
-            $leaderSetup = BonusLevelSetup::where('kodeBonus', 'Leader')->first();
-            $leaderPercent = $leaderSetup ? $leaderSetup->persenBonus : 0;
-
-            // 3. Ambil Inputan Bonus Dasar
             $baseBonusInput = $this->bonus; 
 
-            // 4. Hitung Bonus Leader
-            $calculatedLeaderBonus = $baseBonusInput * ($leaderPercent / 100);
+            if ($isEditing) {
+                // ---------------------------------------------------
+                // JALUR UPDATE (EDIT) UNTUK SEMUA LEVEL
+                // ---------------------------------------------------
+                // Langsung gunakan $editingTransaction, tidak perlu query findOrFail lagi!
+                $editingTransaction->update([
+                    'business_id'      => $this->business_id,
+                    'member_id'        => $this->member_id,
+                    'transaction_code' => $this->transaction_code,
+                    'transaction_date' => $this->transaction_date,
+                    'amount'           => $this->amount,
+                    'hpp'              => $this->hpp,
+                    'balance'          => $this->balance,
+                    'bonus'            => $baseBonusInput, 
+                ]);
 
-            // 5. SIMPAN TRANSAKSI ASLI (Row Leader)
-            $transaction = Transaction::updateOrCreate(
-                ['id' => $this->transaction_id],
-                array_merge($this->formData(), [
-                    
-                    // --- PERBAIKAN DISINI ---
-                    // Isi User ID sesuai Member yang belanja
-                    'user_id'          => $shopper->user_id, 
-                    
-                    // Isi Transaction ID dengan Member ID dia sendiri (sebagai sumber)
-                    'transaction_id'   => $shopper->user_id,      
+            } else {
+                // ---------------------------------------------------
+                // JALUR CREATE (TAMBAH BARU) - KHUSUS LEADER
+                // ---------------------------------------------------
+                // Pindahkan pencarian Member dan Setup ke dalam sini, 
+                // karena hanya dibutuhkan saat Create. Ini sangat menghemat beban database.
+                $shopper = Member::find($this->member_id);
+                $leaderSetup = BonusLevelSetup::where('kodeBonus', 'Leader')->first();
+                
+                $leaderPercent = $leaderSetup ? $leaderSetup->persenBonus : 0;
+                $calculatedLeaderBonus = $baseBonusInput * ($leaderPercent / 100);
 
-                    // Data Bonus Leader
-                    'bonus'            => $calculatedLeaderBonus,
+                $transaction = Transaction::create([
+                    'business_id'      => $this->business_id,
+                    'member_id'        => $this->member_id,
+                    'user_id'          => $shopper->user_id,
+                    'transaction_id'   => $shopper->user_id,
+                    'transaction_code' => $this->transaction_code,
+                    'transaction_date' => $this->transaction_date,
+                    'amount'           => $this->amount,
+                    'hpp'              => $this->hpp,
+                    'balance'          => $this->balance,
                     'LevelMember'      => 'Leader',
                     'BonusPercent'     => $leaderPercent,
-                    'transaction_code' => $this->transaction_code, 
-                ])
-            );
+                    'bonus'            => $calculatedLeaderBonus,
+                ]);
 
-            // 6. Panggil Service untuk Level 1 & Upline
-            if ($transaction->wasRecentlyCreated && $baseBonusInput > 0) {
-                $bonusService = new BonusService();
-                // Kirim ID transaksi & Nilai Bonus Dasar
-                $bonusService->distributeBonus($transaction->id, $baseBonusInput);
+                // Panggil Service untuk sebar bonus ke Level 1 & Upline
+                if ($baseBonusInput > 0) {
+                    // Dipersingkat menjadi 1 baris
+                    (new BonusService())->distributeBonus($transaction->id, $baseBonusInput);
+                }
             }
 
-            $this->afterSave($transaction->wasRecentlyCreated);
+            $this->afterSave(!$isEditing);
         });
     }
-
+    
     public function confirmDelete($id)
     {
         $this->confirmingDelete = $id;
@@ -170,20 +214,6 @@ class Index extends Component
             'type' => 'success',
             'message' => 'Transaction berhasil dihapus!',
         ]);
-    }
-
-    protected function rules()
-    {
-        return [
-            'business_id' => 'required|exists:businesses,id',
-            'member_id' => 'required|exists:members,id',
-            'transaction_code'    => 'required|string|unique:transactions,transaction_code,' . $this->transaction_id,
-            'transaction_date' => 'required|date',
-            'amount'   => 'required|numeric',
-            'hpp'   => 'required|numeric',
-            'balance'   => 'required|numeric',
-            'bonus'   => 'required|numeric',    
-        ];
     }
 
     protected function formData()
