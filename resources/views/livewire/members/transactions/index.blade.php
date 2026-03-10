@@ -10,8 +10,10 @@
             {{-- Statistik Ringkas (Income & Omzet) --}}
             <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div class="rounded-lg border border-blue-100 bg-blue-50 p-4">
-                    <dt class="truncate text-sm font-medium text-blue-500">Total Bonus Diterima (Income)</dt>
-                    <dd class="mt-1 text-2xl font-bold tracking-tight text-blue-700">Rp {{ number_format($totalIncome ?? 0, 0, ',', '.') }}</dd>
+                    <dt class="truncate text-sm font-medium text-blue-500">Sisa Saldo Bonus</dt>
+                    <dd class="mt-1 text-2xl font-bold tracking-tight text-blue-700">
+                        Rp {{ number_format(($totalIncome ?? 0) - ($totalWithdrawal ?? 0), 0, ',', '.') }}
+                    </dd>
                 </div>
             </div>
 
@@ -40,80 +42,68 @@
             </x-table.thead>
 
             <tbody>
-                @forelse ($transactions as $item)   
+                @forelse ($transactions as $item)
                     <x-table.tr>
                         <x-table.td>{{ $transactions->firstItem() + $loop->index }}</x-table.td>
                         
-                        {{-- 1. SUMBER BONUS --}}
-                        <x-table.td>
-                            <div class="flex flex-col">
-                                <span class="font-medium text-gray-900 dark:text-white">
-                                    {{-- Logic: Jika Level Leader/Level 1 = Diri Sendiri --}}
-                                    @if(in_array($item->LevelMember, ['Leader', 'Level 1']))
-                                        <span class="text-blue-600 font-semibold">Pribadi (Saya)</span>
-                                    @else
-                                        {{ $item->sourceMember->user->name ?? 'Member Terhapus' }}
-                                    @endif
-                                </span>
-                                <span class="text-xs text-gray-500">
-                                    {{ $item->sourceMember->member_code ?? '-' }}
-                                </span>
-                            </div>
-                        </x-table.td>
+                        {{-- CEK APAKAH INI BONUS ATAU WITHDRAWAL --}}
+                        @if($item->log_type === 'bonus')
 
-                        {{-- 2. NAMA TOKO --}}
-                        <x-table.td>{{ $item->business->name ?? '-' }}</x-table.td>
-                        
-                        {{-- 3. KODE TRX --}}
-                        <x-table.td>
-                            <span class="font-mono text-xs text-gray-500">
-                                {{ $item->transaction_code }}
-                            </span>
-                        </x-table.td>
+                            {{-- TAMPILAN UNTUK BONUS --}}
+                            <x-table.td>{{ $item->sourceMember->user->name ?? '-' }}</x-table.td>
+                            <x-table.td>{{ $item->business->name ?? '-' }}</x-table.td>
+                            <x-table.td>{{ $item->transaction_code }}</x-table.td>
+                            
+                            {{-- PERBAIKAN TANGGAL --}}
+                            <x-table.td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y') }}</x-table.td>
+                            
+                            <x-table.td>{{ $item->LevelMember }}</x-table.td>
+                            
+                            {{-- TAMBAHAN KOLOM PERSENTASE (KARENA DI HEADER ADA) --}}
+                            <x-table.td>{{ $item->BonusPercent ?? 0 }}%</x-table.td>
 
-                        {{-- 4. TANGGAL --}}
-                        <x-table.td>
-                            <div class="flex flex-col">
-                                <span>{{ $item->created_at ? $item->created_at->format('d M Y') : '-' }}</span>
-                                <span class="text-xs text-gray-400">{{ $item->created_at ? $item->created_at->format('H:i') : '' }}</span>
-                            </div>
-                        </x-table.td>
-                        
-                        {{-- 5. LEVEL BADGE --}}
-                        <x-table.td>
-                            @php
-                                $lvl = $item->LevelMember ?? '-';
-                                $color = match($lvl) {
-                                    'Leader' => 'bg-purple-50 text-purple-700 ring-purple-700/10',
-                                    'Level 1' => 'bg-green-50 text-green-700 ring-green-600/20',
-                                    '-' => 'bg-gray-50 text-gray-600 ring-gray-500/10',
-                                    default => 'bg-blue-50 text-blue-700 ring-blue-700/10', // Level 2 dst
-                                };
-                            @endphp
-                            <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset {{ $color }}">
-                                {{ $lvl }}
-                            </span>
-                        </x-table.td>
+                            <x-table.td class="text-green-600 font-bold text-right">
+                                + Rp {{ number_format($item->bonus, 0, ',', '.') }}
+                            </x-table.td>
 
-                        {{-- 6. PERSENTASE --}}
-                        <x-table.td>
-                            <span class="text-gray-600">{{ $item->BonusPercent }}%</span>
-                        </x-table.td>
+                        @else
 
-                        {{-- 8. BONUS DITERIMA (INCOME) --}}
-                        <x-table.td class="text-right font-bold text-green-600">
-                            + {{ number_format($item->bonus, 0, ',', '.') }}
-                        </x-table.td>
+                            {{-- TAMPILAN UNTUK WITHDRAWAL (PENARIKAN) --}}
+                            <x-table.td>
+                                <span class="text-red-600 font-semibold">Penarikan Saldo</span>
+                            </x-table.td>
+                            <x-table.td>
+                                <span class="text-red-600 font-semibold">-</span>
+                            </x-table.td>
+                            <x-table.td>
+                                <span class="text-red-600 font-semibold">-</span>
+                            </x-table.td>
+                            
+                            {{-- PERBAIKAN TANGGAL --}}
+                            <x-table.td>
+                                <span class="text-red-600 font-semibold">{{ \Carbon\Carbon::parse($item->date)->format('d M Y') }}</span>
+                            </x-table.td>
+                            
+                            <x-table.td>
+                                <span class="bg-gray-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">Withdrawal</span>
+                            </x-table.td>
+                            
+                            {{-- KOSONGKAN KOLOM PERSENTASE UNTUK WITHDRAWAL --}}
+                            <x-table.td>
+                                <span class="bg-gray-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">-</span>
+                            </x-table.td>
+
+                            <x-table.td class="text-red-500 font-bold text-right">
+                                - Rp {{ number_format($item->amount, 0, ',', '.') }}
+                            </x-table.td>
+
+                        @endif
+
                     </x-table.tr>
                 @empty
                     <x-table.tr>
-                        <x-table.td colspan="9" class="py-12 text-center text-gray-500">
-                            <div class="flex flex-col items-center justify-center gap-2">
-                                <svg class="h-10 w-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <p>Belum ada riwayat transaksi bonus.</p>
-                            </div>
+                        <x-table.td colspan="8" class="text-center py-4 text-gray-500">
+                            Belum ada transaksi maupun penarikan.
                         </x-table.td>
                     </x-table.tr>
                 @endforelse
