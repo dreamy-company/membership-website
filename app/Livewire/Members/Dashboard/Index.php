@@ -5,6 +5,8 @@ namespace App\Livewire\Members\Dashboard;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 
 // Models
 use App\Models\BonusLog;
@@ -46,69 +48,88 @@ class Index extends Component
         $myMemberId = $myMember->id;
 
         // ==========================================
-        // 1. DATA TABEL (LIST HISTORY TRANSAKSI)
+        // 1. DATA TRANSAKSI (BONUS MASUK)
         // ==========================================
-        // Kita ambil dari tabel Transaction dimana member_id = Saya
-        // Ini akan menampilkan:
-        // - Row 'Leader' (Saat saya belanja sendiri)
-        // - Row 'Level 1' (Bonus belanja sendiri)
-        // - Row 'Level 2', 'Level 3' (Bonus dari Downline)
-        
-        $transactions = Transaction::with(['sourceMember.user', 'business'])
-            ->where('member_id', $myMemberId)
-            ->where(function (Builder $query) {
-                if ($this->search) {
-                    $query->whereHas('sourceMember.user', function ($q) {
-                        // Cari berdasarkan nama orang yang belanja (Sumber Bonus)
-                        $q->where('name', 'like', '%' . $this->search . '%');
-                    })
-                    ->orWhere('transaction_code', 'like', '%' . $this->search . '%')
-                    ->orWhere('LevelMember', 'like', '%' . $this->search . '%'); // Bisa cari 'Level 1', 'Leader'
-                }
-            })
-            ->latest()
-            ->paginate($this->perPage);
+        $transactionsQuery = Transaction::with(['sourceMember.user', 'business'])
+            ->where('member_id', $myMemberId);
+
+        if ($this->search) {
+            $transactionsQuery->where(function (Builder $query) {
+                $query->whereHas('sourceMember.user', function ($q) {
+                    $q->where('name', 'like', '%' . $this->search . '%');
+                })
+                ->orWhere('transaction_code', 'like', '%' . $this->search . '%')
+                ->orWhere('LevelMember', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        $transactions = $transactionsQuery->get()->map(function ($item) {
+            $item->log_type = 'bonus';
+            return $item;
+        });
+
 
         // ==========================================
-        // 2. STATISTIK KEUANGAN
+        // 2. DATA WITHDRAWAL (PENARIKAN)
         // ==========================================
-        
-        // A. Total Belanja Pribadi (My Spending)
-        // Logika: Jumlahkan 'amount' TAPI hanya yang 'Leader'.
-        // Kenapa? Karena saat belanja, kita dapat row 'Leader' dan 'Level 1'.
-        // Kalau tidak difilter, total belanja akan terhitung 2x lipat.
+        $withdrawalsQuery = Withdrawal::where('member_id', $myMemberId);
+
+        if ($this->search) {
+            $withdrawalsQuery->where('amount', 'like', '%' . $this->search . '%');
+        }
+
+        $withdrawals = $withdrawalsQuery->get()->map(function ($item) {
+            $item->log_type = 'withdrawal';
+            $item->created_at = $item->date; // Samakan agar bisa diurutkan dengan mudah
+            return $item;
+        });
+
+
+        // ==========================================
+        // 3. GABUNGKAN & PAGINASI MANUAL
+        // ==========================================
+        $allLogs = $transactions->concat($withdrawals)->sortByDesc('created_at')->values();
+
+        $page = Paginator::resolveCurrentPage() ?: 1;
+        $paginatedLogs = new LengthAwarePaginator(
+            $allLogs->forPage($page, $this->perPage), 
+            $allLogs->count(), 
+            $this->perPage,
+            $page,
+            ['path' => Paginator::resolveCurrentPath()] 
+        );
+
+
+        // ==========================================
+        // 4. STATISTIK KEUANGAN
+        // ==========================================
         $mySpendingTotal = Transaction::where('member_id', $myMemberId)
                             ->where('LevelMember', 'Leader') 
                             ->sum('amount');
         
-        // B. Total Semua Bonus Masuk (Income)
-        // Jumlahkan kolom 'bonus'. Ini adalah uang real yang masuk ke dompet.
         $totalBonusIncome = Transaction::where('member_id', $myMemberId)->sum('bonus'); 
+        
+        // [PERBAIKAN] Ambil total penarikan yang sesungguhnya dari database
+        $totalWithdrawn = Withdrawal::where('member_id', $myMemberId)->sum('amount'); 
+        
+        // Saldo bersih
+        $currentBalance = $totalBonusIncome - $totalWithdrawn;
 
-        // C. Total Uang Ditarik (Withdrawal)
-        // [REQUEST] Kosongkan dulu
-        $totalWithdrawn = 0; 
 
         // ==========================================
-        // 3. STATISTIK JARINGAN (NETWORK)
+        // 5. STATISTIK JARINGAN (NETWORK)
         // ==========================================
-        // (Logic Tree/Downline tetap sama)
         $networkStats = $myMember->getNetworkStats(5); 
         $totalMembers = array_sum($networkStats);      
 
-        return view('dashboard', [
-            // Data Tabel
-            'transactions'      => $transactions,
+        return view('dashboard', [ // Sesuaikan nama view jika berbeda
+            'transactions'      => $paginatedLogs, // Kirim data yang sudah digabung
             
-            // Data Keuangan
             'transactionTotal'  => $mySpendingTotal,
             'bonusTotal'        => $totalBonusIncome,
             'withdrawnTotal'    => $totalWithdrawn,
+            'currentBalance'    => $currentBalance, 
             
-            // Hitung Saldo Saat Ini (Bonus Masuk - 0)
-            'currentBalance'    => $totalBonusIncome - $totalWithdrawn, 
-            
-            // Data Jaringan
             'totalMembers'      => $totalMembers,
             'networkStats'      => $networkStats
         ]);
