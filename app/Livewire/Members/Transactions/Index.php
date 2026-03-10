@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Members\Transactions;
 
-
 use App\Models\Transaction;
 use App\Models\Withdrawal;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,19 +22,41 @@ class Index extends Component
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
 
-    public function mount()
+    public function updatingSearch()
     {
-
+        // Reset paginasi ke halaman 1 ketika user mengetik di kolom pencarian
+        $this->resetPage();
     }
 
     public function render()
     {
-        $myMemberId = auth()->user()->member->id;
+        $user = auth()->user();
+        
+        if (!$user->member) {
+            abort(403, 'Akun anda belum terdaftar sebagai Member.');
+        }
+
+        $myMemberId = $user->member->id;
 
         // ==========================================
-        // 1. AMBIL DATA TRANSAKSI (BONUS MASUK)
+        // 1. OPTIMASI STATISTIK DOMPET (1 Query)
         // ==========================================
-        $transactionsQuery = Transaction::with(['sourceMember.user', 'business'])
+        // Menggabungkan 2 query SUM menjadi 1 kali jalan ke database
+        $txStats = Transaction::where('member_id', $myMemberId)
+            ->selectRaw("SUM(bonus) as total_income")
+            ->selectRaw("SUM(amount) as total_omzet")
+            ->first();
+
+        $totalIncome = $txStats->total_income ?? 0;
+        $totalOmzet  = $txStats->total_omzet ?? 0;
+        $totalWithdrawal = Withdrawal::where('member_id', $myMemberId)->sum('amount');
+
+        // ==========================================
+        // 2. DATA TRANSAKSI (HEMAT MEMORI RAM)
+        // ==========================================
+        $transactionsQuery = Transaction::with(['sourceMember.user:id,name', 'business:id,name'])
+            // HANYA ambil kolom yang ditampilkan di tabel agar memori tidak penuh
+            ->select('id', 'member_id', 'transaction_id', 'business_id', 'transaction_code', 'LevelMember', 'BonusPercent', 'bonus', 'created_at')
             ->where('member_id', $myMemberId);
 
         if ($this->search) {
@@ -52,57 +73,45 @@ class Index extends Component
         }
 
         $transactions = $transactionsQuery->get()->map(function ($item) {
-            $item->log_type = 'bonus'; // Tandai baris ini sebagai Bonus
+            $item->log_type = 'bonus'; 
             return $item;
         });
 
-
         // ==========================================
-        // 2. AMBIL DATA WITHDRAWAL (UANG KELUAR)
+        // 3. DATA WITHDRAWAL (HEMAT MEMORI RAM)
         // ==========================================
-        $withdrawalsQuery = Withdrawal::where('member_id', $myMemberId);
+        $withdrawalsQuery = Withdrawal::select('id', 'member_id', 'amount', 'date')
+            ->where('member_id', $myMemberId);
 
         if ($this->search) {
-            // Jika ada pencarian nominal di withdrawal
             $withdrawalsQuery->where('amount', 'like', '%' . $this->search . '%');
         }
 
         $withdrawals = $withdrawalsQuery->get()->map(function ($item) {
-            $item->log_type = 'withdrawal'; // Tandai baris ini sebagai Withdrawal
-            $item->created_at = $item->date; // Samakan format tanggal agar bisa diurutkan bersamaan
+            $item->log_type = 'withdrawal'; 
+            $item->created_at = $item->date; 
             return $item;
         });
 
-
         // ==========================================
-        // 3. GABUNGKAN, URUTKAN, & PAGINASI MANUAL
+        // 4. GABUNGKAN, URUTKAN, & PAGINASI MANUAL
         // ==========================================
-        // Gabungkan (concat) lalu urutkan dari yang terbaru (sortByDesc)
         $allLogs = $transactions->concat($withdrawals)->sortByDesc('created_at')->values();
 
-        // Buat pagination manual
         $page = Paginator::resolveCurrentPage() ?: 1;
         $paginatedLogs = new LengthAwarePaginator(
-            $allLogs->forPage($page, $this->perPage), // Data per halaman
-            $allLogs->count(), // Total data
+            $allLogs->forPage($page, $this->perPage), 
+            $allLogs->count(), 
             $this->perPage,
             $page,
-            ['path' => Paginator::resolveCurrentPath()] // URL untuk klik next page
+            ['path' => Paginator::resolveCurrentPath()] 
         );
 
-
-        // ==========================================
-        // 4. HITUNG STATISTIK DOMPET
-        // ==========================================
-        $totalIncome = Transaction::where('member_id', $myMemberId)->sum('bonus');
-        $totalOmzet = Transaction::where('member_id', $myMemberId)->sum('amount');
-        $totalWithdrawal = Withdrawal::where('member_id', $myMemberId)->sum('amount');
-
         return view('livewire.members.transactions.index', [
-            'transactions' => $paginatedLogs, // Kita lempar variabel yang sudah digabung
-            'totalIncome'  => $totalIncome,
-            'totalOmzet'   => $totalOmzet,
-            'totalWithdrawal' => $totalWithdrawal // Tambahan untuk di view (opsional)
+            'transactions'    => $paginatedLogs, 
+            'totalIncome'     => $totalIncome,
+            'totalOmzet'      => $totalOmzet,
+            'totalWithdrawal' => $totalWithdrawal 
         ]);
     }
 }
