@@ -88,7 +88,7 @@
     </div>
 
     @if($isOpen)
-        <x-modal.form-modal :formTitle="$transaction_id ? 'Edit Transaction' : 'Add Transaction'" action="store()" height="h-auto">
+        <x-modal.form-modal :formTitle="$record_id ? 'Edit Transaction' : 'Add Transaction'" action="store()" height="h-auto">
             <div class="grid gap-4 grid-cols-1 py-4 md:py-6">
                 
                 @php
@@ -113,6 +113,7 @@
                             placeholder="Cari UMKM..." 
                         />
                     </div>
+                    
 
                     <div class="mb-2">
                         <x-modal.searchable-select 

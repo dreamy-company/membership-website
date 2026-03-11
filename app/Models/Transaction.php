@@ -32,8 +32,8 @@ class Transaction extends Model
 
     public function sourceMember()
     {
-        // transaction_id berisi ID Member yang melakukan belanja (sumber omzet)
-        return $this->belongsTo(Member::class, 'transaction_id');
+        // Parameter: (ModelTujuan, foreign_key_di_tabel_ini, local_key_di_tabel_tujuan)
+        return $this->belongsTo(Member::class, 'transaction_id', 'user_id');
     }
 
     public function member()
