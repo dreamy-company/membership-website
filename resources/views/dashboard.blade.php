@@ -108,86 +108,107 @@
     </div>
 
     {{-- 3. TRANSACTION HISTORY TABLE --}}
+   {{-- 3. TRANSACTION HISTORY TABLE --}}
     <div>
         <div class="mb-4 flex items-center justify-between">
             <h2 class="text-lg font-bold text-gray-900 dark:text-white">Riwayat Transaksi</h2>
         </div>
 
-        <div class="relative overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+        <div class="relative overflow-x-auto rounded-lg border border-neutral-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900 mt-4 mx-4 mb-4">
             <x-table.table>
                 <x-table.thead>
                     <x-table.tr>
                         <x-table.th>No</x-table.th>
-                        <x-table.th>Member Asal</x-table.th>
-                        <x-table.th>UMKM / Toko</x-table.th>
+                        <x-table.th>Sumber (Downline)</x-table.th>
+                        <x-table.th>Toko / UMKM</x-table.th>
                         <x-table.th>Kode Transaksi</x-table.th>
                         <x-table.th>Tanggal</x-table.th>
-                        <x-table.th>Jam</x-table.th>
                         <x-table.th>Level</x-table.th>
-                        <x-table.th>Persentase</x-table.th>
-                        <x-table.th class="text-right">Bonus (Rp)</x-table.th>
+                        <x-table.th>Persen</x-table.th>
+                        <x-table.th class="text-right">Bonus/Tarikan (Rp)</x-table.th>
                     </x-table.tr>
                 </x-table.thead>
 
                 <tbody>
-                    @forelse ($transactions as $item)   
+                    @forelse ($transactions as $item)
                         <x-table.tr>
                             <x-table.td>{{ $transactions->firstItem() + $loop->index }}</x-table.td>
                             
-                            {{-- Member Asal (Sumber Bonus) --}}
-                            <x-table.td>
-                                <span class="font-medium text-gray-900 dark:text-white">
-                                    @if(in_array($item->LevelMember, ['Leader', 'Level 1']))
-                                        Diri Sendiri
-                                    @else
-                                        {{ $item->sourceMember->user->name ?? '-' }}
+                            {{-- CEK APAKAH INI BONUS ATAU WITHDRAWAL --}}
+                            @if($item->log_type === 'bonus')
+
+                                {{-- TAMPILAN UNTUK BONUS --}}
+                                <x-table.td>
+                                    <span class="font-medium text-gray-900 dark:text-white">
+                                        @if(in_array($item->LevelMember, ['Leader', 'Level 1']))
+                                            Diri Sendiri
+                                        @else
+                                            {{ $item->sourceMember->user->name ?? '-' }}
+                                        @endif
+                                    </span>
+                                    @if(isset($item->sourceMember->member_code))
+                                        <div class="text-xs text-gray-500">{{ $item->sourceMember->member_code }}</div>
                                     @endif
-                                </span>
-                                @if(isset($item->sourceMember->member_code))
-                                    <div class="text-xs text-gray-500">{{ $item->sourceMember->member_code }}</div>
-                                @endif
-                            </x-table.td>
+                                </x-table.td>
+                                <x-table.td>{{ $item->business->name ?? '-' }}</x-table.td>
+                                <x-table.td>
+                                    <span class="font-mono text-xs text-gray-500">
+                                        {{ $item->transaction_code ?? '-' }}
+                                    </span>
+                                </x-table.td>
 
-                            <x-table.td>{{ $item->business->name ?? '-' }}</x-table.td>
-                            
-                            <x-table.td>
-                                <span class="font-mono text-xs text-gray-500">
-                                    {{ $item->transaction_code ?? '-' }}
-                                </span>
-                            </x-table.td>
+                                {{-- PERBAIKAN FORMAT TANGGAL MENGGUNAKAN CARBON --}}
+                                <x-table.td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y H:i') }}</x-table.td>
 
-                            <x-table.td>
-                                {{ $item->created_at ? $item->created_at->format('d M Y') : '-' }}
-                            </x-table.td>
+                                <x-table.td>
+                                    @php
+                                        $lvl = $item->LevelMember ?? '-';
+                                        $color = match($lvl) {
+                                            'Leader' => 'bg-purple-50 text-purple-700 ring-purple-700/10',
+                                            'Level 1' => 'bg-green-50 text-green-700 ring-green-600/20',
+                                            '-' => 'bg-gray-50 text-gray-600 ring-gray-500/10',
+                                            default => 'bg-blue-50 text-blue-700 ring-blue-700/10',
+                                        };
+                                    @endphp
+                                    <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset {{ $color }}">
+                                        {{ $lvl }}
+                                    </span>
+                                </x-table.td>
 
-                            <x-table.td>
-                                {{ $item->created_at ? $item->created_at->format('H:i') : '-' }}
-                            </x-table.td>
-                            
-                            <x-table.td>
-                                @php
-                                    $lvl = $item->LevelMember ?? '-';
-                                    $color = match($lvl) {
-                                        'Leader' => 'bg-purple-50 text-purple-700 ring-purple-700/10',
-                                        'Level 1' => 'bg-green-50 text-green-700 ring-green-600/20',
-                                        '-' => 'bg-gray-50 text-gray-600 ring-gray-500/10',
-                                        default => 'bg-blue-50 text-blue-700 ring-blue-700/10',
-                                    };
-                                @endphp
-                                <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset {{ $color }}">
-                                    {{ $lvl }}
-                                </span>
-                            </x-table.td>
+                                <x-table.td>{{ $item->BonusPercent ?? 0 }}%</x-table.td>
+                                
+                                <x-table.td class="text-right font-bold text-green-600">
+                                    + Rp {{ number_format($item->bonus ?? 0, 0, ',', '.') }}
+                                </x-table.td>
 
-                            <x-table.td>{{ $item->BonusPercent ?? 0 }}%</x-table.td>
-                            
-                            <x-table.td class="text-right font-bold text-green-600">
-                                + {{ number_format($item->bonus ?? 0, 0, ',', '.') }}
-                            </x-table.td>
+                            @else
+
+                                {{-- TAMPILAN UNTUK WITHDRAWAL (PENARIKAN) --}}
+                                <x-table.td>
+                                    <span class="text-blue-600 font-semibold">Penarikan Saldo</span>
+                                </x-table.td>
+                                <x-table.td>-</x-table.td>
+                                <x-table.td>-</x-table.td>
+
+                                {{-- PERBAIKAN FORMAT TANGGAL MENGGUNAKAN CARBON --}}
+                                <x-table.td>{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y H:i') }}</x-table.td>
+
+                                <x-table.td>
+                                    <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded">Withdrawal</span>
+                                </x-table.td>
+                                
+                                <x-table.td>-</x-table.td>
+
+                                <x-table.td class="text-red-500 font-bold text-right">
+                                    - Rp {{ number_format($item->amount, 0, ',', '.') }}
+                                </x-table.td>
+
+                            @endif
+
                         </x-table.tr>
                     @empty
                         <x-table.tr>
-                            <x-table.td colspan="9" class="py-8 text-center text-gray-500">
+                            <x-table.td colspan="8" class="text-center py-8 text-gray-500">
                                 <div class="flex flex-col items-center justify-center gap-2">
                                     <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                                     <p>Belum ada riwayat transaksi.</p>
@@ -197,14 +218,15 @@
                     @endforelse
                 </tbody>
 
-                {{-- FOOTER UNTUK TOTAL --}}
+                {{-- FOOTER UNTUK TOTAL KESELURUHAN --}}
                 <tfoot class="bg-gray-50 dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700">
                     <x-table.tr>
-                        <x-table.td colspan="8" class="text-right font-bold text-gray-900 dark:text-white py-4">
-                            Total Keseluruhan:
+                        <x-table.td colspan="7" class="text-right font-bold text-gray-900 dark:text-white py-4">
+                            Sisa Saldo Aktif:
                         </x-table.td>
-                        <x-table.td class="text-right font-bold text-green-600 text-lg">
-                            Rp {{ number_format($bonusTotal ?? 0, 0, ',', '.') }}
+                        <x-table.td class="text-right font-bold text-blue-600 text-lg">
+                            {{-- Menggunakan variabel currentBalance yang kita buat di Controller --}}
+                            Rp {{ number_format($currentBalance ?? 0, 0, ',', '.') }}
                         </x-table.td>
                     </x-table.tr>
                 </tfoot>

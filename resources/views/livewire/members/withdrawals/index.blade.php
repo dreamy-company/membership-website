@@ -25,8 +25,8 @@
                     <x-table.th>No</x-table.th>
                     <x-table.th>Member</x-table.th>
                     <x-table.th>Withdrawal Amount</x-table.th>
-                    <x-table.th>Payment Receipt</x-table.th>
                     <x-table.th>Date</x-table.th>
+                    <x-table.th>Payment Receipt</x-table.th>
                 </x-table.tr>
             </x-table.thead>
 
@@ -38,12 +38,17 @@
                         <x-table.td>{{ number_format($item->amount) }}</x-table.td>
                         <x-table.td>{{ $item->created_at->format('d M Y') }}</x-table.td>
                         <x-table.td>
-                            @if ($item->payment_receipt)
-                                <x-widget.button color="neutral" name="Detail"
-                                    action="openModal('{{ $item->payment_receipt }}')" />
-                            @else
-                                <span class="text-gray-400">No receipt</span>
-                            @endif
+                            <div class="flex items-center justify-center gap-2">
+                                @if($item->payment_receipt)
+                                    <a href="{{ asset('storage/' . $item->payment_receipt) }}" target="_blank" 
+                                    class="inline-flex shrink-0 items-center justify-center p-2 text-blue-600 bg-white hover:bg-blue-50 rounded-lg transition-colors shadow-sm border border-blue-200" 
+                                    title="Preview PDF">
+                                        <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 10V4a1 1 0 0 0-1-1H9.914a1 1 0 0 0-.707.293L5.293 7.207A1 1 0 0 0 5 7.914V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2M10 3v4a1 1 0 0 1-1 1H5m5 6h9m0 0-2-2m2 2-2 2"/>
+                                        </svg>
+                                    </a>
+                                @endif
+                            </div>
                         </x-table.td>
                     </x-table.tr>
                 @empty

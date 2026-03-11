@@ -2,11 +2,12 @@
 
 namespace App\Livewire\Members\Transactions;
 
-
-use Livewire\Component;
-use Illuminate\Database\Eloquent\Builder;
-
 use App\Models\Transaction;
+use App\Models\Withdrawal;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Livewire\Component;
 use Livewire\WithPagination;
 
 class Index extends Component
@@ -21,48 +22,96 @@ class Index extends Component
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
 
-    public function mount()
+    public function updatingSearch()
     {
-
+        // Reset paginasi ke halaman 1 ketika user mengetik di kolom pencarian
+        $this->resetPage();
     }
 
     public function render()
     {
-        $myMemberId = auth()->user()->member->id;
+        $user = auth()->user();
+        
+        if (!$user->member) {
+            abort(403, 'Akun anda belum terdaftar sebagai Member.');
+        }
 
-        // 1. QUERY DATA TRANSAKSI (BONUS LOG)
-        // Kita load 'sourceMember.user' untuk mengambil nama Downline yang belanja
-        $transactions = Transaction::with(['sourceMember.user', 'business'])
-            ->where('member_id', $myMemberId) // Ambil yang penerimanya adalah SAYA
-            ->where(function (Builder $query) {
-                if ($this->search) {
-                    $query->whereHas('sourceMember.user', function ($q) {
-                        // Search Nama Downline
-                        $q->where('name', 'like', '%' . $this->search . '%');
-                    })
-                    ->orWhereHas('business', function ($q) {
-                        // Search Nama Toko
-                        $q->where('name', 'like', '%' . $this->search . '%');
-                    })
-                    ->orWhere('transaction_code', 'like', '%' . $this->search . '%')
-                    ->orWhere('LevelMember', 'like', '%' . $this->search . '%'); 
-                }
-            })
-            ->latest()
-            ->paginate($this->perPage);
+        $myMemberId = $user->member->id;
 
-        // 2. HITUNG TOTAL INCOME (UANG MASUK)
-        // Gunakan 'bonus', JANGAN 'amount'
-        $totalIncome = Transaction::where('member_id', $myMemberId)->sum('bonus');
+        // ==========================================
+        // 1. OPTIMASI STATISTIK DOMPET (1 Query)
+        // ==========================================
+        // Menggabungkan 2 query SUM menjadi 1 kali jalan ke database
+        $txStats = Transaction::where('member_id', $myMemberId)
+            ->selectRaw("SUM(bonus) as total_income")
+            ->selectRaw("SUM(amount) as total_omzet")
+            ->first();
 
-        // 3. (Opsional) HITUNG TOTAL OMZET DOWNLINE
-        // Gunakan 'amount' tapi hanya untuk downline (Level 2 ke atas) jika mau omzet murni
-        $totalOmzet = Transaction::where('member_id', $myMemberId)->sum('amount');
+        $totalIncome = $txStats->total_income ?? 0;
+        $totalOmzet  = $txStats->total_omzet ?? 0;
+        $totalWithdrawal = Withdrawal::where('member_id', $myMemberId)->sum('amount');
+
+        // ==========================================
+        // 2. DATA TRANSAKSI (HEMAT MEMORI RAM)
+        // ==========================================
+        $transactionsQuery = Transaction::with(['sourceMember.user:id,name', 'business:id,name'])
+            // HANYA ambil kolom yang ditampilkan di tabel agar memori tidak penuh
+            ->select('id', 'member_id', 'transaction_id', 'business_id', 'transaction_code', 'LevelMember', 'BonusPercent', 'bonus', 'created_at')
+            ->where('member_id', $myMemberId);
+
+        if ($this->search) {
+            $transactionsQuery->where(function (Builder $query) {
+                $query->whereHas('sourceMember.user', function ($q) {
+                    $q->where('name', 'like', '%' . $this->search . '%');
+                })
+                ->orWhereHas('business', function ($q) {
+                    $q->where('name', 'like', '%' . $this->search . '%');
+                })
+                ->orWhere('transaction_code', 'like', '%' . $this->search . '%')
+                ->orWhere('LevelMember', 'like', '%' . $this->search . '%'); 
+            });
+        }
+
+        $transactions = $transactionsQuery->get()->map(function ($item) {
+            $item->log_type = 'bonus'; 
+            return $item;
+        });
+
+        // ==========================================
+        // 3. DATA WITHDRAWAL (HEMAT MEMORI RAM)
+        // ==========================================
+        $withdrawalsQuery = Withdrawal::select('id', 'member_id', 'amount', 'date')
+            ->where('member_id', $myMemberId);
+
+        if ($this->search) {
+            $withdrawalsQuery->where('amount', 'like', '%' . $this->search . '%');
+        }
+
+        $withdrawals = $withdrawalsQuery->get()->map(function ($item) {
+            $item->log_type = 'withdrawal'; 
+            $item->created_at = $item->date; 
+            return $item;
+        });
+
+        // ==========================================
+        // 4. GABUNGKAN, URUTKAN, & PAGINASI MANUAL
+        // ==========================================
+        $allLogs = $transactions->concat($withdrawals)->sortByDesc('created_at')->values();
+
+        $page = Paginator::resolveCurrentPage() ?: 1;
+        $paginatedLogs = new LengthAwarePaginator(
+            $allLogs->forPage($page, $this->perPage), 
+            $allLogs->count(), 
+            $this->perPage,
+            $page,
+            ['path' => Paginator::resolveCurrentPath()] 
+        );
 
         return view('livewire.members.transactions.index', [
-            'transactions' => $transactions,
-            'totalIncome'  => $totalIncome,
-            'totalOmzet'   => $totalOmzet
+            'transactions'    => $paginatedLogs, 
+            'totalIncome'     => $totalIncome,
+            'totalOmzet'      => $totalOmzet,
+            'totalWithdrawal' => $totalWithdrawal 
         ]);
     }
 }

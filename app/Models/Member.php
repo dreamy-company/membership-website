@@ -66,6 +66,12 @@ class Member extends Model
         return $this->hasMany(Withdrawal::class, 'member_id');
     }
 
+    public function transactions()
+    {
+        // Mengacu ke 'member_id' sebagai penerima bonus
+        return $this->hasMany(Transaction::class, 'member_id'); 
+    }
+
     /*
     |--------------------------------------------------------------------------
     | ACCESSORS (Virtual Attributes)
