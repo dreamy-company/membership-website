@@ -100,24 +100,27 @@ class Index extends Component
             ->withSum('withdrawals', 'amount')
             ->get();
 
-        // Kosongkan array saat modal dibuka
         $this->withdrawalAmounts = []; 
 
-        // 2. Hitung saldo dan siapkan default input
+        // UBAH BAGIAN INI: Kita kembalikan sebagai Array [ ... ]
         $this->memberBalance = $members->map(function ($member) {
-            // Simpan sebagai properti agar mudah dipanggil di Blade
-            $member->total_bonus = $member->transactions_sum_bonus ?? 0;
-            $member->total_ditarik = $member->withdrawals_sum_amount ?? 0;
-            $member->sisa_saldo = $member->total_bonus - $member->total_ditarik;
+            $totalBonus = $member->transactions_sum_bonus ?? 0;
+            $totalDitarik = $member->withdrawals_sum_amount ?? 0;
             
-            return $member;
-        })->filter(function ($member) {
-            return $member->sisa_saldo > 0;
-        })->values();
+            return [
+                'id'            => $member->id,
+                'name'          => $member->user->name ?? '-',
+                'total_bonus'   => $totalBonus,
+                'total_ditarik' => $totalDitarik,
+                'sisa_saldo'    => $totalBonus - $totalDitarik,
+            ];
+        })->filter(function ($item) {
+            return $item['sisa_saldo'] > 0;
+        })->values()->toArray(); // <-- PENTING: Ubah jadi array murni
 
-        // 3. Set default 'Jumlah Penarikan' ke maksimal 'Sisa Saldo'
-        foreach ($this->memberBalance as $member) {
-            $this->withdrawalAmounts[$member->id] = $member->sisa_saldo;
+        // Update loop default nilainya
+        foreach ($this->memberBalance as $item) {
+            $this->withdrawalAmounts[$item['id']] = $item['sisa_saldo'];
         }
 
         $this->isOpen = true;
