@@ -99,27 +99,25 @@
                     @forelse ($memberBalance as $item)
                         <x-table.tr>
                             <x-table.td>{{ $loop->iteration }}</x-table.td>
-                            <x-table.td>{{ $item->user->name }}</x-table.td>
                             
-                            {{-- Data Statistik --}}
-                            <x-table.td>Rp {{ number_format($item->total_bonus, 0, ',', '.') }}</x-table.td>
-                            <x-table.td class="text-red-500">Rp {{ number_format($item->total_ditarik, 0, ',', '.') }}</x-table.td>
-                            <x-table.td class="font-bold text-blue-600">Rp {{ number_format($item->sisa_saldo, 0, ',', '.') }}</x-table.td>
+                            {{-- Panggil dengan kurung siku --}}
+                            <x-table.td>{{ $item['name'] }}</x-table.td>
                             
-                            {{-- Input Custom Nominal (Disabled jika checkbox tidak dicentang) --}}
+                            <x-table.td>Rp {{ number_format($item['total_bonus'], 0, ',', '.') }}</x-table.td>
+                            <x-table.td class="text-red-500">Rp {{ number_format($item['total_ditarik'], 0, ',', '.') }}</x-table.td>
+                            <x-table.td class="font-bold text-blue-600">Rp {{ number_format($item['sisa_saldo'], 0, ',', '.') }}</x-table.td>
+                            
                             <x-table.td>
                                 <input type="number" 
-                                    wire:model="withdrawalAmounts.{{ $item->id }}" 
-                                    max="{{ $item->sisa_saldo }}"
-                                    class="w-full text-sm rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100 disabled:text-gray-400"
-                                    disabled>
+                                    wire:model="withdrawalAmounts.{{ $item['id'] }}" 
+                                    class="w-full text-sm rounded-lg border-gray-300 shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+                                    disabled> {{-- Atribut disabled dipasang permanen --}}
                             </x-table.td>
 
-                            {{-- Checkbox --}}
                             <x-table.td>
                                 <input type="checkbox" 
                                     wire:model.live="selectedMembers" 
-                                    value="{{ $item->id }}" 
+                                    value="{{ $item['id'] }}" 
                                     class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
                             </x-table.td>
                         </x-table.tr>
