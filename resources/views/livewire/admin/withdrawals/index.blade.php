@@ -108,10 +108,20 @@
                             <x-table.td class="font-bold text-blue-600">Rp {{ number_format($item['sisa_saldo'], 0, ',', '.') }}</x-table.td>
                             
                             <x-table.td>
-                                <input type="number" 
-                                    wire:model="withdrawalAmounts.{{ $item['id'] }}" 
-                                    class="w-full text-sm rounded-lg border-gray-300 shadow-sm bg-gray-100 text-gray-500 cursor-not-allowed"
-                                    disabled> {{-- Atribut disabled dipasang permanen --}}
+                                <div class="relative w-full">
+                                    {{-- Prefix 'Rp' di dalam input agar terlihat elegan --}}
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                        <span class="text-slate-400 text-sm font-medium">Rp</span>
+                                    </div>
+                                    
+                                    <input type="text" 
+                                        {{-- Menggunakan number_format agar angkanya rapi (contoh: 1.500.000) --}}
+                                        value="{{ in_array($item['id'], $selectedMembers) ? number_format($item['sisa_saldo'], 0, ',', '.') : 0 }}" 
+                                        
+                                        {{-- Styling Modern --}}
+                                        class="block w-full pl-9 pr-3 py-2 text-sm font-semibold text-right transition-colors duration-200 rounded-lg border border-slate-200 shadow-sm bg-slate-50 text-slate-700 cursor-not-allowed focus:ring-0 focus:border-slate-200"
+                                        disabled>
+                                </div>
                             </x-table.td>
 
                             <x-table.td>

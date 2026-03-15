@@ -122,6 +122,7 @@ class Index extends Component
         foreach ($this->memberBalance as $item) {
             $this->withdrawalAmounts[$item['id']] = $item['sisa_saldo'];
         }
+        $this->selectedMembers = array_column($this->memberBalance, 'id');
 
         $this->isOpen = true;
     }
