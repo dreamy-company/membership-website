@@ -63,6 +63,8 @@ Route::middleware(['auth', 'role:member'])->prefix('dashboard')->name('dashboard
     Route::get('/members', DashboardMemberIndex::class)->name('members');
     Route::get('/transactions', DashboardTransactionIndex::class)->name('transactions');
     Route::get('/withdrawals', DashboardWithdrawalIndex::class)->name('withdrawals');
+    Route::get('/member/withdrawal/{id}/print', [DashboardWithdrawalIndex::class, 'printMemberReceipt'])
+        ->name('member.withdrawal.print');
     Route::get('/profile', DashboardProfileIndex::class)->name('profile');
 });
 
