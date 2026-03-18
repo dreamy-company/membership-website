@@ -9,7 +9,6 @@ use App\Models\Business;
 use App\Models\Member;
 use App\Models\Transaction;
 use App\Services\BonusService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
@@ -32,6 +31,7 @@ class Index extends Component
     public $balance;
     public $bonus;
     public $record_id;
+    public $BonusPercent; // Persentase khusus untuk baris yang diklik
 
     public $members;
     public $businesses;
@@ -45,13 +45,21 @@ class Index extends Component
     public $file;
     public $isOpenImport = false;
 
+    // Filter Variables
+    public $start_date;
+    public $end_date;
+    public $filter_umkm = '';
+    public $filter_member_code = '';    
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
 
-    public function updatingSearch()
+    // Reset pagination ketika filter atau search diubah
+    public function updated($property)
     {
-        $this->resetPage();
+        if (in_array($property, ['search', 'start_date', 'end_date', 'filter_umkm', 'filter_member_code'])) {
+            $this->resetPage();
+        }
     }
 
     public function mount()
@@ -62,9 +70,27 @@ class Index extends Component
 
     public function render()
     {
-       $transactions = Transaction::search($this->search)
-                      ->latest()
-                      ->paginate($this->perPage);
+        $query = Transaction::search($this->search);
+
+        if ($this->start_date && $this->end_date) {
+            $query->whereBetween('transaction_date', [$this->start_date, $this->end_date]);
+        } elseif ($this->start_date) {
+            $query->whereDate('transaction_date', '>=', $this->start_date);
+        } elseif ($this->end_date) {
+            $query->whereDate('transaction_date', '<=', $this->end_date);
+        }
+
+        if (!empty($this->filter_umkm)) {
+            $query->where('business_id', $this->filter_umkm);
+        }
+
+        if (!empty($this->filter_member_code)) {
+            $query->whereHas('member', function ($q) {
+                $q->where('member_code', 'like', '%' . $this->filter_member_code . '%');
+            });
+        }
+
+        $transactions = $query->latest()->paginate($this->perPage);
 
         return view('livewire.admin.transactions.index', compact('transactions'));
     }
@@ -84,9 +110,9 @@ class Index extends Component
             $this->hpp = $transaction->hpp;
             $this->balance = $transaction->balance;
             $this->bonus = $transaction->bonus;
+            $this->BonusPercent = $transaction->BonusPercent; 
         }
         $this->isOpen = true;
-        
     }
 
     public function closeModal()
@@ -107,17 +133,19 @@ class Index extends Component
         $this->balance = '';
         $this->bonus = '';
         $this->transaction_id = null;
+        $this->BonusPercent = 0;
     }
-
 
     public function store()
     {
         $isEditing = !empty($this->record_id);
-        $editingTransaction = $isEditing ? Transaction::find($this->record_id) : null;
+        
+        // Mencegah proses save jika dalam mode Edit (karena mode Edit = Read Only)
+        if ($isEditing) {
+            $this->closeModal();
+            return;
+        }
 
-        // ==========================================
-        // 1. RULES UNTUK CREATE & UPDATE
-        // ==========================================
         $rules = [
             'business_id'      => 'required|exists:businesses,id',
             'member_id'        => 'required|exists:members,id',
@@ -126,77 +154,44 @@ class Index extends Component
             'hpp'              => 'required|numeric',
             'balance'          => 'required|numeric',
             'bonus'            => 'required|numeric',
-        ];
-
-        // Optimasi penyusunan rule unique menjadi 1 blok ringkas
-        $rules['transaction_code'] = [
-            'required',
-            'string',
-            Rule::unique('transactions', 'transaction_code')
-                ->where('LevelMember', $isEditing ? $editingTransaction->LevelMember : 'Leader')
-                ->ignore($this->record_id)
+            'transaction_code' => [
+                'required',
+                'string',
+                Rule::unique('transactions', 'transaction_code')->where('LevelMember', 'Leader')
+            ]
         ];
 
         $this->validate($rules);
 
-        // ==========================================
-        // 2. PROSES PENYIMPANAN DATA
-        // ==========================================
-        DB::transaction(function () use ($isEditing, $editingTransaction) {
-            
+        DB::transaction(function () {
             $baseBonusInput = $this->bonus; 
+            
+            $shopper = Member::find($this->member_id);
+            $leaderSetup = BonusLevelSetup::where('kodeBonus', 'Leader')->first();
+            
+            $leaderPercent = $leaderSetup ? $leaderSetup->persenBonus : 0;
+            $calculatedLeaderBonus = $baseBonusInput * ($leaderPercent / 100);
 
-            if ($isEditing) {
-                // ---------------------------------------------------
-                // JALUR UPDATE (EDIT) UNTUK SEMUA LEVEL
-                // ---------------------------------------------------
-                // Langsung gunakan $editingTransaction, tidak perlu query findOrFail lagi!
-                $editingTransaction->update([
-                    'business_id'      => $this->business_id,
-                    'member_id'        => $this->member_id,
-                    'transaction_code' => $this->transaction_code,
-                    'transaction_date' => $this->transaction_date,
-                    'amount'           => $this->amount,
-                    'hpp'              => $this->hpp,
-                    'balance'          => $this->balance,
-                    'bonus'            => $baseBonusInput, 
-                ]);
+            $transaction = Transaction::create([
+                'business_id'      => $this->business_id,
+                'member_id'        => $this->member_id,
+                'user_id'          => $shopper->user_id,
+                'transaction_id'   => $shopper->user_id,
+                'transaction_code' => $this->transaction_code,
+                'transaction_date' => $this->transaction_date,
+                'amount'           => $this->amount,
+                'hpp'              => $this->hpp,
+                'balance'          => $this->balance,
+                'LevelMember'      => 'Leader',
+                'BonusPercent'     => $leaderPercent,
+                'bonus'            => $calculatedLeaderBonus,
+            ]);
 
-            } else {
-                // ---------------------------------------------------
-                // JALUR CREATE (TAMBAH BARU) - KHUSUS LEADER
-                // ---------------------------------------------------
-                // Pindahkan pencarian Member dan Setup ke dalam sini, 
-                // karena hanya dibutuhkan saat Create. Ini sangat menghemat beban database.
-                $shopper = Member::find($this->member_id);
-                $leaderSetup = BonusLevelSetup::where('kodeBonus', 'Leader')->first();
-                
-                $leaderPercent = $leaderSetup ? $leaderSetup->persenBonus : 0;
-                $calculatedLeaderBonus = $baseBonusInput * ($leaderPercent / 100);
-
-                $transaction = Transaction::create([
-                    'business_id'      => $this->business_id,
-                    'member_id'        => $this->member_id,
-                    'user_id'          => $shopper->user_id,
-                    'transaction_id'   => $shopper->user_id,
-                    'transaction_code' => $this->transaction_code,
-                    'transaction_date' => $this->transaction_date,
-                    'amount'           => $this->amount,
-                    'hpp'              => $this->hpp,
-                    'balance'          => $this->balance,
-                    'LevelMember'      => 'Leader',
-                    'BonusPercent'     => $leaderPercent,
-                    'bonus'            => $calculatedLeaderBonus,
-                ]);
-
-                // Panggil Service untuk sebar bonus ke Level 1 & Upline
-                if ($baseBonusInput > 0) {
-                    // Dipersingkat menjadi 1 baris
-                    (new BonusService())->distributeBonus($transaction->id, $baseBonusInput);
-                }
+            if ($baseBonusInput > 0) {
+                (new BonusService())->distributeBonus($transaction->id, $baseBonusInput);
             }
 
-            $this->afterSave(!$isEditing);
+            $this->afterSave(true);
         });
     }
     
@@ -216,32 +211,14 @@ class Index extends Component
         ]);
     }
 
-    protected function formData()
-    {
-        return [
-            'business_id' => $this->business_id,
-            'member_id' => $this->member_id,
-            'transaction_code'    => $this->transaction_code,
-            'transaction_date' => $this->transaction_date,
-            'amount'   => $this->amount,
-            'hpp'   => $this->hpp,
-            'balance'   => $this->balance,
-            'bonus'   => $this->bonus,
-        ];
-    }
-
     protected function afterSave($created)
     {
         $this->closeModal();
         $this->resetInput();
 
-        $message = $created
-            ? 'Transaction berhasil ditambahkan!'
-            : 'Transaction berhasil diupdate!';
-
         $this->dispatch('success', [
             'type' => 'success',
-            'message' => $message,
+            'message' => 'Transaction berhasil ditambahkan!',
         ]);
     }
 
@@ -272,19 +249,15 @@ class Index extends Component
             ]);
 
         } catch (\Exception $e) {
-
-            // pesan error buat user
             $this->dispatch('error', [
                 'type' => 'error',
                 'message' => 'Gagal mengimport data: ' . $e->getMessage(),
             ]);
         }
 
-        // ini tetap jalan entah sukses / gagal
         $this->reset('file');
         $this->isOpenImport = false;
     }
-
 
     public function redirectToActivityLog()
     {
