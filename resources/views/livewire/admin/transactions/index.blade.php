@@ -19,6 +19,46 @@
         </div>
     </div>
 
+    {{-- FILTER SECTION --}}
+    <div class="w-full mt-4 px-4">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 p-4 bg-white shadow-xs rounded-md border border-gray-200">
+            
+            {{-- Filter Tanggal Mulai --}}
+            <div>
+                <label class="block mb-1.5 text-sm font-medium text-gray-700">Periode Mulai</label>
+                <input type="date" wire:model.live="start_date" 
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            </div>
+
+            {{-- Filter Tanggal Akhir --}}
+            <div>
+                <label class="block mb-1.5 text-sm font-medium text-gray-700">Periode Akhir</label>
+                <input type="date" wire:model.live="end_date" 
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            </div>
+
+            {{-- Filter UMKM --}}
+            <div>
+                <label class="block mb-1.5 text-sm font-medium text-gray-700">UMKM</label>
+                <select wire:model.live="filter_umkm" 
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <option value="">Semua UMKM</option>
+                    @foreach($businesses as $business)
+                        <option value="{{ $business->id }}">{{ $business->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Filter Member Code --}}
+            <div>
+                <label class="block mb-1.5 text-sm font-medium text-gray-700">Member Code</label>
+                <input type="text" wire:model.live.debounce.300ms="filter_member_code" placeholder="Ketik kode member..." 
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            </div>
+
+        </div>
+    </div>
+
     {{-- table --}}
     <div class="w-full mt-6 px-4 pb-4">
         {{-- [FIX] Tambahkan overflow-x-auto di sini agar cuma tabel yang bisa discroll --}}
@@ -47,7 +87,10 @@
                             
                             {{-- Gunakan ?? '-' untuk mencegah error jika relasi kosong --}}
                             <x-table.td class="whitespace-nowrap">{{ $item->business->name ?? '-' }}</x-table.td>
-                            <x-table.td>{{ $item->member->user->name ?? '-' }}</x-table.td>
+                            <x-table.td>
+                                {{ $item->member->user->name ?? '-' }} 
+                                ({{ $item->member->member_code ?? '-' }})
+                            </x-table.td>
                             
                             <x-table.td>{{ $item->transaction_code }}</x-table.td>
                             <x-table.td>{{ $item->transaction_date }}</x-table.td>

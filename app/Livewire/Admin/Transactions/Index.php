@@ -45,13 +45,22 @@ class Index extends Component
     public $file;
     public $isOpenImport = false;
 
+    // --- TAMBAHAN VARIABEL FILTER ---
+    public $start_date;
+    public $end_date;
+    public $filter_umkm = '';
+    public $filter_member_code = '';    
+
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
 
-    public function updatingSearch()
+    // Reset pagination ketika filter atau search diubah
+    public function updated($property)
     {
-        $this->resetPage();
+        if (in_array($property, ['search', 'start_date', 'end_date', 'filter_umkm', 'filter_member_code'])) {
+            $this->resetPage();
+        }
     }
 
     public function mount()
@@ -62,9 +71,33 @@ class Index extends Component
 
     public function render()
     {
-       $transactions = Transaction::search($this->search)
-                      ->latest()
-                      ->paginate($this->perPage);
+        // 1. Query Dasar & Search
+        $query = Transaction::search($this->search);
+
+        // 2. Filter Periode Tanggal
+        if ($this->start_date && $this->end_date) {
+            $query->whereBetween('transaction_date', [$this->start_date, $this->end_date]);
+        } elseif ($this->start_date) {
+            $query->whereDate('transaction_date', '>=', $this->start_date);
+        } elseif ($this->end_date) {
+            $query->whereDate('transaction_date', '<=', $this->end_date);
+        }
+
+        // 3. Filter UMKM
+        if (!empty($this->filter_umkm)) {
+            $query->where('business_id', $this->filter_umkm);
+        }
+
+        // 4. Filter Member Code
+        if (!empty($this->filter_member_code)) {
+            $query->whereHas('member', function ($q) {
+                // Pastikan nama kolom di tabel members adalah 'member_code'
+                $q->where('member_code', 'like', '%' . $this->filter_member_code . '%');
+            });
+        }
+
+        // 5. Eksekusi Query
+        $transactions = $query->latest()->paginate($this->perPage);
 
         return view('livewire.admin.transactions.index', compact('transactions'));
     }
