@@ -27,13 +27,12 @@
                 <x-table.thead>
                     <x-table.tr>
                         <x-table.th>No</x-table.th>
-                        <x-table.th>UMKM</x-table.th>
+                        <x-table.th class="whitespace-nowrap">UMKM</x-table.th>
                         <x-table.th>Member</x-table.th>
-                        <x-table.th>Transaction Code</x-table.th>
-                        <x-table.th>Transaction Date</x-table.th>
-                        <x-table.th>Amount</x-table.th>
-                        <x-table.th>Hpp</x-table.th>
-                        <x-table.th>Balance</x-table.th>
+                        <x-table.th>No Nota / Bill</x-table.th>
+                        <x-table.th>Tanggal Nota</x-table.th>
+                        <x-table.th>Jumlah Nota</x-table.th>
+                        <x-table.th>Bonus Dibagi</x-table.th>
                         <x-table.th>Level</x-table.th>
                         <x-table.th>Bonus Percent</x-table.th>
                         <x-table.th>Bonus</x-table.th>
@@ -47,14 +46,13 @@
                             <x-table.td>{{ $transactions->firstItem() + $loop->index }}</x-table.td>
                             
                             {{-- Gunakan ?? '-' untuk mencegah error jika relasi kosong --}}
-                            <x-table.td>{{ $item->business->name ?? '-' }}</x-table.td>
+                            <x-table.td class="whitespace-nowrap">{{ $item->business->name ?? '-' }}</x-table.td>
                             <x-table.td>{{ $item->member->user->name ?? '-' }}</x-table.td>
                             
                             <x-table.td>{{ $item->transaction_code }}</x-table.td>
                             <x-table.td>{{ $item->transaction_date }}</x-table.td>
                             
                             <x-table.td>{{ number_format($item->amount ?? 0) }}</x-table.td>
-                            <x-table.td>{{ number_format($item->hpp ?? 0) }}</x-table.td>
                             <x-table.td>{{ number_format($item->balance ?? 0) }}</x-table.td>
                             
                             <x-table.td>{{ $item->LevelMember ?? '-' }}</x-table.td>
