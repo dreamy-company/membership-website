@@ -100,7 +100,7 @@ class Index extends Component
         // ==========================================
         // 4. GABUNGKAN & PAGINASI MANUAL
         // ==========================================
-        $allLogs = $transactions->concat($withdrawals)->sortByDesc('created_at')->values();
+        $allLogs = $transactions->concat($withdrawals)->sortBy('created_at')->values();
 
         $page = Paginator::resolveCurrentPage() ?: 1;
         $paginatedLogs = new LengthAwarePaginator(
