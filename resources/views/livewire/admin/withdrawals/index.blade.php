@@ -96,41 +96,39 @@
                 </x-table.thead>
 
                 <tbody>
+                    @php $nomor = 1; @endphp {{-- Buat variabel nomor manual --}}
+                    
                     @forelse ($memberBalance as $item)
-                        <x-table.tr>
-                            <x-table.td>{{ $loop->iteration }}</x-table.td>
-                            
-                            {{-- Panggil dengan kurung siku --}}
-                            <x-table.td>{{ $item['name'] }}</x-table.td>
-                            
-                            <x-table.td>Rp {{ number_format($item['total_bonus'], 0, ',', '.') }}</x-table.td>
-                            <x-table.td class="text-red-500">Rp {{ number_format($item['total_ditarik'], 0, ',', '.') }}</x-table.td>
-                            <x-table.td class="font-bold text-blue-600">Rp {{ number_format($item['sisa_saldo'], 0, ',', '.') }}</x-table.td>
-                            
-                            <x-table.td>
-                                <div class="relative w-full">
-                                    {{-- Prefix 'Rp' di dalam input agar terlihat elegan --}}
-                                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                        <span class="text-slate-400 text-sm font-medium">Rp</span>
+                        {{-- KUNCI: Hanya tampilkan jika sisa saldo lebih besar dari 0 --}}
+                        @if($item['sisa_saldo'] > 0)
+                            <x-table.tr>
+                                <x-table.td>{{ $nomor++ }}</x-table.td> {{-- Gunakan nomor manual --}}
+                                
+                                <x-table.td>{{ $item['name'] }}</x-table.td>
+                                <x-table.td>Rp {{ number_format($item['total_bonus'], 0, ',', '.') }}</x-table.td>
+                                <x-table.td class="text-red-500">Rp {{ number_format($item['total_ditarik'], 0, ',', '.') }}</x-table.td>
+                                <x-table.td class="font-bold text-blue-600">Rp {{ number_format($item['sisa_saldo'], 0, ',', '.') }}</x-table.td>
+                                
+                                <x-table.td>
+                                    <div class="relative w-full">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                            <span class="text-slate-400 text-sm font-medium">Rp</span>
+                                        </div>
+                                        <input type="text" 
+                                            value="{{ in_array($item['id'], $selectedMembers) ? number_format($item['sisa_saldo'], 0, ',', '.') : 0 }}" 
+                                            class="block w-full pl-9 pr-3 py-2 text-sm font-semibold text-right transition-colors duration-200 rounded-lg border border-slate-200 shadow-sm bg-slate-50 text-slate-700 cursor-not-allowed focus:ring-0 focus:border-slate-200"
+                                            disabled>
                                     </div>
-                                    
-                                    <input type="text" 
-                                        {{-- Menggunakan number_format agar angkanya rapi (contoh: 1.500.000) --}}
-                                        value="{{ in_array($item['id'], $selectedMembers) ? number_format($item['sisa_saldo'], 0, ',', '.') : 0 }}" 
-                                        
-                                        {{-- Styling Modern --}}
-                                        class="block w-full pl-9 pr-3 py-2 text-sm font-semibold text-right transition-colors duration-200 rounded-lg border border-slate-200 shadow-sm bg-slate-50 text-slate-700 cursor-not-allowed focus:ring-0 focus:border-slate-200"
-                                        disabled>
-                                </div>
-                            </x-table.td>
+                                </x-table.td>
 
-                            <x-table.td>
-                                <input type="checkbox" 
-                                    wire:model.live="selectedMembers" 
-                                    value="{{ $item['id'] }}" 
-                                    class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
-                            </x-table.td>
-                        </x-table.tr>
+                                <x-table.td>
+                                    <input type="checkbox" 
+                                        wire:model.live="selectedMembers" 
+                                        value="{{ $item['id'] }}" 
+                                        class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer">
+                                </x-table.td>
+                            </x-table.tr>
+                        @endif
                     @empty
                         <x-table.tr>
                             <x-table.td colspan="7" class="text-center py-4 text-gray-500">
