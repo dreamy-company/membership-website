@@ -1,7 +1,6 @@
 <div>
     {{-- header --}}
-    <div
-        class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
+    <div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5">
         <div class="w-full mb-1">
             <div class="mb-4">
                 <x-dashboard.breadcrumbs title="Withdrawals" />
@@ -18,7 +17,25 @@
         </div>
     </div>
 
-    {{-- @dd($provinces) --}}
+    {{-- Filter Section --}}
+    <div class="w-full mt-4 px-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-white shadow-xs rounded-md border border-gray-200">
+            <div>
+                <label class="block mb-1.5 text-sm font-medium text-gray-700">Tanggal Mulai</label>
+                <input type="date" wire:model.live="start_date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            </div>
+            <div>
+                <label class="block mb-1.5 text-sm font-medium text-gray-700">Tanggal Akhir</label>
+                <input type="date" wire:model.live="end_date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+            </div>
+            {{-- Tombol Reset Filter --}}
+            <div class="flex items-end">
+                <button type="button" wire:click="$set('start_date', null); $set('end_date', null)" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-200">
+                    Reset Filter
+                </button>
+            </div>
+        </div>
+    </div>
 
     {{-- table --}}
     <div class="w-full mt-6 px-4 pb-4">
@@ -42,13 +59,9 @@
                             <x-table.td>{{ number_format($item->amount) }}</x-table.td>
                             <x-table.td>{{ $item->date }}</x-table.td>
                             <x-table.td>
-                                {{-- Wrapper flex agar tombol sejajar ke samping (horizontal) --}}
                                 <div class="flex items-center justify-center gap-2">
-                                    
-                                    {{-- Tombol Preview PDF --}}
                                     @if($item->payment_receipt)
                                         <a href="{{ asset('storage/' . $item->payment_receipt) }}" target="_blank" 
-                                        {{-- Tambahkan inline-flex dan shrink-0 agar bentuknya kotak sempurna dan tidak menciut --}}
                                         class="inline-flex shrink-0 items-center justify-center p-2 text-blue-600 bg-white hover:bg-blue-50 rounded-lg transition-colors shadow-sm border border-blue-200" 
                                         title="Preview PDF">
                                             <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -56,8 +69,6 @@
                                             </svg>
                                         </a>
                                     @endif
-
-                                    {{-- Tombol Delete (Atau tombol bawaan lainnya) --}}
                                     <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" />
                                 </div>
                             </x-table.td>
@@ -71,16 +82,16 @@
                     @endforelse
                 </tbody>
             </x-table.table>
-           @if ($withdrawals->hasPages())
-                <div class="p-4">
+            
+            @if ($withdrawals->hasPages())
+                <div class="p-4 bg-white border-t border-gray-200">
                     {{ $withdrawals->links() }}
                 </div>
             @endif
         </div>
     </div>
 
-     <!-- Modal -->
-    @if($isOpen)
+     @if($isOpen)
         <x-modal.form-modal :formTitle="$withdrawal_id ? 'Edit Withdrawal' : 'Add Withdrawal'" action="store()" width='max-w-[60%] w-full'>
             <x-table.table>
                 <x-table.thead>
@@ -96,14 +107,12 @@
                 </x-table.thead>
 
                 <tbody>
-                    @php $nomor = 1; @endphp {{-- Buat variabel nomor manual --}}
+                    @php $nomor = 1; @endphp 
                     
                     @forelse ($memberBalance as $item)
-                        {{-- KUNCI: Hanya tampilkan jika sisa saldo lebih besar dari 0 --}}
                         @if($item['sisa_saldo'] > 0)
                             <x-table.tr>
-                                <x-table.td>{{ $nomor++ }}</x-table.td> {{-- Gunakan nomor manual --}}
-                                
+                                <x-table.td>{{ $nomor++ }}</x-table.td> 
                                 <x-table.td>{{ $item['name'] }}</x-table.td>
                                 <x-table.td>Rp {{ number_format($item['total_bonus'], 0, ',', '.') }}</x-table.td>
                                 <x-table.td class="text-red-500">Rp {{ number_format($item['total_ditarik'], 0, ',', '.') }}</x-table.td>
@@ -143,6 +152,4 @@
    
     <x-alerts.success/>
     <x-alerts.delete-confirmation/>
-
-
 </div>

@@ -39,13 +39,20 @@ class Index extends Component
 
     public $old_payment_receipt;
 
+    // Variabel Filter
+    public $start_date;
+    public $end_date;
+
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
 
-    public function updatingSearch()
+    // Mengganti updatingSearch menjadi updated agar berlaku untuk semua filter
+    public function updated($property)
     {
-        $this->resetPage();
+        if (in_array($property, ['search', 'start_date', 'end_date'])) {
+            $this->resetPage();
+        }
     }
 
     public function mount($withdrawal = null)
@@ -58,9 +65,20 @@ class Index extends Component
 
     public function render()
     {
-       $withdrawals = Withdrawal::search($this->search)
-                      ->latest()
-                      ->paginate($this->perPage);
+        // 1. Mulai dengan Query Pencarian Bawaan
+        $query = Withdrawal::search($this->search);
+
+        // 2. Tambahkan Logika Filter Tanggal
+        if ($this->start_date && $this->end_date) {
+            $query->whereBetween('date', [$this->start_date, $this->end_date]);
+        } elseif ($this->start_date) {
+            $query->whereDate('date', '>=', $this->start_date);
+        } elseif ($this->end_date) {
+            $query->whereDate('date', '<=', $this->end_date);
+        }
+
+        // 3. Eksekusi Query
+        $withdrawals = $query->latest()->paginate($this->perPage);
 
         return view('livewire.admin.withdrawals.index', compact('withdrawals'));
     }
@@ -102,7 +120,7 @@ class Index extends Component
 
         $this->withdrawalAmounts = []; 
 
-        // UBAH BAGIAN INI: Kita kembalikan sebagai Array [ ... ]
+        // Filter member yang hanya punya sisa saldo > 0
         $this->memberBalance = $members->map(function ($member) {
             $totalBonus = $member->transactions_sum_bonus ?? 0;
             $totalDitarik = $member->withdrawals_sum_amount ?? 0;
@@ -116,7 +134,7 @@ class Index extends Component
             ];
         })->filter(function ($item) {
             return $item['sisa_saldo'] > 0;
-        })->values()->toArray(); // <-- PENTING: Ubah jadi array murni
+        })->values()->toArray(); 
 
         // Update loop default nilainya
         foreach ($this->memberBalance as $item) {
