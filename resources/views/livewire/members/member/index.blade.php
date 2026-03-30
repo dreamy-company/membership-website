@@ -177,24 +177,54 @@
                 </div>
 
                 <div class="border-b p-4 shadow-sm rounded-md mb-4 bg-white">
-                    <h3 class="font-semibold mb-4">Bank Information</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <h3 class="font-semibold mb-4 text-black">Bank Information</h3>
+                    
+                    @php
+                        // Daftar Bank di Indonesia untuk dropdown
+                        $bankOptions = [
+                            ['value' => 'BCA', 'label' => 'BCA (Bank Central Asia)'],
+                            ['value' => 'BNI', 'label' => 'BNI (Bank Negara Indonesia)'],
+                            ['value' => 'BRI', 'label' => 'BRI (Bank Rakyat Indonesia)'],
+                            ['value' => 'Mandiri', 'label' => 'Bank Mandiri'],
+                            ['value' => 'BSI', 'label' => 'BSI (Bank Syariah Indonesia)'],
+                            ['value' => 'CIMB', 'label' => 'CIMB Niaga'],
+                            ['value' => 'Permata', 'label' => 'Permata Bank'],
+                            ['value' => 'Danamon', 'label' => 'Bank Danamon'],
+                            ['value' => 'Mega', 'label' => 'Bank Mega'],
+                            ['value' => 'BJB', 'label' => 'Bank BJB (Jabar Banten)'],
+                            ['value' => 'BPD Bali', 'label' => 'Bank BPD Bali'],
+                            ['value' => 'Panin', 'label' => 'Panin Bank'],
+                            ['value' => 'Maybank', 'label' => 'Maybank Indonesia'],
+                            ['value' => 'OCBC', 'label' => 'OCBC NISP'],
+                            ['value' => 'Jago', 'label' => 'Bank Jago'],
+                            ['value' => 'SeaBank', 'label' => 'SeaBank'],
+                            ['value' => 'Neo', 'label' => 'Bank Neo Commerce (BNC)'],
+                            ['value' => 'BNC', 'label' => 'BCA Digital (Blu)'],
+                            ['value' => 'Lainnya', 'label' => 'Lainnya...'],
+                        ];
+                    @endphp
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <x-modal.input name="bank_name" label="Bank Name <span class='text-red-500'>*</span>"
-                                type="text" placeholder="Contoh: BCA" required />
+                            {{-- Menggunakan Searchable Select untuk Bank --}}
+                            <x-modal.searchable-select 
+                                wire:model="bank_name" 
+                                name="bank_name" 
+                                label="Bank Name" 
+                                :options="$bankOptions"
+                                placeholder="Pilih Bank..." 
+                            />
                         </div>
                         <div>
-                            <x-modal.input name="account_number"
-                                label="Account Number <span class='text-red-500'>*</span>" type="text"
-                                placeholder="Contoh: 1234567890" required />
-                        </div>
-                        <div>
-                            <x-modal.input name="account_name" label="Account Name <span class='text-red-500'>*</span>"
-                                type="text" placeholder="Contoh: John Doe" required />
-                        </div>
-                        <div>
-                            <x-modal.input name="npwp" label="NPWP" type="text"
+                            <x-modal.input name="account_number" label="Account Number" type="text"
                                 placeholder="Contoh: 1234567890" />
+                        </div>
+                        <div>
+                            <x-modal.input name="account_name" label="Account Name" type="text"
+                                placeholder="Contoh: John Doe" />
+                        </div>
+                        <div>
+                            <x-modal.input name="npwp" label="NPWP" type="text" placeholder="Contoh: 12.345.678.9-012.000" />
                         </div>
                     </div>
                 </div>
