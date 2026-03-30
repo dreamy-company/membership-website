@@ -6,11 +6,21 @@
                 <x-dashboard.breadcrumbs title="Withdrawals" />
                 <h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">{{ $title }}</h1>
             </div>
-            <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
+           <div class="items-center justify-between block sm:flex md:divide-x md:divide-gray-100 dark:divide-gray-700">
                 <div class="flex items-center mb-4 sm:mb-0">
                     <flux:input icon="magnifying-glass" wire:model.live.debounce.250ms="search" placeholder="Search Withdrawals" />
                 </div>
-                <div>
+                <div class="flex gap-2">
+                    {{-- Tombol Export Excel --}}
+                    <button type="button" wire:click="exportExcelAll" 
+                        class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 focus:ring-4 focus:ring-green-200 transition-colors">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Export Excel
+                    </button>
+                    
+                    {{-- Tombol Add Withdrawal --}}
                     <x-widget.button color="neutral" name="Add Withdrawal" action="openModal()" />
                 </div>
             </div>

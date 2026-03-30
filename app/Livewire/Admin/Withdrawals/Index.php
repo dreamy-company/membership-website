@@ -2,15 +2,16 @@
 
 namespace App\Livewire\Admin\Withdrawals;
 
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Member;
 use App\Models\Transaction;
 use App\Models\Withdrawal;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 use function Symfony\Component\Clock\now;
 
@@ -176,8 +177,8 @@ class Index extends Component
 
             $members = Member::with('user')->whereIn('id', $this->selectedMembers)->get();
             
-            $validMembers = []; // Untuk menyimpan sementara member yang saldonya > 0
-            $withdrawalData = []; // Untuk data tabel di PDF
+            $validMembers = []; 
+            $withdrawalData = []; 
 
             // FASE 1: Kalkulasi Saldo & Kumpulkan Data
             foreach ($members as $member) {
@@ -187,39 +188,40 @@ class Index extends Component
                 $sisaSaldo = $totalBonus - $totalDitarik;
 
                 if ($sisaSaldo > 0) {
-                    // Simpan data untuk diproses nanti
                     $validMembers[] = [
                         'member_id' => $member->id,
                         'amount'    => $sisaSaldo,
                     ];
 
-                    // Simpan data untuk PDF
                     $withdrawalData[] = [
                         'nama'           => $member->user->name,
-                        'bank_name'      => $member->bank_name,
+                        'bank_name'      => $member->bank_name ?? 'LAINNYA / KOSONG',
                         'account_number' => $member->account_number,
-                        'account_name'   => $member->account_name,
+                        'account_name'   => $member->account_name ?? $member->user->name,
                         'nominal'        => $sisaSaldo,
                     ];
                 }
             }
 
-            // Jika ternyata semuanya sudah ditarik (saldo 0)
             if (count($validMembers) === 0) {
                 $this->dispatch('error', ['message' => 'Semua member yang dipilih saldonya sudah Rp 0.']);
                 return;
             }
 
+            // =========================================================
+            // KUNCI PERBAIKAN: GROUPING DATA PER BANK
+            // =========================================================
+            $groupedMembers = collect($withdrawalData)->groupBy('bank_name')->sortKeys();
+
             // FASE 2: Generate & Simpan PDF ke Storage
             $fileName = 'Manifest_Penarikan_' . time() . '.pdf';
-            $filePath = 'withdrawals/' . $fileName; // Path: storage/app/public/withdrawals/...
+            $filePath = 'withdrawals/' . $fileName; 
 
             $pdf = Pdf::loadView('pdf.withdrawal-manifest', [
-                'data' => $withdrawalData,
-                'tanggal' => now()->format('d F Y H:i')
+                'groupedData' => $groupedMembers, // <-- INI YANG MEMPERBAIKI ERROR!
+                'tanggal'     => now()->format('d F Y H:i')
             ]);
 
-            // Simpan PDF ke dalam folder storage public
             Storage::disk('public')->put($filePath, $pdf->output());
 
             // FASE 3: Simpan ke Database
@@ -228,30 +230,81 @@ class Index extends Component
                     'member_id'       => $item['member_id'],
                     'amount'          => $item['amount'],
                     'date'            => now(),
-                    'payment_receipt' => $filePath, // <<--- SIMPAN PATH PDF DI SINI
+                    'payment_receipt' => $filePath, 
                 ]);
             }
 
             DB::commit();
 
+            // =========================================================
+            // FASE 4: GENERATE EXCEL (GROUP PER BANK) UNTUK DOWNLOAD
+            // =========================================================
+            $exportData = [];
+            $grandTotal = 0;
+
+            foreach ($groupedMembers as $bank => $membersInBank) {
+                // Baris Header Bank di Excel
+                $exportData[] = [
+                    'No'                   => '',
+                    'Nama Member'          => '',
+                    'Bank'                 => 'BANK: ' . strtoupper($bank),
+                    'Nomor Rekening'       => '',
+                    'Atas Nama (Rekening)' => '',
+                    'Nominal (Rp)'         => '',
+                ];
+
+                $no = 1;
+                foreach ($membersInBank as $item) {
+                    $exportData[] = [
+                        'No'                   => $no++,
+                        'Nama Member'          => $item['nama'],
+                        'Bank'                 => $item['bank_name'],
+                        'Nomor Rekening'       => " " . ($item['account_number'] ?? '-'),
+                        'Atas Nama (Rekening)' => $item['account_name'] ?? '-',
+                        'Nominal (Rp)'         => $item['nominal'],
+                    ];
+                    $grandTotal += $item['nominal'];
+                }
+                // Spasi kosong antar bank
+                $exportData[] = ['', '', '', '', '', '']; 
+            }
+
+            // Baris Grand Total di bawah
+            $exportData[] = [
+                'No'                   => '',
+                'Nama Member'          => '',
+                'Bank'                 => '',
+                'Nomor Rekening'       => '',
+                'Atas Nama (Rekening)' => 'TOTAL KESELURUHAN',
+                'Nominal (Rp)'         => $grandTotal,
+            ];
+
+            $fileNameExcel = 'Daftar_Transfer_Bonus_' . time() . '.xlsx';
+            
+            $exportClass = new class($exportData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+                protected $data;
+                public function __construct(array $data) { $this->data = $data; }
+                public function array(): array { return $this->data; }
+                public function headings(): array {
+                    return ['No', 'Nama Member', 'Bank', 'Nomor Rekening', 'Atas Nama (Rekening)', 'Nominal (Rp)'];
+                }
+            };
+
             // Reset UI
             $this->selectedMembers = [];
             $this->isOpen = false;
+            $this->dispatch('success', ['message' => 'Penarikan berhasil! PDF tersimpan & Excel sedang diunduh.']);
 
-            $this->dispatch('success', ['message' => 'Penarikan berhasil diproses & PDF disimpan!']);
-
-            // FASE 4 (Opsional): Tetap mendownload PDF ke browser Admin sebagai arsip langsung
-            return response()->streamDownload(function () use ($pdf) {
-                echo $pdf->stream();
-            }, $fileName);
+            // Mengembalikan file EXCEL untuk diunduh otomatis
+            return \Maatwebsite\Excel\Facades\Excel::download($exportClass, $fileNameExcel);
 
         } catch (\Exception $e) {
             DB::rollBack();
+            // Log error agar mudah dilacak jika terjadi masalah lain
+            \Illuminate\Support\Facades\Log::error('Withdrawal Store Error: ' . $e->getMessage());
             $this->dispatch('error', ['message' => 'Gagal memproses penarikan: ' . $e->getMessage()]);
         }
     }
-
-
 
     public function confirmDelete($id)
     {
@@ -310,6 +363,86 @@ class Index extends Component
             'type' => 'success',
             'message' => $message,
         ]);
+    }
+
+    // ==========================================
+    // FITUR EXPORT EXCEL SELURUH DATA / FILTER
+    // ==========================================
+    public function exportExcelAll()
+    {
+        $query = Withdrawal::search($this->search);
+
+        if ($this->start_date && $this->end_date) {
+            $query->whereBetween('date', [$this->start_date, $this->end_date]);
+        } elseif ($this->start_date) {
+            $query->whereDate('date', '>=', $this->start_date);
+        } elseif ($this->end_date) {
+            $query->whereDate('date', '<=', $this->end_date);
+        }
+
+        $withdrawals = $query->with('member.user')->latest()->get();
+
+        if ($withdrawals->isEmpty()) {
+            $this->dispatch('error', ['message' => 'Tidak ada data untuk di-export pada rentang waktu ini.']);
+            return;
+        }
+
+        // Grouping berdasarkan Bank
+        $groupedWithdrawals = $withdrawals->groupBy(function($item) {
+            return $item->member->bank_name ?? 'LAINNYA / KOSONG';
+        })->sortKeys();
+
+        $exportData = [];
+        $grandTotal = 0;
+
+        foreach ($groupedWithdrawals as $bank => $membersInBank) {
+            // Baris Header Bank
+            $exportData[] = [
+                'No'                   => '',
+                'Nama Member'          => '',
+                'Bank'                 => 'BANK: ' . strtoupper($bank),
+                'Nomor Rekening'       => '',
+                'Atas Nama (Rekening)' => '',
+                'Nominal (Rp)'         => '',
+            ];
+
+            $no = 1;
+            foreach ($membersInBank as $item) {
+                $exportData[] = [
+                    'No'                   => $no++,
+                    'Nama Member'          => $item->member->user->name ?? '-',
+                    'Bank'                 => $item->member->bank_name ?? '-',
+                    'Nomor Rekening'       => " " . ($item->member->account_number ?? '-'),
+                    'Atas Nama (Rekening)' => $item->member->account_name ?? '-',
+                    'Nominal (Rp)'         => $item->amount,
+                ];
+                $grandTotal += $item->amount;
+            }
+            $exportData[] = ['', '', '', '', '', ''];
+        }
+
+        // Baris Grand Total
+        $exportData[] = [
+            'No'                   => '',
+            'Nama Member'          => '',
+            'Bank'                 => '',
+            'Nomor Rekening'       => '',
+            'Atas Nama (Rekening)' => 'TOTAL KESELURUHAN',
+            'Nominal (Rp)'         => $grandTotal,
+        ];
+
+        $fileName = 'Laporan_Withdrawal_' . now()->format('Ymd_His') . '.xlsx';
+        
+        $exportClass = new class($exportData) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithHeadings {
+            protected $data;
+            public function __construct(array $data) { $this->data = $data; }
+            public function array(): array { return $this->data; }
+            public function headings(): array {
+                return ['No', 'Nama Member', 'Bank', 'Nomor Rekening', 'Atas Nama (Rekening)', 'Nominal (Rp)'];
+            }
+        };
+
+        return Excel::download($exportClass, $fileName);
     }
 
 }
