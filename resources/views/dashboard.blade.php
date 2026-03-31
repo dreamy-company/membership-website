@@ -13,103 +13,82 @@
     </div>
 
     {{-- 2. CARDS, STATS & NETWORK GRID --}}
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 mb-8">
-        
+    {{-- Ganti max-w-3xl menjadi max-w-4xl atau 5xl agar 2 kolom di bawah punya ruang yang cukup --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 max-w-4xl mx-auto">
+            
         {{-- ========================================== --}}
-        {{-- CARD 1: E-MEMBER CARD (DESAIN PLATINUM) --}}
+        {{-- CARD 1: E-MEMBER CARD (FULL WIDTH ROW) --}}
         {{-- ========================================== --}}
-        <div class="flex flex-col">
-            <div class="bg-white p-4 rounded-2xl border border-neutral-200 shadow-sm dark:bg-neutral-900 dark:border-neutral-700">
-                
-                {{-- Label No Kartu (Di luar area target download) --}}
-                <div class="mb-3 px-1">
-                    <p class="text-xs text-gray-500 dark:text-gray-400">No. Kartu Member</p>
-                    <p class="font-bold text-gray-800 dark:text-white tracking-widest text-sm">
-                        {{ auth()->user()->member->member_code ?? 'XXXX - XXXX - XXXX' }}
-                    </p>
-                </div>
-
-                {{-- DESAIN KARTU UTAMA (PLATINUM GRADIENT) --}}
-                {{-- KUNCI: Pindahkan ID 'member-card-element' ke sini agar cuma kartu ini yang ter-foto --}}
-                <div id="member-card-element" class="relative w-full aspect-[1.58/1] rounded-xl overflow-hidden shadow-md" 
-                     style="background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 50%, #4b5563 100%);">
+        {{-- Tambahkan md:col-span-2 di sini --}}
+        <div class="md:col-span-2 flex flex-col bg-white p-6 rounded-2xl border border-neutral-200 shadow-sm dark:bg-neutral-900 dark:border-neutral-700">
+            
+            {{-- Wrapper tambahan agar ukuran kartu identitas tetap proporsional (tidak melar full width layar) --}}
+            <div class="w-full max-w-md mx-auto">
+                <div class="bg-white p-4 rounded-2xl border border-neutral-200 shadow-sm dark:bg-neutral-900 dark:border-neutral-700">
                     
-                    {{-- Efek Geometris Background (Lebih halus untuk tema Platinum) --}}
-                    <div class="absolute inset-0 opacity-30 pointer-events-none">
-                        <div class="absolute top-[-20%] left-[-10%] w-32 h-32 bg-white rounded-[40%] transform rotate-12 mix-blend-overlay"></div>
-                        <div class="absolute top-[20%] left-[30%] w-24 h-24 bg-white rounded-full mix-blend-overlay opacity-50"></div>
-                        <div class="absolute bottom-[-10%] right-[10%] w-40 h-40 bg-black rounded-full mix-blend-overlay opacity-20"></div>
-                        {{-- Tekstur garis halus diagonal --}}
-                        <div class="absolute inset-0" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px);"></div>
+                    {{-- Label No Kartu --}}
+                    <div class="mb-3 px-1">
+                        <p class="text-xs text-gray-500 dark:text-gray-400">No. Kartu Member</p>
+                        <p class="font-bold text-gray-800 dark:text-white tracking-widest text-sm">
+                            {{ auth()->user()->member->member_code ?? 'XXXX - XXXX - XXXX' }}
+                        </p>
                     </div>
 
-                    <div class="relative h-full p-5 flex flex-col justify-between z-10 text-gray-900">
+                    {{-- DESAIN KARTU UTAMA --}}
+                    <div id="member-card-element" class="relative w-full aspect-[1.58/1] min-h-[200px] rounded-xl overflow-hidden shadow-md" 
+                        style="background: linear-gradient(135deg, #e5e7eb 0%, #9ca3af 50%, #4b5563 100%);">
                         
-                        {{-- Top Section: Logo & Tipe Kartu --}}
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-baseline gap-1">
-                                <span class="font-bold italic text-xl drop-shadow-sm text-gray-800">Platinum</span>
-                                <span class="text-xs font-medium text-gray-600">Member</span>
-                            </div>
-                            <div class="font-black text-lg italic drop-shadow-sm tracking-wider text-gray-800">
-                                Membership
-                            </div>
-                        </div>
-
-                        {{-- Middle Section: Chip, QR & Contactless --}}
-                        <div class="flex justify-between items-center mt-2">
-                            <div class="flex items-center gap-2">
-                                {{-- Panah Kecil --}}
-                                <div class="w-0 h-0 border-t-[5px] border-t-transparent border-r-[8px] border-r-gray-700 border-b-[5px] border-b-transparent opacity-80"></div>
-                                {{-- Simbol Chip (Silver/Platinum Style) --}}
-                                <div class="w-10 h-8 rounded bg-gradient-to-br from-gray-100 to-gray-400 border border-gray-500/50 flex flex-col justify-evenly px-1 shadow-inner">
-                                    <div class="w-full h-[1px] bg-gray-500/40"></div>
-                                    <div class="w-full h-[1px] bg-gray-500/40"></div>
+                        <div class="relative h-full p-4 sm:p-5 flex flex-col justify-between z-10 text-gray-900">
+                            {{-- Top Section --}}
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-baseline gap-1">
+                                    <span class="font-bold italic text-lg sm:text-xl text-gray-800">Platinum</span>
+                                    <span class="text-[10px] sm:text-xs font-medium text-gray-600">Member</span>
+                                </div>
+                                <div class="font-black text-sm sm:text-lg italic tracking-wider text-gray-800">
+                                    Membership
                                 </div>
                             </div>
-                            
-                            {{-- Icon Contactless (Warna Gelap) --}}
-                            <div class="flex flex-col gap-[3px] rotate-90 opacity-70">
-                                <div class="w-1 h-1 bg-gray-800 rounded-full"></div>
-                                <div class="w-2 h-1 bg-gray-800 rounded-full"></div>
-                                <div class="w-3 h-1 bg-gray-800 rounded-full"></div>
-                                <div class="w-4 h-1 bg-gray-800 rounded-full"></div>
-                            </div>
-                        </div>
 
-                        {{-- Bottom Section: Nama, QR Code & Logo Sudut --}}
-                        <div class="flex justify-between items-end mt-auto">
-                            <div class="font-bold text-sm tracking-widest uppercase drop-shadow-sm max-w-[55%] leading-tight text-gray-900">
-                                {{ auth()->user()->name }}
+                            {{-- Middle Section --}}
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-6 sm:w-10 sm:h-8 rounded bg-gradient-to-br from-gray-100 to-gray-400 border border-gray-500/50 shadow-inner"></div>
+                                </div>
+                                <div class="hidden sm:flex flex-col gap-[3px] rotate-90 opacity-70">
+                                    <div class="w-1 h-1 bg-gray-800 rounded-full"></div>
+                                    <div class="w-2 h-1 bg-gray-800 rounded-full"></div>
+                                    <div class="w-3 h-1 bg-gray-800 rounded-full"></div>
+                                </div>
                             </div>
-                            
-                            <div class="flex gap-3 items-end">
-                                {{-- Logo Bulatan (Mirip Mastercard) --}}
-                                <div class="relative w-10 h-6 mb-1">
-                                    <div class="absolute left-0 w-6 h-6 bg-gray-800 rounded-full opacity-80 mix-blend-multiply"></div>
-                                    <div class="absolute right-0 w-6 h-6 bg-gray-400 rounded-full opacity-80 mix-blend-multiply"></div>
+
+                            {{-- Bottom Section --}}
+                            <div class="flex justify-between items-end mt-auto gap-2">
+                                <div class="font-bold text-[10px] sm:text-sm tracking-widest uppercase truncate max-w-[60%] text-gray-900">
+                                    {{ auth()->user()->name }}
                                 </div>
                                 
-                                {{-- Kotak Putih untuk Canvas QR Code JS --}}
-                                <div class="bg-white p-1.5 rounded-lg shadow-sm flex items-center justify-center border border-gray-300">
-                                    <img id="qrcode" class="w-25 h-25 object-contain" alt="QR Code">
+                                <div class="flex gap-2 items-end">
+                                    <div class="bg-white p-1 rounded-lg shadow-sm border border-gray-300">
+                                        <img id="qrcode" class="w-25 h-25 sm:w-25 sm:h-25 object-contain" alt="QR">
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-           {{-- Tombol Print Kartu --}}
-            <button onclick="printCard()" class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-gray-900 transition hover:bg-gray-100 dark:border-gray-500 dark:text-gray-300 dark:hover:bg-gray-800 shadow-sm">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                Cetak Kartu (Print)
-            </button>
+                {{-- Tombol Print Kartu (Disesuaikan agar rata dengan kartu) --}}
+                <button onclick="printCard()" class="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:text-gray-900 transition hover:bg-gray-100 dark:border-gray-500 dark:text-gray-300 dark:hover:bg-gray-800 shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Cetak Kartu (Print)
+                </button>
+            </div>
         </div>
 
 
         {{-- ========================================== --}}
-        {{-- CARD 2: BONUS WALLET --}}
+        {{-- CARD 2: BONUS WALLET (KOLOM KIRI) --}}
         {{-- ========================================== --}}
         <div class="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <div>
@@ -151,7 +130,7 @@
         </div>
 
         {{-- ========================================== --}}
-        {{-- CARD 3: NETWORK STRUCTURE --}}
+        {{-- CARD 3: NETWORK STRUCTURE (KOLOM KANAN) --}}
         {{-- ========================================== --}}
         <div class="relative flex flex-col justify-between overflow-hidden rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             <div>
@@ -181,7 +160,7 @@
                                     $colors = [1 => 'bg-blue-500', 2 => 'bg-purple-500', 3 => 'bg-pink-500', 4 => 'bg-orange-500', 5 => 'bg-green-500'];
                                 @endphp
                                 <div class="{{ $colors[$level] ?? 'bg-gray-500' }} h-full rounded-full transition-all duration-500" 
-                                     style="width: {{ $percentage }}%"></div>
+                                        style="width: {{ $percentage }}%"></div>
                             </div>
                         </div>
                     @endforeach
