@@ -70,7 +70,7 @@ class Index extends Component
 
     public function render()
     {
-        $query = Transaction::search($this->search);
+        $query = Transaction::with('member.user')->search($this->search);
 
         if ($this->start_date && $this->end_date) {
             $query->whereBetween('transaction_date', [$this->start_date, $this->end_date]);
@@ -90,7 +90,15 @@ class Index extends Component
             });
         }
 
-        $transactions = $query->latest()->paginate($this->perPage);
+        $transactions = $query
+            ->select('member_id')
+            ->selectRaw('MAX(id) as id')
+            ->selectRaw('MAX(transaction_code) as transaction_code')
+            ->selectRaw('MAX(transaction_date) as transaction_date')
+            ->selectRaw('SUM(amount) as amount')
+            ->groupBy('member_id')
+            ->orderByDesc('transaction_date')
+            ->paginate($this->perPage);
 
         return view('livewire.admin.transactions.index', compact('transactions'));
     }

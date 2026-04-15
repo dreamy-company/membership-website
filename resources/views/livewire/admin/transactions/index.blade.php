@@ -53,16 +53,10 @@
                 <x-table.thead>
                     <x-table.tr>
                         <x-table.th>No</x-table.th>
-                        <x-table.th class="whitespace-nowrap">UMKM</x-table.th>
                         <x-table.th>Member</x-table.th>
-                        <x-table.th>No Nota / Bill</x-table.th>
-                        <x-table.th>Tanggal Nota</x-table.th>
-                        <x-table.th>Jumlah Nota</x-table.th>
-                        <x-table.th>Bonus Dibagi</x-table.th>
-                        <x-table.th>Level</x-table.th>
-                        <x-table.th>Bonus Percent</x-table.th>
-                        <x-table.th>Bonus</x-table.th>
-                        <x-table.th>Actions</x-table.th>
+                        <x-table.th>Transaction Code</x-table.th>
+                        <x-table.th>Transaction Date</x-table.th>
+                        <x-table.th>Total Amount</x-table.th>
                     </x-table.tr>
                 </x-table.thead>
 
@@ -70,25 +64,14 @@
                     @forelse ($transactions as $item)
                         <x-table.tr>
                             <x-table.td>{{ $transactions->firstItem() + $loop->index }}</x-table.td>
-                            <x-table.td class="whitespace-nowrap">{{ $item->business->name ?? '-' }}</x-table.td>
                             <x-table.td>{{ $item->member->user->name ?? '-' }} ({{ $item->member->member_code ?? '-' }})</x-table.td>
                             <x-table.td>{{ $item->transaction_code }}</x-table.td>
                             <x-table.td>{{ $item->transaction_date }}</x-table.td>
                             <x-table.td>{{ number_format($item->amount ?? 0, 0, ',', '.') }}</x-table.td>
-                            <x-table.td>{{ number_format($item->balance ?? 0, 0, ',', '.') }}</x-table.td>
-                            <x-table.td>{{ $item->LevelMember ?? '-' }}</x-table.td>
-                            <x-table.td>{{ number_format($item->BonusPercent ?? 0) }}%</x-table.td>
-                            <x-table.td class="font-semibold text-green-600">{{ number_format($item->bonus ?? 0, 0, ',', '.') }}</x-table.td>
-                            <x-table.td>
-                                <div class="flex gap-2">
-                                    <x-widget.button-icon type="edit" action="openModal({{ $item->id }})" />
-                                    {{-- <x-widget.button-icon type="delete" action="confirmDelete({{ $item->id }})" /> --}}
-                                </div>
-                            </x-table.td>
                         </x-table.tr>
                     @empty
                         <x-table.tr>
-                            <x-table.td colspan="11" class="text-center py-4">No Transactions found.</x-table.td>
+                            <x-table.td colspan="5" class="text-center py-4">No Transactions found.</x-table.td>
                         </x-table.tr>
                     @endforelse
                 </tbody>
@@ -97,23 +80,8 @@
                 @if($transactions->count() > 0)
                     <tfoot class="bg-gray-50 border-t border-gray-200 font-bold text-gray-800">
                         <x-table.tr>
-                            {{-- Colspan 5 untuk menggabungkan kolom No sampai Tanggal Nota --}}
-                            <x-table.td colspan="5" class="text-right">TOTAL (Halaman Ini) :</x-table.td>
-                            
-                            {{-- Total Jumlah Nota --}}
+                            <x-table.td colspan="4" class="text-right">TOTAL (Halaman Ini) :</x-table.td>
                             <x-table.td>Rp {{ number_format($transactions->sum('amount'), 0, ',', '.') }}</x-table.td>
-                            
-                            {{-- Total Bonus Dibagi --}}
-                            <x-table.td>Rp {{ number_format($transactions->sum('balance'), 0, ',', '.') }}</x-table.td>
-                            
-                            {{-- Kosongkan kolom Level & Persen --}}
-                            <x-table.td colspan="2"></x-table.td>
-                            
-                            {{-- Total Bonus --}}
-                            <x-table.td class="text-green-700">Rp {{ number_format($transactions->sum('bonus'), 0, ',', '.') }}</x-table.td>
-                            
-                            {{-- Kosongkan kolom Actions --}}
-                            <x-table.td></x-table.td>
                         </x-table.tr>
                     </tfoot>
                 @endif
