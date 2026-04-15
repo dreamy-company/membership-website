@@ -25,6 +25,7 @@
                         <flux:navlist.item icon="user-group" :href="route('admin.businesses.users')" :current="request()->routeIs('admin.businesses.users')" wire:navigate>{{ __('Businesses Users') }}</flux:navlist.item>
                         <flux:navlist.item icon="star" :href="route('admin.bonus-settings')" :current="request()->routeIs('admin.bonus-settings')" wire:navigate>{{ __('Bonus Settings') }}</flux:navlist.item>
                         <flux:navlist.item icon="banknotes" :href="route('admin.transactions')" :current="request()->routeIs('admin.transactions')" wire:navigate>{{ __('Transactions') }}</flux:navlist.item>
+                        <flux:navlist.item icon="shopping-bag" :href="route('admin.sales')" :current="request()->routeIs('admin.sales')" wire:navigate>{{ __('Sales') }}</flux:navlist.item>
                         <flux:navlist.item icon="document-arrow-down" :href="route('admin.withdrawals')" :current="request()->routeIs('admin.withdrawals')" wire:navigate>{{ __('Withdrawals') }}</flux:navlist.item>
                     @elseif(auth()->user()->role == 'member')
                         <flux:navlist.item icon="home" :href="route('dashboard.index')" :current="request()->routeIs('dashboard.index')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>

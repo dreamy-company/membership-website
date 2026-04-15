@@ -20,6 +20,8 @@ use App\Livewire\Members\Dashboard\Index as DashboardIndex;
 use App\Livewire\Admin\Withdrawals\Index as WithdrawalIndex;
 use App\Livewire\Admin\Dashboard\Index as AdminDashboardIndex;
 use App\Livewire\Admin\BonusSettings\Index as BonusSettingsIndex;
+use App\Livewire\Admin\Sales\Index as SalesSettingsIndex;
+
 
 // Member Livewire
 use App\Livewire\Admin\Transactions\Index as TransactionIndex;
@@ -82,6 +84,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/activity-log', ActivityLog::class)->name('activity-log');
     Route::get('/withdrawals', WithdrawalIndex::class)->name('withdrawals');
     Route::get('/bonus-settings', BonusSettingsIndex::class)->name('bonus-settings');
+    Route::get('/sales', SalesSettingsIndex::class)->name('sales');
 });
 Route::middleware(['auth', 'role:business'])->prefix('business')->name('business.')->group(function () {
     Route::get('/transactions', BusinessTransactionIndex::class)->name('transactions');

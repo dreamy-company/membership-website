@@ -14,14 +14,16 @@ class Transaction extends Model
         if ($term) {
             $term = "%{$term}%";
 
-            $query->where('transaction_code', 'like', $term)
-                ->orWhere('transaction_date', 'like', $term)
-                ->orWhereHas('business', function ($q) use ($term) {
-                    $q->where('name', 'like', $term);
-                })
-                ->orWhereHas('member.user', function ($q) use ($term) {
-                    $q->where('name', 'like', "%{$term}%");
-                });
+            $query->where(function ($q) use ($term) {
+                $q->where('transaction_code', 'like', $term)
+                    ->orWhere('transaction_date', 'like', $term)
+                    ->orWhereHas('business', function ($businessQuery) use ($term) {
+                        $businessQuery->where('name', 'like', $term);
+                    })
+                    ->orWhereHas('member.user', function ($memberQuery) use ($term) {
+                        $memberQuery->where('name', 'like', $term);
+                    });
+            });
         }
     }
 
