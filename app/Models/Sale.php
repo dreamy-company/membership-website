@@ -43,4 +43,9 @@ class Sale extends Model
     {
         return $this->belongsTo(Transaction::class, 'IDTransaction');
     }
+
+    public function member()
+    {
+        return $this->belongsTo(Member::class, 'CustCode', 'member_code');
+    }
 }

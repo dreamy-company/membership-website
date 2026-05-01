@@ -48,8 +48,7 @@ class Index extends Component
     // Filter Variables
     public $start_date;
     public $end_date;
-    public $filter_umkm = '';
-    public $filter_member_code = '';    
+    public $filter_member_code = '';
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
@@ -57,7 +56,7 @@ class Index extends Component
     // Reset pagination ketika filter atau search diubah
     public function updated($property)
     {
-        if (in_array($property, ['search', 'start_date', 'end_date', 'filter_umkm', 'filter_member_code'])) {
+        if (in_array($property, ['search', 'start_date', 'end_date', 'filter_member_code'])) {
             $this->resetPage();
         }
     }
@@ -80,25 +79,13 @@ class Index extends Component
             $query->whereDate('transaction_date', '<=', $this->end_date);
         }
 
-        if (!empty($this->filter_umkm)) {
-            $query->where('business_id', $this->filter_umkm);
-        }
-
         if (!empty($this->filter_member_code)) {
             $query->whereHas('member', function ($q) {
                 $q->where('member_code', 'like', '%' . $this->filter_member_code . '%');
             });
         }
 
-        $transactions = $query
-            ->select('member_id')
-            ->selectRaw('MAX(id) as id')
-            ->selectRaw('MAX(transaction_code) as transaction_code')
-            ->selectRaw('MAX(transaction_date) as transaction_date')
-            ->selectRaw('SUM(amount) as amount')
-            ->groupBy('member_id')
-            ->orderByDesc('transaction_date')
-            ->paginate($this->perPage);
+        $transactions = $query->orderByDesc('transaction_date')->paginate($this->perPage);
 
         return view('livewire.admin.transactions.index', compact('transactions'));
     }

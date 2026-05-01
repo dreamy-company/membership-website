@@ -123,7 +123,7 @@
             </div>
 
             <div class="mt-6">
-                <a href="{{ route('dashboard.withdrawals') }}" class="flex w-full items-center justify-center rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-gray-200">
+                <a href="{{ route('member.withdrawals') }}" class="flex w-full items-center justify-center rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-gray-200">
                     Kelola Penarikan
                 </a>
             </div>
@@ -172,7 +172,7 @@
                     <span class="text-2xl font-bold text-neutral-900 dark:text-white">{{ $totalMembers }}</span>
                     <span class="text-xs text-neutral-500">Total Member</span>
                 </div>
-                <a href="{{ route('dashboard.members') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+                <a href="{{ route('member.members') }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
                     Lihat Detail &rarr;
                 </a>
             </div>

@@ -32,12 +32,12 @@
                 <x-table.tr>
                     <x-table.th>No</x-table.th>
                     <x-table.th>Sumber (Downline)</x-table.th>
-                    <x-table.th>Toko / UMKM</x-table.th>
                     <x-table.th>Kode Transaksi</x-table.th>
                     <x-table.th>Tanggal</x-table.th>
                     <x-table.th>Level</x-table.th>
                     <x-table.th>Persen</x-table.th>
                     <x-table.th class="text-right">Bonus Kamu</x-table.th>
+                    <x-table.th>Action</x-table.th>
                 </x-table.tr>
             </x-table.thead>
 
@@ -51,7 +51,6 @@
 
                             {{-- TAMPILAN UNTUK BONUS --}}
                             <x-table.td>{{ $item->sourceMember->user->name ?? '-' }}</x-table.td>
-                            <x-table.td>{{ $item->business->name ?? '-' }}</x-table.td>
                             <x-table.td>{{ $item->transaction_code }}</x-table.td>
                             
                             {{-- PERBAIKAN TANGGAL --}}
@@ -65,15 +64,19 @@
                             <x-table.td class="text-green-600 font-bold text-right">
                                 + Rp {{ number_format($item->bonus, 0, ',', '.') }}
                             </x-table.td>
+                            <x-table.td>
+                                @if(auth()->user()->name === ($item->sourceMember->user->name ?? ''))
+                                    <a href="{{ route('member.transactions.detail', ['transactionCode' => $item->transaction_code]) }}" class="text-blue-500 hover:underline">
+                                        Detail
+                                    </a>
+                                @endif
+                            </x-table.td>
 
                         @else
 
                             {{-- TAMPILAN UNTUK WITHDRAWAL (PENARIKAN) --}}
                             <x-table.td>
                                 <span class="text-red-600 font-semibold">Penarikan Saldo</span>
-                            </x-table.td>
-                            <x-table.td>
-                                <span class="text-red-600 font-semibold">-</span>
                             </x-table.td>
                             <x-table.td>
                                 <span class="text-red-600 font-semibold">-</span>
@@ -96,6 +99,7 @@
                             <x-table.td class="text-red-500 font-bold text-right">
                                 - Rp {{ number_format($item->amount, 0, ',', '.') }}
                             </x-table.td>
+                            <x-table.td></x-table.td>
 
                         @endif
 

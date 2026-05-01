@@ -19,7 +19,7 @@ class LoginResponse implements LoginResponseContract
         }
 
         if ($user->role === 'member') {
-            return redirect()->intended('/dashboard');
+            return redirect()->intended('/member');
         }
 
         return redirect()->intended('/dashboard');

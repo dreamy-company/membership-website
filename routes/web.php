@@ -29,6 +29,7 @@ use App\Livewire\Members\Member\Index as DashboardMemberIndex;
 use App\Livewire\Admin\BusinessesUsers\Index as BusinessesUsersIndex;
 use App\Livewire\Members\Withdrawals\Index as DashboardWithdrawalIndex;
 use App\Livewire\Members\Transactions\Index as DashboardTransactionIndex;
+use App\Livewire\Members\Transactions\Detail as DashboardTransactionDetail;
 use App\Livewire\Members\Profile\Index as DashboardProfileIndex;
 
 
@@ -60,13 +61,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('two-factor.show');
 });
 
-Route::middleware(['auth', 'role:member'])->prefix('dashboard')->name('dashboard.')->group(function () {
+Route::middleware(['auth', 'role:member'])->prefix('member')->name('member.')->group(function () {
     Route::get('/', DashboardIndex::class)->name('index');
     Route::get('/members', DashboardMemberIndex::class)->name('members');
     Route::get('/transactions', DashboardTransactionIndex::class)->name('transactions');
+    Route::get('/transactions/{transactionCode}', DashboardTransactionDetail::class)->name('transactions.detail');
     Route::get('/withdrawals', DashboardWithdrawalIndex::class)->name('withdrawals');
-    Route::get('/member/withdrawal/{id}/print', [DashboardWithdrawalIndex::class, 'printMemberReceipt'])
-        ->name('member.withdrawal.print');
+    Route::get('/withdrawal/{id}/print', [DashboardWithdrawalIndex::class, 'printMemberReceipt'])
+        ->name('withdrawal.print');
     Route::get('/profile', DashboardProfileIndex::class)->name('profile');
 });
 

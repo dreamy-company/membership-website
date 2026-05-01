@@ -40,7 +40,7 @@
                         <x-table.td>
                             <div class="flex items-center justify-center gap-2">
                                 @if($item->payment_receipt)
-                                    <a href="{{ route('dashboard.member.withdrawal.print', $item->id) }}" target="_blank" 
+                                    <a href="{{ route('member.withdrawal.print', $item->id) }}" target="_blank" 
                                     class="inline-flex shrink-0 items-center justify-center p-2 text-blue-600 bg-white hover:bg-blue-50 rounded-lg transition-colors shadow-sm border border-blue-200" 
                                     title="Preview PDF">
                                         <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
