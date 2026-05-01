@@ -30,7 +30,7 @@
                 <label class="block mb-1.5 text-sm font-medium text-gray-700">Periode Akhir</label>
                 <input type="date" wire:model.live="end_date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
             </div>
-            <div>
+            {{-- <div>
                 <label class="block mb-1.5 text-sm font-medium text-gray-700">UMKM</label>
                 <select wire:model.live="filter_umkm" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                     <option value="">Semua UMKM</option>
@@ -38,7 +38,7 @@
                         <option value="{{ $business->id }}">{{ $business->name }}</option>
                     @endforeach
                 </select>
-            </div>
+            </div> --}}
             <div>
                 <label class="block mb-1.5 text-sm font-medium text-gray-700">Member Code</label>
                 <input type="text" wire:model.live.debounce.300ms="filter_member_code" placeholder="Ketik kode member..." class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
@@ -56,7 +56,10 @@
                         <x-table.th>Member</x-table.th>
                         <x-table.th>Transaction Code</x-table.th>
                         <x-table.th>Transaction Date</x-table.th>
-                        <x-table.th>Total Amount</x-table.th>
+                        <x-table.th>Level</x-table.th>
+                        <x-table.th>Persen</x-table.th>
+                        <x-table.th>Bonus</x-table.th>
+                        {{-- <x-table.th>Total Amount</x-table.th> --}}
                     </x-table.tr>
                 </x-table.thead>
 
@@ -67,24 +70,27 @@
                             <x-table.td>{{ $item->member->user->name ?? '-' }} ({{ $item->member->member_code ?? '-' }})</x-table.td>
                             <x-table.td>{{ $item->transaction_code }}</x-table.td>
                             <x-table.td>{{ $item->transaction_date }}</x-table.td>
-                            <x-table.td>{{ number_format($item->amount ?? 0, 0, ',', '.') }}</x-table.td>
+                            <x-table.td>{{ $item->LevelMember }}</x-table.td>
+                            <x-table.td>{{ $item->BonusPercent }}%</x-table.td>
+                            <x-table.td>{{ number_format($item->bonus ?? 0, 0, ',', '.') }}</x-table.td>
+                            {{-- <x-table.td>{{ number_format($item->amount ?? 0, 0, ',', '.') }}</x-table.td> --}}
                         </x-table.tr>
                     @empty
                         <x-table.tr>
-                            <x-table.td colspan="5" class="text-center py-4">No Transactions found.</x-table.td>
+                            <x-table.td colspan="7" class="text-center py-4">No Transactions found.</x-table.td>
                         </x-table.tr>
                     @endforelse
                 </tbody>
 
                 {{-- BAGIAN FOOTER UNTUK TOTAL --}}
-                @if($transactions->count() > 0)
+                {{-- @if($transactions->count() > 0)
                     <tfoot class="bg-gray-50 border-t border-gray-200 font-bold text-gray-800">
                         <x-table.tr>
                             <x-table.td colspan="4" class="text-right">TOTAL (Halaman Ini) :</x-table.td>
                             <x-table.td>Rp {{ number_format($transactions->sum('amount'), 0, ',', '.') }}</x-table.td>
                         </x-table.tr>
                     </tfoot>
-                @endif
+                @endif --}}
 
             </x-table.table>
             
