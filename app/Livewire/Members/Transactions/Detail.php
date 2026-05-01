@@ -18,6 +18,12 @@ class Detail extends Component
 
     public function render()
     {
-        return view('livewire.members.transactions.detail');
+        $memberInfo = $this->sales->first() ? $this->sales->first()->member : null;
+        $totalBelanja = $this->sales->sum('TotalCost');
+
+        return view('livewire.members.transactions.detail', [
+            'memberInfo' => $memberInfo,
+            'totalBelanja' => $totalBelanja,
+        ]);
     }
 }
