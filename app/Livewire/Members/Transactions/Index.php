@@ -18,6 +18,9 @@ class Index extends Component
     public $name;
     public $perPage = 10;
     public $title = "Transactions";
+    public $isDetailModalOpen = false;
+    public $salesDetails = [];
+    public $selectedTransactionCode;
 
     protected $queryString = ['search' => ['except' => '']];
     protected $paginationTheme = 'tailwind';
@@ -54,17 +57,14 @@ class Index extends Component
         // ==========================================
         // 2. DATA TRANSAKSI (HEMAT MEMORI RAM)
         // ==========================================
-        $transactionsQuery = Transaction::with(['sourceMember.user:id,name', 'business:id,name'])
+        $transactionsQuery = Transaction::with(['sourceMember.user:id,name'])
             // HANYA ambil kolom yang ditampilkan di tabel agar memori tidak penuh
-            ->select('id', 'member_id', 'transaction_id', 'business_id', 'transaction_code', 'LevelMember', 'BonusPercent', 'bonus', 'created_at')
+            ->select('id', 'member_id', 'transaction_id', 'transaction_code', 'LevelMember', 'BonusPercent', 'bonus', 'created_at')
             ->where('member_id', $myMemberId);
 
         if ($this->search) {
             $transactionsQuery->where(function (Builder $query) {
                 $query->whereHas('sourceMember.user', function ($q) {
-                    $q->where('name', 'like', '%' . $this->search . '%');
-                })
-                ->orWhereHas('business', function ($q) {
                     $q->where('name', 'like', '%' . $this->search . '%');
                 })
                 ->orWhere('transaction_code', 'like', '%' . $this->search . '%')
@@ -113,5 +113,24 @@ class Index extends Component
             'totalOmzet'      => $totalOmzet,
             'totalWithdrawal' => $totalWithdrawal 
         ]);
+    }
+
+    public function showDetail($transactionCode, $sourceName)
+    {
+        $loggedInUserName = auth()->user()->name;
+
+        if ($loggedInUserName === $sourceName) {
+            return redirect()->route('member.transactions.detail', ['transactionCode' => $transactionCode]);
+        } else {
+            // Optionally, you can dispatch an event to show a notification
+            $this->dispatch('show-notification', ['message' => 'You can only view details of your own transactions.']);
+        }
+    }
+
+    public function closeDetailModal()
+    {
+        $this->isDetailModalOpen = false;
+        $this->salesDetails = [];
+        $this->selectedTransactionCode = null;
     }
 }
